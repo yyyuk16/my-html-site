@@ -1,227 +1,65 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>リアルタイムチャット</title>
-    <style>
-        /* 既存のスタイルはそのまま */
-        :root {
-            --color-pink-light: #FFE4E8;
-            --color-pink: #FFB6C1;
-            --color-pink-dark: #FF7080;
-            --color-pink-accent: #FF4D6D;
-            --color-pink-gradient: #FF8FA3;
-            --primary-color: var(--color-pink);
-            --secondary-color: var(--color-pink-dark);
-            --accent-color: var(--color-pink-accent);
-            --background-color: #FFF5F6;
-            --text-color: #1A1A1A;
-            --shadow-color: rgba(255, 112, 128, 0.15);
-            --card-bg: rgba(255, 255, 255, 0.95);
-        }
-
-        /* 既存のスタイルはそのまま */
-        body {
-            font-family: 'Noto Sans JP', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
-            min-height: 100vh;
-            color: var(--text-color);
-            line-height: 1.6;
-        }
-
-        /* 既存のスタイルはそのまま */
-        #chatBox {
-            height: 500px;
-            border: 2px solid var(--color-pink-light);
-            border-radius: 16px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            padding: 20px;
-            background-color: var(--card-bg);
-            box-shadow: 0 8px 16px var(--shadow-color);
-        }
-
-        /* 既存のスタイルはそのまま */
-        .message {
-            margin: 10px 0;
-            padding: 12px 16px;
-            border-radius: 16px;
-            max-width: 80%;
-            box-shadow: 0 2px 4px var(--shadow-color);
-        }
-
-        .user-message {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            text-align: right;
-            margin-left: auto;
-        }
-
-        .other-message {
-            background: var(--color-pink-light);
-            color: var(--text-color);
-        }
-
-        .input-container {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 14px 20px;
-            border: 2px solid var(--color-pink-light);
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px var(--shadow-color);
-        }
-
-        button {
-            padding: 14px 28px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px var(--shadow-color);
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px var(--shadow-color);
-        }
-
-        .back-button {
-            margin-top: 20px;
-        }
-
-        .mic-button {
-            background: linear-gradient(135deg, var(--accent-color), var(--color-pink-dark));
-        }
-
-        .mic-button.recording {
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Firebase チャット</title>
+  <style>
+    #chat { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; }
+    .message { margin: 5px 0; }
+    input, button { margin-top: 10px; }
+  </style>
 </head>
 <body>
-    <div id="chatBox"></div>
-    <div class="input-container">
-        <input type="text" id="messageInput" placeholder="メッセージを入力...">
-        <button onclick="startVoiceInput()" id="micButton" class="mic-button">🎤</button>
-        <button onclick="sendMessage()">送信</button>
-    </div>
-    <button class="back-button" onclick="goBack()">← 戻る</button>
+  <h2>Firebase リアルタイムチャット</h2>
+  <div id="chat"></div>
+  <input type="text" id="messageInput" placeholder="メッセージを入力">
+  <button onclick="sendMessage()">送信</button>
 
-    <script>
-        const socket = new WebSocket('ws://localhost:3001');
-        let recognition = null;
-        
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'ja-JP';
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"></script>
 
-            recognition.onresult = function(event) {
-                const text = event.results[0][0].transcript;
-                document.getElementById('messageInput').value = text;
-                stopVoiceInput();
-            };
+  <script>
+    // 🔽 ここに自分のFirebase構成情報を貼り付ける
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+  authDomain: "web01-2484d.firebaseapp.com",
+  databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+  projectId: "web01-2484d",
+  storageBucket: "web01-2484d.firebasestorage.app",
+  messagingSenderId: "90159472898",
+  appId: "1:90159472898:web:8a33ef04b4474b9911e21b",
+  measurementId: "G-148XJR01WS"
+};
 
-            recognition.onend = function() {
-                stopVoiceInput();
-            };
-        }
-        
-        socket.onopen = function() {
-            console.log('WebSocket接続が確立されました');
-        };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        socket.onmessage = function(event) {
-            const message = JSON.parse(event.data);
-            displayMessage(message);
-        };
-
-        socket.onerror = function(error) {
-            console.error('WebSocketエラー:', error);
-        };
-
-        socket.onclose = function() {
-            console.log('WebSocket接続が閉じられました');
-        };
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            
-            if (message) {
-                const messageData = {
-                    text: message,
-                    sender: 'あなた',
-                    timestamp: new Date().toLocaleTimeString()
-                };
-                
-                socket.send(JSON.stringify(messageData));
-                input.value = '';
-            }
-        }
-
-        function displayMessage(message) {
-            const chatBox = document.getElementById('chatBox');
-            const messageElement = document.createElement('div');
-            messageElement.className = `message ${message.sender === 'あなた' ? 'user-message' : 'other-message'}`;
-            messageElement.textContent = `${message.sender}: ${message.text} (${message.timestamp})`;
-            chatBox.appendChild(messageElement);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function startVoiceInput() {
-            if (recognition) {
-                const micButton = document.getElementById('micButton');
-                micButton.classList.add('recording');
-                recognition.start();
-            } else {
-                alert('お使いのブラウザは音声認識に対応していません。');
-            }
-        }
-
-        function stopVoiceInput() {
-            if (recognition) {
-                recognition.stop();
-                const micButton = document.getElementById('micButton');
-                micButton.classList.remove('recording');
-            }
-        }
-
-        function goBack() {
-            window.location.href = 'ai.html';
-        }
-
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
+    // メッセージ送信
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (text) {
+        db.ref("messages").push({
+          text: text,
+          timestamp: Date.now()
         });
-    </script>
+        input.value = '';
+      }
+    }
+
+    // メッセージ受信
+    db.ref("messages").on("child_added", (snapshot) => {
+      const msg = snapshot.val();
+      const chat = document.getElementById('chat');
+      const div = document.createElement('div');
+      div.className = "message";
+      const time = new Date(msg.timestamp).toLocaleTimeString();
+      div.textContent = `[${time}] ${msg.text}`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    });
+  </script>
 </body>
 </html>
