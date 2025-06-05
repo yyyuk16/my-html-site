@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ともだちと話そう</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* ピンクメインのカラーパレット */
+      --color-pink-light: #FFE4E8; /* 薄いピンク */
+      --color-pink: #FFB6C1;      /* メインピンク */
+      --color-pink-dark: #FF7080; /* 濃いピンク */
+      --color-pink-accent: #FF4D6D; /* アクセントピンク */
+      --color-pink-gradient: #FF8FA3; /* グラデーション用ピンク */
+
+      /* アプリケーションで使用する色変数 */
+      --primary-color: var(--color-pink);
+      --secondary-color: var(--color-pink-dark);
+      --accent-color: var(--color-pink-accent);
+      --background-color: #FFF5F6;
+      --text-color: #1A1A1A;
+      --shadow-color: rgba(255, 112, 128, 0.15);
+      --card-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
+      min-height: 100vh;
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: var(--card-bg);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px var(--shadow-color);
+    }
+
+    h1 {
+      color: var(--secondary-color);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    #chatBox {
+      border: 2px solid var(--color-pink-light);
+      border-radius: 16px;
+      padding: 20px;
+      width: calc(100% - 40px);
+      max-width: 100%;
+      height: 400px;
+      overflow-y: auto;
+      background-color: var(--card-bg);
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      box-sizing: border-box;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 1rem;
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 12px 24px;
+      border: 2px solid var(--color-pink-light);
+      border-radius: 12px;
+      font-size: 16px;
+      background: var(--card-bg);
+      transition: all 0.3s ease;
+    }
+
+    #userInput:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px var(--shadow-color);
+    }
+
+    #sendBtn {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 6px var(--shadow-color);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    #sendBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px var(--shadow-color);
+    }
+
+    .back-btn {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-top: 20px;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px var(--shadow-color);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ともだちと話そう</h1>
+
+    <div id="chatBox"></div>
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="メッセージを入力してね">
+      <button id="sendBtn">送信</button>
+    </div>
+    <button onclick="goBack()" class="back-btn">← 戻る</button>
+  </div>
+
+  <script src="doraemon.js"></script>
+  <script>
+    document.getElementById("sendBtn").addEventListener("click", realSendMessage);
+    document.getElementById("userInput").addEventListener("keypress", function (e) {
+      if (e.key === "Enter") realSendMessage();
+    });
+
+    function goBack() {
+      window.location.href = 'ai.html';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロフィール設定</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        /* 既存のスタイルはそのまま */
+        /* ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>医療情報管理アプリ</h1>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button" onclick="location.href='choise.html'">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text">ホーム</span>
+                  </button>
+                <button class="tab-button" onclick="location.href='ai.html'">
+                    <span class="tab-icon">💬</span>
+                    <span class="tab-text">チャット</span>
+                </button>
+                <button class="tab-button" onclick="location.href='Q&A.html'">
+                    <span class="tab-icon">❓</span>
+                    <span class="tab-text">Q&A</span>
+                </button>
+                <button class="tab-button" onclick="location.href='movie.html'">
+                    <span class="tab-icon">🎬</span>
+                    <span class="tab-text">動画視聴</span>
+                
+                <button class="tab-button active" onclick="location.href='profile.html'">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text">プロフィール</span>
+                </button>
+            </div> <!-- 既存のタブナビゲーション -->
+        </div>
+
+        <div class="profile-content">
+            <div class="profile-section">
+                <h2>基本情報</h2>
+                <div class="profile-form">
+                    <div class="form-group">
+                        <label for="name">お名前</label>
+                        <input type="text" id="name" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="age">年齢</label>
+                        <input type="number" id="age" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">性別</label>
+                        <select id="gender" disabled>
+                            <option value="">選択してください</option>
+                            <option value="male">男性</option>
+                            <option value="female">女性</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">電話番号</label>
+                        <input type="tel" id="phone" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">住所</label>
+                        <input type="text" id="address" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebaseの初期化
+        const firebaseConfig = {
+            // あなたのFirebase設定をここに入れてください
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // ユーザー情報の取得と表示
+        document.addEventListener('DOMContentLoaded', async () => {
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    try {
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            document.getElementById('name').value = userData.name || '';
+                            document.getElementById('age').value = userData.age || '';
+                            document.getElementById('gender').value = userData.gender || '';
+                            document.getElementById('phone').value = userData.phone || '';
+                            document.getElementById('address').value = userData.address || '';
+                        }
+                    } catch (error) {
+                        console.error('データの取得に失敗しました:', error);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

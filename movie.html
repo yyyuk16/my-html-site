@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>動画視聴アプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* ピンクメインのカラーパレット */
+      --color-pink-light: #FFE4E8; /* 薄いピンク */
+      --color-pink: #FFB6C1;      /* メインピンク */
+      --color-pink-dark: #FF7080; /* 濃いピンク */
+      --color-pink-accent: #FF4D6D; /* アクセントピンク */
+      --color-pink-gradient: #FF8FA3; /* グラデーション用ピンク */
+
+      /* アプリケーションで使用する色変数 */
+      --primary-color: var(--color-pink);
+      --secondary-color: var(--color-pink-dark);
+      --accent-color: var(--color-pink-accent);
+      --background-color: #FFF5F6;
+      --text-color: #1A1A1A;
+      --shadow-color: rgba(255, 112, 128, 0.15);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --todo-bg: var(--card-bg);
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    .container {
+      padding: 25px;
+      max-width: 1000px;
+      width: 95%;
+      margin: 30px auto;
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+      text-align: center;
+      min-height: 80vh;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 28px;
+      color: var(--text-color);
+    }
+
+    .header p {
+      font-size: 18px;
+      color: #555;
+    }
+
+    .tab-container {
+      margin-bottom: 25px;
+    }
+
+    .tab-header {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      background-color: var(--primary-color);
+      border-radius: 25px;
+      padding: 6px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+    }
+
+    .tab-button {
+      padding: 12px 25px;
+      background: transparent;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.8);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-button.active {
+      background: white;
+      color: var(--primary-color);
+      box-shadow: 0 2px 10px var(--shadow-color);
+    }
+
+    .main-content {
+      display: flex;
+      gap: 25px;
+      margin-top: 25px;
+      text-align: left;
+    }
+
+    h2, h3 {
+      color: var(--secondary-color);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .video-container {
+      margin: 24px 0;
+    }
+
+    video, iframe {
+      width: 100%;
+      border-radius: 12px;
+      border: 2px solid var(--color-pink-light);
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px var(--shadow-color);
+    }
+
+    .back-btn {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin: 8px;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      display: block;
+      margin: 24px auto;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px var(--shadow-color);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>医療情報管理アプリ</h1>
+    </div>
+    
+    <div class="tab-container">
+      <div class="tab-header">
+        <button class="tab-button" onclick="location.href='choise.html'">
+          <span class="tab-icon">👤</span>
+          <span class="tab-text">ホーム</span>
+        </button>
+        <button class="tab-button" onclick="location.href='ai.html'">
+          <span class="tab-icon">💬</span>
+          <span class="tab-text">チャット</span>
+        </button>
+        <button class="tab-button" onclick="location.href='Q&A.html'">
+          <span class="tab-icon">❓</span>
+          <span class="tab-text">Q&A</span>
+        </button>
+        <button class="tab-button active" onclick="location.href='movie.html'">
+          <span class="tab-icon">🎬</span>
+          <span class="tab-text">動画視聴</span>
+        </button>
+        <button class="tab-button" onclick="location.href='profile.html'">
+          <span class="tab-icon">👤</span>
+          <span class="tab-text">プロフィール</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="video-container">
+      <!-- ローカル動画再生 -->
+      <video id="myVideo" controls>
+        <source src="video.mp4" type="video/mp4">
+        このブラウザは video タグをサポートしていません。
+      </video>
+
+      <!-- YouTube埋め込み例 -->
+      <h3>YouTubeから再生</h3>
+      <iframe
+        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+        title="YouTube video"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    </div>
+    <button onclick="goBack()" class="back-btn">← 戻る</button>
+  </div>
+
+  <script>
+    function goBack() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
