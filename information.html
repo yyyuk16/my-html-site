@@ -1,207 +1,277 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基本情報入力</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        /* 既存のスタイルはそのまま維持 */
-        :root {
-            --color-pink-light: #FFE4E8;
-            --color-pink: #FFB6C1;
-            --color-pink-dark: #FF7080;
-            --color-pink-accent: #FF4D6D;
-            --primary-color: var(--color-pink);
-            --secondary-color: var(--color-pink-dark);
-            --accent-color: var(--color-pink-accent);
-            --background-color: #FFF5F6;
-            --text-color: #1A1A1A;
-            --shadow-color: rgba(255, 112, 128, 0.15);
-            --card-bg: rgba(255, 255, 255, 0.95);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基本情報入力</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-pink-light: #FFE4E8;
+      --color-pink: #FFB6C1;
+      --color-pink-dark: #FF7080;
+      --color-pink-accent: #FF4D6D;
+      --primary-color: var(--color-pink);
+      --secondary-color: var(--color-pink-dark);
+      --accent-color: var(--color-pink-accent);
+      --background-color: #FFF5F6;
+      --text-color: #1A1A1A;
+      --shadow-color: rgba(255, 112, 128, 0.15);
+      --card-bg: rgba(255, 255, 255, 0.95);
+    }
 
-        /* 既存のスタイルはそのまま維持 */
-        body {
-            font-family: 'Noto Sans JP', sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-color);
-        }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-color);
+    }
 
-        .container {
-            padding: 25px;
-            max-width: 800px;
-            width: 95%;
-            margin: 30px auto;
-            background: var(--card-bg);
-            border-radius: 14px;
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
+    .container {
+      padding: 25px;
+      max-width: 800px;
+      width: 95%;
+      margin: 30px auto;
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+    }
 
-        h1 {
-            text-align: center;
-            color: var(--text-color);
-            margin-bottom: 30px;
-        }
+    h1, h2 {
+      text-align: center;
+      color: var(--text-color);
+      margin-bottom: 30px;
+    }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+    .form-group {
+      margin-bottom: 20px;
+    }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
 
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--color-pink-light);
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--color-pink-light);
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
 
-        input:focus, select:focus {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 8px var(--shadow-color);
-            outline: none;
-        }
+    input:focus, select:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 8px var(--shadow-color);
+      outline: none;
+    }
 
-        button {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            width: 100%;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-        }
+    button {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      width: 100%;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+    }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
-    </style>
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow-color);
+    }
+
+    #viewProfile p {
+      font-size: 16px;
+      margin: 10px 0;
+    }
+
+    #toggleEdit {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-      <h2>ユーザー情報入力</h2>
-      <form id="userInfoForm">
-        <div class="form-group">
-          <label>名前: <input type="text" id="name" required></label>
-        </div>
-        <div class="form-group">
-          <label>年齢: <input type="number" id="age" required></label>
-        </div>
-        <div class="form-group">
-          <label>性別: <input type="text" id="gender" required></label>
-        </div>
-        <div class="form-group">
-          <label>電話番号: <input type="tel" id="phone" required></label>
-        </div>
-        <div class="form-group">
-          <label>身長(cm): <input type="number" id="height" required></label>
-        </div>
-        <div class="form-group">
-          <label>体重(kg): <input type="number" id="weight" required></label>
-        </div>
-        <div class="form-group">
-          <label>血液型: <input type="text" id="bloodType" required></label>
-        </div>
+  <div class="container">
+    <h2>ユーザー情報入力</h2>
+    
+    <form id="userInfoForm" style="display: none;">
+      <div class="form-group">
+        <label>名前: <input type="text" id="name" required></label>
+      </div>
+      <div class="form-group">
+        <label>年齢: <input type="number" id="age" required></label>
+      </div>
+      <div class="form-group">
+        <label>性別: <input type="text" id="gender" required></label>
+      </div>
+      <div class="form-group">
+        <label>電話番号: <input type="tel" id="phone" required></label>
+      </div>
+      <div class="form-group">
+        <label>身長(cm): <input type="number" id="height" required></label>
+      </div>
+      <div class="form-group">
+        <label>体重(kg): <input type="number" id="weight" required></label>
+      </div>
+      <div class="form-group">
+        <label>血液型: <input type="text" id="bloodType" required></label>
+      </div>
+      <div class="button-group">
         <button type="submit">保存</button>
-      </form>
+        <button type="button" id="cancelEdit">キャンセル</button>
+      </div>
+    </form>
+
+    <div id="viewProfile">
+      <h2>プロフィール情報</h2>
+      <p><strong>名前:</strong> <span id="v_name"></span></p>
+      <p><strong>年齢:</strong> <span id="v_age"></span></p>
+      <p><strong>性別:</strong> <span id="v_gender"></span></p>
+      <p><strong>電話番号:</strong> <span id="v_phone"></span></p>
+      <p><strong>身長:</strong> <span id="v_height"></span> cm</p>
+      <p><strong>体重:</strong> <span id="v_weight"></span> kg</p>
+      <p><strong>血液型:</strong> <span id="v_bloodType"></span></p>
+      <div class="button-group">
+        <button id="toggleEdit">編集</button>
+        <button id="backButton" onclick="window.location.href='profile.html'">戻る</button>
+      </div>
     </div>
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
-    <script>
-        // Firebase 設定
-        const firebaseConfig = {
-          apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
-          authDomain: "web01-2484d.firebaseapp.com",
-          projectId: "web01-2484d",
-          storageBucket: "web01-2484d.appspot.com",
-          messagingSenderId: "90159472898",
-          appId: "1:90159472898:web:261ec71f9919611011e21b"
-        };
-    
-        // Firebase 初期化
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-    
-        // 認証状態の確認とデータ読み込み
-        window.addEventListener('load', () => {
-          firebase.auth().onAuthStateChanged(async (user) => {
-            if (user) {
-              try {
-                const doc = await db.collection('users').doc(user.uid).get();
-                if (doc.exists) {
-                  const data = doc.data();
-                  document.getElementById('name').value = data.name || '';
-                  document.getElementById('age').value = data.age || '';
-                  document.getElementById('gender').value = data.gender || '';
-                  document.getElementById('phone').value = data.phone || '';
-                  document.getElementById('height').value = data.height || '';
-                  document.getElementById('weight').value = data.weight || '';
-                  document.getElementById('bloodType').value = data.bloodType || '';
-                } else {
-                  console.log("ユーザーデータはまだFirestoreにありません。");
-                }
-              } catch (error) {
-                console.error("ユーザーデータの取得中にエラー:", error);
-                alert("ユーザーデータの読み込みに失敗しました。");
-              }
-            } else {
-              console.log("ユーザーがログインしていません。");
-              window.location.href = 'index.html'; // ログインページにリダイレクト
-            }
-          });
-        });
-    
-        // フォーム送信 → Firestoreに保存
-        document.getElementById('userInfoForm').addEventListener('submit', async (e) => {
-          e.preventDefault();
-    
-          const user = firebase.auth().currentUser;
-          if (!user) {
-            alert("ログインしていません。");
-            window.location.href = 'index.html'; // ログインページにリダイレクト
-            return;
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+      authDomain: "web01-2484d.firebaseapp.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.appspot.com",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 閲覧モード表示
+    function showViewMode(data) {
+      document.getElementById('userInfoForm').style.display = 'none';
+      document.getElementById('viewProfile').style.display = 'block';
+
+      document.getElementById('v_name').textContent = data.name || '';
+      document.getElementById('v_age').textContent = data.age || '';
+      document.getElementById('v_gender').textContent = data.gender || '';
+      document.getElementById('v_phone').textContent = data.phone || '';
+      document.getElementById('v_height').textContent = data.height || '';
+      document.getElementById('v_weight').textContent = data.weight || '';
+      document.getElementById('v_bloodType').textContent = data.bloodType || '';
+    }
+
+    // 編集モード表示
+    function showEditMode(data) {
+      document.getElementById('viewProfile').style.display = 'none';
+      document.getElementById('userInfoForm').style.display = 'block';
+
+      document.getElementById('name').value = data.name || '';
+      document.getElementById('age').value = data.age || '';
+      document.getElementById('gender').value = data.gender || '';
+      document.getElementById('phone').value = data.phone || '';
+      document.getElementById('height').value = data.height || '';
+      document.getElementById('weight').value = data.weight || '';
+      document.getElementById('bloodType').value = data.bloodType || '';
+    }
+
+    // 編集に切り替え
+    document.getElementById('toggleEdit').addEventListener('click', () => {
+      const user = firebase.auth().currentUser;
+      if (user) {
+        db.collection('users').doc(user.uid).get().then((doc) => {
+          if (doc.exists) {
+            showEditMode(doc.data());
           }
-    
-          const userData = {
-            name: document.getElementById('name').value,
-            age: parseInt(document.getElementById('age').value),
-            gender: document.getElementById('gender').value,
-            phone: document.getElementById('phone').value,
-            height: parseInt(document.getElementById('height').value),
-            weight: parseInt(document.getElementById('weight').value),
-            bloodType: document.getElementById('bloodType').value
-          };
-    
+        });
+      }
+    });
+
+    // キャンセルボタン
+    document.getElementById('cancelEdit').addEventListener('click', () => {
+      const user = firebase.auth().currentUser;
+      if (user) {
+        db.collection('users').doc(user.uid).get().then((doc) => {
+          if (doc.exists) {
+            showViewMode(doc.data());
+          }
+        });
+      }
+    });
+
+    // 認証と読み込み
+    window.addEventListener('load', () => {
+      firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
           try {
-            await db.collection('users').doc(user.uid).set(userData);
-            alert("ユーザー情報を保存しました。");
+            const doc = await db.collection('users').doc(user.uid).get();
+            if (doc.exists) {
+              const data = doc.data();
+              showViewMode(data);
+            } else {
+              // 新規ユーザーの場合、編集モードを表示
+              showEditMode({});
+            }
           } catch (error) {
-            console.error("保存エラー:", error);
-            alert("ユーザー情報の保存に失敗しました。");
+            console.error("ユーザーデータの取得中にエラー:", error);
+            alert("ユーザーデータの読み込みに失敗しました。");
           }
-        });
-    </script>
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
+    });
+
+    // 保存処理
+    document.getElementById('userInfoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert("ログインしていません。");
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const userData = {
+        name: document.getElementById('name').value,
+        age: parseInt(document.getElementById('age').value),
+        gender: document.getElementById('gender').value,
+        phone: document.getElementById('phone').value,
+        height: parseInt(document.getElementById('height').value),
+        weight: parseInt(document.getElementById('weight').value),
+        bloodType: document.getElementById('bloodType').value
+      };
+
+      try {
+        await db.collection('users').doc(user.uid).set(userData);
+        alert("ユーザー情報を保存しました。");
+        showViewMode(userData);
+      } catch (error) {
+        console.error("保存エラー:", error);
+        alert("ユーザー情報の保存に失敗しました。");
+      }
+    });
+  </script>
 </body>
 </html>

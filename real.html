@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>Firebase チャット</title>
+  <meta charset="UTF-8" />
+  <title>Firebase リアルタイムチャット</title>
   <style>
     #chat { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; }
     .message { margin: 5px 0; }
@@ -12,36 +12,34 @@
 <body>
   <h2>Firebase リアルタイムチャット</h2>
   <div id="chat"></div>
-  <input type="text" id="messageInput" placeholder="メッセージを入力">
-  <button onclick="sendMessage()">送信</button>
+  <input type="text" id="messageInput" placeholder="メッセージを入力" />
+  <button id="sendBtn">送信</button>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
 
-  <script>
-    // 🔽 ここに自分のFirebase構成情報を貼り付ける
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
-  authDomain: "web01-2484d.firebaseapp.com",
-  databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
-  projectId: "web01-2484d",
-  storageBucket: "web01-2484d.firebasestorage.app",
-  messagingSenderId: "90159472898",
-  appId: "1:90159472898:web:8a33ef04b4474b9911e21b",
-  measurementId: "G-148XJR01WS"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+      authDomain: "web01-2484d.firebaseapp.com",
+      databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.firebasestorage.app",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:8a33ef04b4474b9911e21b",
+      measurementId: "G-148XJR01WS"
+    };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const messagesRef = ref(db, "messages");
 
     // メッセージ送信
     function sendMessage() {
       const input = document.getElementById('messageInput');
       const text = input.value.trim();
       if (text) {
-        db.ref("messages").push({
+        push(messagesRef, {
           text: text,
           timestamp: Date.now()
         });
@@ -49,12 +47,14 @@ const firebaseConfig = {
       }
     }
 
-    // メッセージ受信
-    db.ref("messages").on("child_added", (snapshot) => {
+    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+
+    // メッセージ受信（リアルタイム）
+    onChildAdded(messagesRef, (snapshot) => {
       const msg = snapshot.val();
       const chat = document.getElementById('chat');
       const div = document.createElement('div');
-      div.className = "message";
+      div.className = 'message';
       const time = new Date(msg.timestamp).toLocaleTimeString();
       div.textContent = `[${time}] ${msg.text}`;
       chat.appendChild(div);

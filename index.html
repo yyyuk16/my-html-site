@@ -237,22 +237,23 @@
       document.getElementById('mailOptions').style.display = 'block';
     }
     function signInWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().signInWithPopup(provider)
-        .then((result) => {
-          const user = result.user;
-          const message = currentLang === 'ja' ? 
-            `${user.displayName} さんとしてログインしました！` :
-            `Logged in as ${user.displayName}!`;
-          alert(message);
-          const userName = user.displayName;
-          localStorage.setItem('loggedInUserName', userName);
-          window.location.href = 'choise.html';
-        })
-        .catch((error) => {
-          console.error("ログイン失敗:", error.message);
-        });
-    }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider)
+    .then((result) => {
+      const user = result.user;
+      const message = currentLang === 'ja' ? 
+        `${user.displayName} さんとしてログインしました！` :
+        `Logged in as ${user.displayName}!`;
+      alert(message);
+      const userName = user.displayName;
+      localStorage.setItem('loggedInUserName', userName);
+      window.location.href = 'choise.html';
+    })
+    .catch((error) => {
+      console.error("ログイン失敗:", error.message);
+    });
+}
+
     function handleEmailAuth(isNewUser) {
       const email = document.getElementById("emailInput").value;
       const password = document.getElementById("passwordInput").value;
