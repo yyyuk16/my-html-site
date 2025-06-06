@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>医療情報管理アプリ</title> <!-- タイトルを画像に合わせる -->
+    <title>医療情報管理アプリ</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* ピンクメインのカラーパレット (index.htmlと統一) */
-            --color-pink-light: #FFE4E8; /* 薄いピンク */
-            --color-pink: #FFB6C1;      /* メインピンク */
-            --color-pink-dark: #FF7080; /* 濃いピンク */
-            --color-pink-accent: #FF4D6D; /* アクセントピンク */
-            --color-pink-gradient: #FF8FA3; /* グラデーション用ピンク */
-
-            /* アプリケーションで使用する色変数 (index.htmlと統一) */
-            --primary-color: var(--color-pink); /* ボタンや強調色に */
-            --secondary-color: var(--color-pink-dark); /* ボタンのグラデーション終点やホバー色に */
-            --accent-color: var(--color-pink-accent); /* アクセントに */
-            --background-color: #FFF5F6; /* 薄いピンクの背景色 */
-            --text-color: #1A1A1A; /* テキスト色 */
-            --shadow-color: rgba(255, 112, 128, 0.15); /* ピンクの影 */
-            --card-bg: rgba(255, 255, 255, 0.95); /* カード背景 */
-            --todo-bg: var(--card-bg); /* todoリストの背景色をカード背景色に合わせる */
+            --color-pink-light: #FFE4E8;
+            --color-pink: #FFB6C1;
+            --color-pink-dark: #FF7080;
+            --color-pink-accent: #FF4D6D;
+            --color-pink-gradient: #FF8FA3;
+            --primary-color: var(--color-pink);
+            --secondary-color: var(--color-pink-dark);
+            --accent-color: var(--color-pink-accent);
+            --background-color: #FFF5F6;
+            --text-color: #1A1A1A;
+            --shadow-color: rgba(255, 112, 128, 0.15);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --todo-bg: var(--card-bg);
         }
 
         body {
@@ -59,11 +56,6 @@
             margin-bottom: 10px;
             font-size: 28px;
             color: var(--text-color);
-        }
-
-        .header p {
-            font-size: 18px;
-            color: #555;
         }
 
         .tab-container {
@@ -137,6 +129,13 @@
             align-items: center;
             margin-bottom: 10px;
             cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .todo-item:hover {
+            background: var(--color-pink-light);
         }
 
         .todo-item input[type="checkbox"] {
@@ -156,6 +155,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
+            border-radius: 10px;
         }
 
         .greeting-area p {
@@ -163,35 +165,7 @@
             font-weight: 500;
             margin-bottom: 18px;
             color: var(--text-color);
-        }
-
-        .user-photo-container {
-            width: 190px;
-            height: 200px;
-            background-color: #FFFFFF;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .user-photo {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 0;
-        }
-
-        .photo-upload-button {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
+            text-align: center;
         }
 
         .back-button {
@@ -205,44 +179,14 @@
             font-size: 16px;
             font-weight: 500;
             letter-spacing: 0.5px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             display: inline-block;
             box-shadow: 0 4px 6px var(--shadow-color);
-            text-decoration: none;
-            position: relative;
-            overflow: hidden;
         }
 
-        .back-button::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 5px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.5);
-            opacity: 0;
-            border-radius: 100%;
-            transform: scale(1, 1) translate(-20%);
-            transform-origin: 50% 50%;
-        }
-
-     
-
-
-        .back-button:active::after {
-            animation: ripple 1s ease-out;
-        }
-
-        @keyframes ripple {
-            0% {
-                transform: scale(0, 0);
-                opacity: 0.5;
-            }
-            100% {
-                transform: scale(20, 20);
-                opacity: 0;
-            }
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px var(--shadow-color);
         }
 
         @media (max-width: 768px) {
@@ -264,103 +208,66 @@
                 padding: 10px 20px;
             }
 
-            .header h1 {
-                font-size: 22px;
-            }
-
             .main-content {
                 flex-direction: column;
                 gap: 15px;
             }
 
-            .todo-list h2 {
-                font-size: 18px;
-            }
-
-            .todo-item label {
-                font-size: 14px;
+            .greeting-area {
+                padding: 15px;
             }
 
             .greeting-area p {
                 font-size: 18px;
             }
+        }
 
-            .user-photo-container {
-                width: 130px;
-                height: 130px;
+        @keyframes fadeIn {
+            from { 
+                opacity: 0;
+                transform: translateY(-16px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-         /* index.htmlからカスタムスクロールバーのスタイルをコピー */
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-          background: var(--color-pink-light);
-          border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-          background: var(--primary-color);
-          border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-          background: var(--secondary-color);
-        }
-
-         /* index.htmlから@keyframes fadeInをコピー */
-        @keyframes fadeIn {
-          from { 
-            opacity: 0;
-            transform: translateY(-16px);
-          }
-          to { 
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        /* 挨拶メッセージにfadeInアニメーションを適用 */
         #greetingText {
             animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>医療情報管理アプリ</h1> <!-- タイトルを画像に合わせる -->
-            <!-- <p>利用したい機能を選んでください</p> --> <!-- 説明文は削除または変更 -->
+            <h1>医療情報管理アプリ</h1>
         </div>
         <div class="tab-container">
             <div class="tab-header">
-                <button class="tab-button" onclick="location.href='choise.html'">
+                <button class="tab-button active" onclick="location.href='choise.html'">
                     <span class="tab-icon">👤</span>
                     <span class="tab-text">ホーム</span>
-                  </button>
-                <button class="tab-button active" onclick="location.href='ai.html'"> <!-- AIチャット画面へ遷移 -->
+                </button>
+                <button class="tab-button" onclick="location.href='ai.html'">
                     <span class="tab-icon">💬</span>
                     <span class="tab-text">チャット</span>
                 </button>
-                <button class="tab-button" onclick="location.href='Q&A.html'"> <!-- Q&A画面へ遷移 -->
+                <button class="tab-button" onclick="location.href='Q&A.html'">
                     <span class="tab-icon">❓</span>
                     <span class="tab-text">Q&A</span>
                 </button>
-                <button class="tab-button" onclick="location.href='movie.html'"> <!-- 動画視聴画面へ遷移 -->
+                <button class="tab-button" onclick="location.href='movie.html'">
                     <span class="tab-icon">🎬</span>
                     <span class="tab-text">動画視聴</span>
                 </button>
-                <button class="tab-button" onclick="location.href='profile.html'"> <!-- プロフィール画面へ遷移 -->
-                    <span class="tab-icon">🎬</span>
+                <button class="tab-button" onclick="location.href='profile.html'">
+                    <span class="tab-icon">👤</span>
                     <span class="tab-text">プロフィール</span>
                 </button>
             </div>
         </div>
 
-        <!-- 画像のメインコンテンツエリアを追加 -->
         <div class="main-content">
             <div class="todo-list">
                 <h2>今日のやること</h2>
@@ -380,55 +287,13 @@
             <div class="greeting-area">
                 <p id="greetingText" style="margin-top: -15px;">〇〇さん、おかえりなさい！</p> <!-- ユーザー名表示用にIDを追加 -->
                 <div class="user-photo-container">
-                    <img id="userPhoto" class="user-photo" src="smile_man_color.png" alt="ユーザー写真" style="border-radius: 0; width: 150px; height: 200px;">
+                
                 </div>
             </div>
         </div>
 
-        <!-- 既存のタブコンテンツは非表示にするか削除 -->
-        <!--
-        <div id="chat" class="tab-content active">
-            <div class="options">
-                <div class="option-card" onclick="aiChat()">
-                    <h3>AIと会話</h3>
-                    <p>AIとチャットを楽しめます</p>
-                </div>
-                <div class="option-card" onclick="goToRealtimeChat()">
-                    <h3>リアルタイムチャット</h3>
-                    <p>他のユーザーとチャットできます</p>
-                </div>
-                <div class="option-card" onclick="teacher()">
-                    <h3>先生と会話</h3>
-                    <p>先生とチャットを楽しめます</p>
-                </div>
-                <div class="option-card" onclick="friend()">
-                    <h3>友達と会話</h3>
-                    <p>友達とチャットを楽しめます</p>
-                </div>
-            </div>
-        </div>
 
-        <div id="qa" class="tab-content">
-            <div class="options">
-                <div class="option-card" onclick="QA()">
-                    <h3>Q&A</h3>
-                    <p>質問に答えます</p>
-                </div>
-            </div>
-        </div>
 
-        <div id="media" class="tab-content">
-            <div class="options">
-                <div class="option-card" onclick="movie()">
-                    <h3>動画視聴</h3>
-                    <p>動画コンテンツを楽しめます</p>
-                </div>
-            </div>
-        </div>
-        -->
-
-        <button class="back-button" onclick="goBack()">← 戻る</button>
-    </div>
 
     <script>
         // タブ切り替え関数は不要になったため削除または変更

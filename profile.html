@@ -220,7 +220,12 @@
     <script>
         // Firebaseの初期化
         const firebaseConfig = {
-            // あなたのFirebase設定をここに入れてください
+            apiKey: "AIzaSyDXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            authDomain: "your-app.firebaseapp.com",
+            projectId: "your-app",
+            storageBucket: "your-app.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890"
         };
         firebase.initializeApp(firebaseConfig);
 
@@ -232,18 +237,45 @@
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     try {
+                        // Firestoreからユーザーデータを取得
                         const userDoc = await db.collection('users').doc(user.uid).get();
+                        
                         if (userDoc.exists) {
                             const userData = userDoc.data();
+                            
+                            // 各フィールドにデータを設定
                             document.getElementById('name').value = userData.name || '';
                             document.getElementById('age').value = userData.age || '';
                             document.getElementById('gender').value = userData.gender || '';
                             document.getElementById('phone').value = userData.phone || '';
                             document.getElementById('address').value = userData.address || '';
+                            
+                            // プロフィール画像の設定（存在する場合）
+                            if (userData.profileImage) {
+                                document.getElementById('profile-image').src = userData.profileImage;
+                            }
+                            
+                            // メールアドレスの表示
+                            document.getElementById('email').value = user.email || '';
+                            
+                            console.log('ユーザーデータを正常に取得しました:', userData);
+                        } else {
+                            console.log('ユーザードキュメントが存在しません');
+                            // 新規ユーザーの場合は空のデータを表示
+                            document.getElementById('name').value = '';
+                            document.getElementById('age').value = '';
+                            document.getElementById('gender').value = '';
+                            document.getElementById('phone').value = '';
+                            document.getElementById('address').value = '';
                         }
                     } catch (error) {
                         console.error('データの取得に失敗しました:', error);
+                        alert('データの取得に失敗しました。もう一度お試しください。');
                     }
+                } else {
+                    console.log('ユーザーがログインしていません');
+                    // 未ログインの場合はログインページにリダイレクト
+                    window.location.href = 'login.html';
                 }
             });
         });

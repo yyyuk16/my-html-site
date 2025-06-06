@@ -198,30 +198,133 @@
             </div>
         </div>
 
-        <h1>AIとチャット</h1>
-        <p>お話したいAIを選んでください</p>
+        <div class="chat-header">
+            <h1>AIとチャット</h1>
+            <p class="subtitle">お話したいAIを選んでください</p>
+        </div>
         
         <div class="ai-options">
             <div class="ai-card" onclick="startChat('teacher')">
-                <img src="https://via.placeholder.com/100" alt="先生">
-                <h3>AI先生</h3>
-                <p>学習や教育に関する質問に答えます</p>
+                <div class="card-content">
+                    <div class="icon-wrapper">
+                        <span class="ai-icon">👨‍🏫</span>
+                    </div>
+                    <h3>AI先生</h3>
+                    <p>学習や教育に関する質問に答えます</p>
+                    <button class="start-chat-btn">チャットを始める</button>
+                </div>
             </div>
             
             <div class="ai-card" onclick="startChat('friend')">
-                <img src="https://via.placeholder.com/100" alt="友達">
-                <h3>AI友達</h3>
-                <p>カジュアルな会話を楽しめます</p>
+                <div class="card-content">
+                    <div class="icon-wrapper">
+                        <span class="ai-icon">👥</span>
+                    </div>
+                    <h3>AI友達</h3>
+                    <p>カジュアルな会話を楽しめます</p>
+                    <button class="start-chat-btn">チャットを始める</button>
+                </div>
             </div>
 
             <div class="ai-card" onclick="startChat('real')">
-                <img src="https://via.placeholder.com/100" alt="リアルタイム">
-                <h3>リアルタイム</h3>
-                <p>実際の会話を楽しめます</p>
+                <div class="card-content">
+                    <div class="icon-wrapper">
+                        <span class="ai-icon">💬</span>
+                    </div>
+                    <h3>リアルタイム</h3>
+                    <p>実際の会話を楽しめます</p>
+                    <button class="start-chat-btn">チャットを始める</button>
+                </div>
             </div>
         </div>
 
-        <button class="back-button" onclick="goBack()">← 戻る</button>
+        <style>
+            .chat-header {
+                text-align: center;
+                margin-bottom: 40px;
+            }
+
+            .chat-header h1 {
+                font-size: 32px;
+                color: var(--text-color);
+                margin-bottom: 10px;
+            }
+
+            .subtitle {
+                font-size: 18px;
+                color: #666;
+            }
+
+            .ai-options {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 25px;
+                padding: 20px;
+            }
+
+            .ai-card {
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 4px 15px var(--shadow-color);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                cursor: pointer;
+                overflow: hidden;
+            }
+
+            .ai-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 20px var(--shadow-color);
+            }
+
+            .card-content {
+                padding: 25px;
+                text-align: center;
+            }
+
+            .icon-wrapper {
+                width: 80px;
+                height: 80px;
+                margin: 0 auto 20px;
+                background: var(--color-pink-light);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .ai-icon {
+                font-size: 40px;
+            }
+
+            .ai-card h3 {
+                font-size: 24px;
+                color: var(--text-color);
+                margin-bottom: 10px;
+            }
+
+            .ai-card p {
+                color: #666;
+                margin-bottom: 20px;
+                line-height: 1.5;
+            }
+
+            .start-chat-btn {
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 25px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background 0.3s ease;
+            }
+
+            .start-chat-btn:hover {
+                background: var(--secondary-color);
+            }
+        </style>
+
+       
     </div>
 
     <script>
