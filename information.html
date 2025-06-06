@@ -1,57 +1,29 @@
-
-</thought>
-
-**Clarifying Data Requirements**
-
-I'm now examining the user's request to modify code in `templates/information.html`. The user wishes to reflect data from Firebase Firestore within this file. Crucially, the user wants data inputted on the page to match the Firestore structure provided in the image, specifically the fields within the user document, like age, blood type, gender, etc. The goal seems to be aligning the input form with the data storage format.
-
-
-**Assessing Code Compatibility**
-
-I'm now reviewing the provided user data and the structure within `templates/information.html`. The user's intention is for the HTML form to reflect information from Firebase Firestore. It seems like I need to verify the current code's compliance with the data structures specified in the image. I'll focus on data types and ensure the form fields correctly match those in the Firestore collection.
-
-
-**Deciphering User Intent**
-
-I'm delving into the user's aim, centered on altering the code within `templates/information.html`. The core request focuses on ensuring the input form's data submission mirrors the data structure depicted in the provided Firebase Firestore image. Although the form's fields already align, the key lies in confirming the data types and the successful storage within Firestore.
-
-
-**Confirming Data Consistency**
-
-I'm now re-evaluating the user's objective: to alter the code within `templates/information.html`. They want to align the page's data submission process with a specific Firebase Firestore data structure, as depicted in the provided image. After detailed review, the existing code already captures and saves data in the correct format. The most probable need is for me to affirm that the current code indeed saves the information matching the Firestore schema, and to rewrite as instructed. The HTML form matches the Firebase structure. Therefore, any needed code modifications will focus on minor refinements to improve clarity or code comments.
-
-
-**Confirming Code Functionality**
-
-I'm now clarifying the user's request, focused on rewriting a section of code in `templates/information.html`. The user's image showcases a Firebase Firestore data structure, with specific fields like 'age', 'bloodType', and 'name'. Since the HTML form already captures these, I believe the core request is to ensure the submitted data aligns with this structure. My assessment confirms the existing code stores the form data correctly. The most appropriate action is to add comments to clarify the code's functionality, satisfying the need to "rewrite" while making it more readable.<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>基本情報入力</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* 既存のスタイルはそのまま維持 */
     :root {
-      --color-pink-light: #FFE4E8;
-      --color-pink: #FFB6C1;
-      --color-pink-dark: #FF7080;
-      --color-pink-accent: #FF4D6D;
-      --primary-color: var(--color-pink);
+      --color-pink-light: #FFE4E1;
+      --color-pink-medium: #FFB6C1;
+      --color-pink-dark: #FF69B4;
+      --color-pink-accent: #FFC0CB;
+      --primary-color: var(--color-pink-medium);
       --secondary-color: var(--color-pink-dark);
       --accent-color: var(--color-pink-accent);
-      --background-color: #FFF5F6;
+      --background-color: var(--color-pink-light);
       --text-color: #1A1A1A;
-      --shadow-color: rgba(255, 112, 128, 0.15);
+      --shadow-color: rgba(0,0,0,0.08);
       --card-bg: rgba(255, 255, 255, 0.95);
     }
 
-    /* 既存のスタイルはそのまま維持 */
     body {
       font-family: 'Noto Sans JP', sans-serif;
       margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
+      padding: 20px;
+      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink-accent));
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -60,18 +32,18 @@ I'm now clarifying the user's request, focused on rewriting a section of code in
     }
 
     .container {
-      padding: 25px;
-      max-width: 800px;
-      width: 95%;
-      margin: 30px auto;
       background: var(--card-bg);
+      padding: 30px;
       border-radius: 14px;
       box-shadow: 0 4px 12px var(--shadow-color);
+      width: 90%;
+      max-width: 600px;
+      margin-top: 20px;
     }
 
-    h1, h2 {
+    h1 {
+      color: var(--secondary-color);
       text-align: center;
-      color: var(--text-color);
       margin-bottom: 30px;
     }
 
@@ -82,22 +54,22 @@ I'm now clarifying the user's request, focused on rewriting a section of code in
     label {
       display: block;
       margin-bottom: 8px;
+      color: var(--secondary-color);
       font-weight: 500;
     }
 
     input, select {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       border: 2px solid var(--color-pink-light);
       border-radius: 8px;
       font-size: 16px;
-      transition: all 0.3s ease;
+      transition: border-color 0.3s;
     }
 
     input:focus, select:focus {
-      border-color: var(--secondary-color);
-      box-shadow: 0 0 8px var(--shadow-color);
       outline: none;
+      border-color: var(--color-pink-dark);
     }
 
     button {
@@ -118,141 +90,83 @@ I'm now clarifying the user's request, focused on rewriting a section of code in
       transform: translateY(-2px);
       box-shadow: 0 4px 12px var(--shadow-color);
     }
-
-    .welcome-message {
-      text-align: center;
-      margin-bottom: 30px;
-      color: var(--text-color);
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>新規登録</h2>
-    <div class="welcome-message">
-      <p>はじめまして！<br>あなたの基本情報を入力してください。</p>
-    </div>
-    
+    <h1>基本情報入力</h1>
     <form id="userInfoForm">
       <div class="form-group">
-        <label for="name">名前:</label>
+        <label for="name">名前</label>
         <input type="text" id="name" required>
       </div>
       <div class="form-group">
-        <label for="age">年齢:</label>
-        <input type="number" id="age" required>
+        <label for="age">年齢</label>
+        <input type="number" id="age" min="0" max="120" required>
       </div>
       <div class="form-group">
-        <label for="gender">性別:</label>
-          <select id="gender" required>
-            <option value="">選択してください</option>
-            <option value="男性">男性</option>
-            <option value="女性">女性</option>
-            <option value="その他">その他</option>
-          </select>
+        <label for="gender">性別</label>
+        <select id="gender" required>
+          <option value="">選択してください</option>
+          <option value="male">男性</option>
+          <option value="female">女性</option>
+          <option value="other">その他</option>
+        </select>
       </div>
-      <div class="form-group">
-        <label for="phone">電話番号:</label>
-        <input type="tel" id="phone" required>
-      </div>
-      <div class="form-group">
-        <label for="height">身長(cm):</label>
-        <input type="number" id="height" required>
-      </div>
-      <div class="form-group">
-        <label for="weight">体重(kg):</label>
-        <input type="number" id="weight" required>
-      </div>
-      <div class="form-group">
-        <label for="bloodType">血液型:</label>
-          <select id="bloodType" required>
-            <option value="">選択してください</option>
-            <option value="A">A型</option>
-            <option value="B">B型</option>
-            <option value="O">O型</option>
-            <option value="AB">AB型</option>
-          </select>
-      </div>
-      <div class="button-group">
-        <button type="submit">登録する</button>
-      </div>
+      <button type="submit">保存</button>
     </form>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
       authDomain: "web01-2484d.firebaseapp.com",
       projectId: "web01-2484d",
       storageBucket: "web01-2484d.appspot.com",
       messagingSenderId: "90159472898",
-      appId: "1:90159472898:web:261ec71f9919611011e21b"
+      appId: "1:90159472898:web:8a33ef04b4474b9911e21b",
+      measurementId: "G-148XJR01WS"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth(); // authオブジェクトも取得
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
 
-    // 認証状態の確認とリダイレクト
-    auth.onAuthStateChanged(async (user) => {
+    const form = document.getElementById('userInfoForm');
+
+    onAuthStateChanged(auth, (user) => {
       if (!user) {
-        // ログインしていない場合はログインページへ
         window.location.href = 'index.html';
-        return;
-      }
-
-      // 既存ユーザーの場合はプロフィールページにリダイレクト
-      // information.htmlは新規登録用なので、既にデータがあればプロフィールへ飛ばす
-      try {
-        const doc = await db.collection('users').doc(user.uid).get();
-        if (doc.exists) {
-          console.log("ユーザーデータが既に存在します。プロフィールページへリダイレクトします。");
-          window.location.href = 'profile.html';
-        } else {
-          console.log("新規ユーザーです。基本情報入力ページを表示します。");
-          // ユーザーデータが存在しない場合はこのページに留まる
-        }
-      } catch (error) {
-        console.error("ユーザーデータの確認中にエラーが発生しました:", error);
-        // エラーが発生した場合もこのページに留まるか、エラーメッセージを表示
-        alert("ユーザーデータの確認に失敗しました。");
       }
     });
 
-    // フォーム送信時の保存処理
-    document.getElementById('userInfoForm').addEventListener('submit', async (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const user = auth.currentUser; // authオブジェクトから現在のユーザーを取得
-      
+
+      const user = auth.currentUser;
       if (!user) {
-        alert("ログインしていません。");
-        window.location.href = 'index.html';
+        alert('ログインが必要です');
         return;
       }
 
-      // 画像で示されたFirestoreのデータ構造に合わせてデータを取得
       const userData = {
         name: document.getElementById('name').value,
         age: parseInt(document.getElementById('age').value),
         gender: document.getElementById('gender').value,
-        phone: document.getElementById('phone').value,
-        height: parseInt(document.getElementById('height').value),
-        weight: parseInt(document.getElementById('weight').value),
-        bloodType: document.getElementById('bloodType').value
+        updatedAt: new Date()
       };
 
       try {
-        await db.collection('users').doc(user.uid).set(userData);
-        alert("登録が完了しました！");
-        window.location.href = 'profile.html';
+        await setDoc(doc(firestore, 'users', user.uid), userData, { merge: true });
+        alert('情報が保存されました');
+        window.location.href = 'choise.html';
       } catch (error) {
-        console.error("保存エラー:", error);
-        alert("登録に失敗しました。もう一度お試しください。");
+        console.error('Error saving user data:', error);
+        alert('保存に失敗しました');
       }
     });
   </script>
