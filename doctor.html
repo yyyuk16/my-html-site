@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>医師ログイン</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <style>
+    /* 既存のスタイルはそのまま維持 */
+    :root {
+      --color-blue-light: #E3F2FD;
+      --color-blue: #2196F3;
+      --color-blue-dark: #1976D2;
+      --color-blue-accent: #1565C0;
+      --primary-color: var(--color-blue);
+      --secondary-color: var(--color-blue-dark);
+      --accent-color: var(--color-blue-accent);
+      --background-color: var(--color-blue-light);
+      --text-color: #1A1A1A;
+      --shadow-color: rgba(0,0,0,0.08);
+      --card-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--color-blue-light), var(--color-blue-accent));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h1 {
+      color: var(--text-color);
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ddd;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1rem;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .back-link {
+      display: block;
+      margin-top: 1rem;
+      color: var(--text-color);
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .signup-link {
+      display: block;
+      margin-top: 1rem;
+      color: var(--text-color);
+      text-decoration: none;
+    }
+
+    .signup-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>医師ログイン</h1>
+    <form id="doctorLoginForm">
+      <div class="form-group">
+        <label for="email">メールアドレス</label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">パスワード</label>
+        <input type="password" id="password" required>
+      </div>
+      <button type="submit" id="loginButton">ログイン</button>
+    </form>
+    <button onclick="location.href='doctersignup.html'" class="signup-button">新規登録はこちら</button>
+    <a href="index.html" class="back-link">← 患者の方はこちら</a>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+      authDomain: "web01-2484d.firebaseapp.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.appspot.com",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    // ログインフォームの処理
+    document.getElementById('doctorLoginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          alert('ログインに成功しました！');
+          window.location.href = 'home.html';
+        })
+        .catch((error) => {
+          alert('ログインに失敗しました: ' + error.message);
+        });
+    });
+  </script>
+</body>
+</html>

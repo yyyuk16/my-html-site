@@ -6,148 +6,362 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    /* 既存のスタイルを維持しつつ、緑の色調に変更 */
     :root {
-      /* ピンクメインのカラーパレット */
-      --color-pink-light: #FFE4E8; /* 薄いピンク */
-      --color-pink: #FFB6C1;      /* メインピンク */
-      --color-pink-dark: #FF7080; /* 濃いピンク */
-      --color-pink-accent: #FF4D6D; /* アクセントピンク */
-      --color-pink-gradient: #FF8FA3; /* グラデーション用ピンク */
-
-      /* アプリケーションで使用する色変数 */
-      --primary-color: var(--color-pink);
-      --secondary-color: var(--color-pink-dark);
-      --accent-color: var(--color-pink-accent);
-      --background-color: #FFF5F6;
-      --text-color: #1A1A1A;
-      --shadow-color: rgba(255, 112, 128, 0.15);
-      --card-bg: rgba(255, 255, 255, 0.95);
-      --todo-bg: var(--card-bg);
+        /* ピンクメインのカラーパレット */
+        --color-pink-light: #FFE4E8;
+        --color-pink: #FFB6C1;
+        --color-pink-dark: #FF7080;
+        --color-pink-accent: #FF4D6D;
+        --color-pink-gradient: #FF8FA3;
+        --primary-color: var(--color-pink);
+        --secondary-color: var(--color-pink-dark);
+        --accent-color: var(--color-pink-accent);
+        --background-color: #FFF5F6;
+        --text-color: #1A1A1A;
+        --shadow-color: rgba(255, 112, 128, 0.15);
+        --card-bg: rgba(255, 255, 255, 0.95);
+        --todo-bg: var(--card-bg);
     }
 
+    /* 既存のスタイル定義は維持 */
     body {
-      font-family: 'Noto Sans JP', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: var(--text-color);
-      line-height: 1.6;
+        background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 20px;
     }
 
     .container {
-      padding: 25px;
-      max-width: 1000px;
-      width: 95%;
-      margin: 30px auto;
-      background: var(--card-bg);
-      border-radius: 14px;
-      box-shadow: 0 4px 12px var(--shadow-color);
-      text-align: center;
-      min-height: 80vh;
+        width: 100%;
+        max-width: 1200px;
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 24px var(--shadow-color);
     }
 
     .header {
-      text-align: center;
-      margin-bottom: 25px;
+        text-align: center;
+        margin-bottom: 30px;
     }
 
     .header h1 {
-      font-weight: 700;
-      margin-bottom: 10px;
-      font-size: 28px;
-      color: var(--text-color);
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin: 0;
+        padding: 20px 0;
     }
 
-    .header p {
-      font-size: 18px;
-      color: #555;
+    /* 医師向けの追加スタイル */
+    .patient-list {
+        margin-top: 20px;
     }
 
-    .tab-container {
-      margin-bottom: 25px;
+    .patient-item {
+        padding: 15px;
+        border-left: 4px solid var(--primary-color);
+        background: white;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px var(--shadow-color);
+    }
+
+    .patient-item h3 {
+        margin: 0 0 5px 0;
+        color: var(--text-color);
+    }
+
+    .patient-info {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-left: 8px;
+    }
+
+    .status-urgent {
+        background: #FFEBEE;
+        color: #D32F2F;
+    }
+
+    .status-normal {
+        background: #E8F5E9;
+        color: #2E7D32;
     }
 
     .tab-header {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      background-color: var(--primary-color);
-      border-radius: 25px;
-      padding: 6px;
-      box-shadow: 0 4px 12px var(--shadow-color);
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        background-color: var(--primary-color);
+        border-radius: 25px;
+        padding: 6px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+        margin-bottom: 30px;
     }
 
     .tab-button {
-      padding: 12px 25px;
-      background: transparent;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 18px;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.8);
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+        padding: 12px 25px;
+        background: transparent;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 
     .tab-button.active {
-      background: white;
-      color: var(--primary-color);
-      box-shadow: 0 2px 10px var(--shadow-color);
+        background: white;
+        color: var(--primary-color);
+        box-shadow: 0 2px 10px var(--shadow-color);
     }
 
     .main-content {
-      display: flex;
-      gap: 25px;
-      margin-top: 25px;
-      text-align: left;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 30px;
     }
 
-    h2, h3 {
-      color: var(--secondary-color);
-      text-align: center;
-      margin-bottom: 24px;
+    /* カレンダーのスタイル */
+    .calendar {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px var(--shadow-color);
+        max-width: 600px;
+        margin: 0 auto;
     }
 
-    .video-container {
-      margin: 24px 0;
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding: 0 10px;
     }
 
-    video, iframe {
-      width: 100%;
-      border-radius: 12px;
-      border: 2px solid var(--color-pink-light);
-      margin-bottom: 24px;
-      box-shadow: 0 4px 6px var(--shadow-color);
+    .calendar-header h2 {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        margin: 0;
     }
 
-    .back-btn {
-      padding: 14px 28px;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      margin: 8px;
-      box-shadow: 0 4px 6px var(--shadow-color);
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      display: block;
-      margin: 24px auto;
+    .calendar-header button {
+        background: var(--color-pink-light);
+        color: var(--primary-color);
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
     }
 
-    .back-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px var(--shadow-color);
+    .calendar-header button:hover {
+        background: var(--primary-color);
+        color: white;
     }
-  </style>
+
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        margin-bottom: 8px;
+    }
+
+    .calendar-weekday {
+        text-align: center;
+        font-weight: 600;
+        padding: 10px 5px;
+        color: var(--primary-color);
+        font-size: 0.95rem;
+        border-bottom: 2px solid var(--color-pink-light);
+        background: #f5f9f5;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        padding: 0;
+        min-height: 330px;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        text-align: left;
+        padding: 5px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        position: relative;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        min-height: 60px;
+        box-sizing: border-box;
+    }
+    .calendar-day > span {
+        font-size: 0.95rem;
+        font-weight: bold;
+        margin-bottom: 2px;
+        margin-left: 2px;
+    }
+    .calendar-event {
+        width: 100%;
+        background: var(--color-pink-light);
+        color: var(--color-pink-accent);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        margin-top: 2px;
+        padding: 2px 6px;
+        word-break: break-all;
+        display: block;
+        text-align: left;
+        font-weight: bold;
+        box-sizing: border-box;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .calendar-event-title {
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-right: 4px;
+    }
+    .calendar-event[data-color="blue"] {
+        background: #66BB6A;
+        color: #fff;
+    }
+    .calendar-event[data-color="red"] {
+        background: #4CAF50;
+        color: #fff;
+    }
+    .calendar-event[data-color="green"] {
+        background: #81C784;
+        color: #fff;
+    }
+    .calendar-event[data-color="yellow"] {
+        background: #A5D6A7;
+        color: #2E7D32;
+    }
+    .calendar-event[data-color="purple"] {
+        background: #388E3C;
+        color: #fff;
+    }
+    .calendar-event[data-color="orange"] {
+        background: #66BB6A;
+        color: #fff;
+    }
+    .calendar-event .event-delete {
+        margin-left: 10px;
+        color: #888;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+    .calendar-event .event-edit {
+        margin-left: 2px;
+        color: #888;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+    .calendar-event .event-edit:hover {
+        color: var(--color-pink-dark);
+    }
+    .event-detail-pop {
+        position: absolute;
+        z-index: 2000;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px 15px;
+        min-width: 200px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        font-size: 0.95rem;
+        color: #333;
+        top: 30px;
+        left: 0;
+        display: none;
+    }
+    .event-detail-pop.active {
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+    }
+
+    /* モーダルのスタイル */
+    .modal-bg {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.3);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-bg.active {
+        display: flex;
+    }
+    .modal {
+        background: #fff;
+        border-radius: 10px;
+        padding: 30px 20px 20px 20px;
+        min-width: 300px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+        position: relative;
+    }
+    .modal-close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 1.3rem;
+        color: #888;
+        cursor: pointer;
+    }
+    .modal input, .modal textarea {
+        width: 100%;
+        margin-bottom: 12px;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+    }
+    .modal button {
+        background: var(--primary-color);
+        color: #fff;
+        border: none;
+        padding: 8px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+</style>
 </head>
 <body>
   <div class="container">
@@ -165,7 +379,7 @@
           <span class="tab-icon">💬</span>
           <span class="tab-text">チャット</span>
         </button>
-        <button class="tab-button" onclick="location.href='Q&A.html'">
+        <button class="tab-button" onclick="location.href='score.html'">
           <span class="tab-icon">❓</span>
           <span class="tab-text">Q&A</span>
         </button>

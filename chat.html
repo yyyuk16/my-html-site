@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>患者診療記録</title>
+    <style>
+        /* 既存のスタイルを維持しつつ、医師向けの色調に変更 */
+        :root {
+            --color-blue-light: #E3F2FD;
+            --color-blue: #2196F3;
+            --color-blue-dark: #1976D2;
+            --color-blue-accent: #1565C0;
+            --color-blue-gradient: #42A5F5;
+            --primary-color: var(--color-blue);
+            --secondary-color: var(--color-blue-dark);
+            --accent-color: var(--color-blue-accent);
+            --background-color: #F5F9FF;
+            --text-color: #1A1A1A;
+            --shadow-color: rgba(33, 150, 243, 0.15);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --todo-bg: var(--card-bg);
+        }
+
+        /* 既存のスタイル定義は維持 */
+        body {
+            background: linear-gradient(135deg, var(--color-blue-light), var(--color-blue));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 24px var(--shadow-color);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin: 0;
+            padding: 20px 0;
+        }
+
+        /* 医師向けの追加スタイル */
+        .patient-list {
+            margin-top: 20px;
+        }
+
+        .patient-item {
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .patient-item h3 {
+            margin: 0 0 5px 0;
+            color: var(--text-color);
+        }
+
+        .patient-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .status-urgent {
+            background: #FFEBEE;
+            color: #D32F2F;
+        }
+
+        .status-normal {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .tab-header {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            background-color: var(--primary-color);
+            border-radius: 25px;
+            padding: 6px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            margin-bottom: 30px;
+        }
+
+        .tab-button {
+            padding: 12px 25px;
+            background: transparent;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 10px var(--shadow-color);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        /* カレンダーのスタイル */
+        .calendar {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 0 10px;
+        }
+
+        .calendar-header h2 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .calendar-header button {
+            background: var(--color-blue-light);
+            color: var(--primary-color);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-header button:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: 8px;
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            font-weight: 600;
+            padding: 10px 5px;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+            border-bottom: 2px solid var(--color-blue-light);
+            background: #f7fafd;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            padding: 0;
+            min-height: 330px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            text-align: left;
+            padding: 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            position: relative;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            min-height: 60px;
+            box-sizing: border-box;
+        }
+        .calendar-day > span {
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-bottom: 2px;
+            margin-left: 2px;
+        }
+        .calendar-event {
+            width: 100%;
+            background: #e3f2fd;
+            color: #1565c0;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            margin-top: 2px;
+            padding: 2px 6px;
+            word-break: break-all;
+            display: block;
+            text-align: left;
+            font-weight: bold;
+            box-sizing: border-box;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .calendar-event-title {
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+        .calendar-event[data-color="blue"] {
+            background: #42a5f5;
+            color: #fff;
+        }
+        .calendar-event[data-color="red"] {
+            background: #ef5350;
+            color: #fff;
+        }
+        .calendar-event[data-color="green"] {
+            background: #66bb6a;
+            color: #fff;
+        }
+        .calendar-event[data-color="yellow"] {
+            background: #ffd54f;
+            color: #795548;
+        }
+        .calendar-event[data-color="purple"] {
+            background: #ab47bc;
+            color: #fff;
+        }
+        .calendar-event[data-color="orange"] {
+            background: #ffa726;
+            color: #fff;
+        }
+        .calendar-event .event-delete {
+            margin-left: 10px;
+            color: #888;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .calendar-event .event-edit {
+            margin-left: 2px;
+            color: #888;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .calendar-event .event-edit:hover {
+            color: #1976d2;
+        }
+        .event-detail-pop {
+            position: absolute;
+            z-index: 2000;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px 15px;
+            min-width: 200px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            font-size: 0.95rem;
+            color: #333;
+            top: 30px;
+            left: 0;
+            display: none;
+        }
+        .event-detail-pop.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+
+        /* モーダルのスタイル */
+        .modal-bg {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-bg.active {
+            display: flex;
+        }
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            padding: 30px 20px 20px 20px;
+            min-width: 300px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.3rem;
+            color: #888;
+            cursor: pointer;
+        }
+        .modal input, .modal textarea {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+        .modal button {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .chat-container {
+            display: flex;
+            margin-top: 30px;
+            min-height: 600px;
+        }
+        .chat-sidebar {
+            flex: 1 1 100%;
+            max-width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px var(--shadow-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+            width: 200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 16px;
+            border: 2px solid var(--color-blue-light);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--shadow-color);
+        }
+        .search-box i {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+        }
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        .chat-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-list::-webkit-scrollbar-track {
+            background: var(--color-blue-light);
+            border-radius: 3px;
+        }
+        .chat-list::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 3px;
+        }
+        .chat-item {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .chat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+        .chat-item.selected {
+            border-color: var(--primary-color);
+            background: var(--color-blue-light);
+        }
+        .doctor-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .chat-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .doctor-name {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 4px;
+            font-size: 1.1rem;
+        }
+        .last-message {
+            color: #666;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chat-time {
+            color: #999;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .chat-main {
+            flex: 1;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px var(--shadow-color);
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+            border: 4px solid var(--primary-color);
+        }
+        .chat-placeholder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            text-align: center;
+            padding: 40px;
+        }
+        .chat-placeholder i {
+            font-size: 4rem;
+            color: var(--color-blue-light);
+            margin-bottom: 24px;
+        }
+        .chat-placeholder h2 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 0 0 12px 0;
+        }
+        .chat-placeholder p {
+            color: #666;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        @media (max-width: 900px) {
+            .chat-container {
+                flex-direction: column;
+            }
+            .chat-sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>医療管理アプリ</h1>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button" onclick="location.href='home.html'">
+                    <span class="tab-icon">🏥</span>
+                    <span class="tab-text">ダッシュボード</span>
+                </button>
+                <button class="tab-button" onclick="location.href='list.html'">
+                    <span class="tab-icon">👥</span>
+                    <span class="tab-text">患者診療記録</span>
+                </button>
+                <button class="tab-button active" onclick="location.href='chat.html'">
+                    <span class="tab-icon">📅</span>
+                    <span class="tab-text">チャット</span>
+                </button>
+                <button class="tab-button" onclick="location.href='docterprofile.html'">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text">プロフィール</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-sidebar">
+                <div class="search-box">
+                    <input type="text" id="patientSearch" placeholder="患者を検索...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="chat-list" id="chatList">
+                    <!-- 患者リストがここに表示される -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script>
+        // Firebase初期化
+        const firebaseConfig = {
+            apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+            authDomain: "web01-2484d.firebaseapp.com",
+            projectId: "web01-2484d",
+            storageBucket: "web01-2484d.appspot.com",
+            messagingSenderId: "90159472898",
+            appId: "1:90159472898:web:261ec71f9919611011e21b"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.firestore();
+        const chatListDiv = document.getElementById('chatList');
+
+        // ログイン状態監視
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) {
+                alert('ログインしてください');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                // 自分のユーザーデータ取得
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (!userDoc.exists) {
+                    alert('ユーザーデータが見つかりません');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const currentUser = userDoc.data();
+
+                // 医療者でなければリダイレクト
+                if (currentUser.role !== 'staff') {
+                    alert('医療者以外はアクセスできません');
+                    window.location.href = 'patient_home.html';
+                    return;
+                }
+
+                // 担当患者をFirestoreから担当医UIDでクエリ取得
+                const patientsSnapshot = await db.collection('users')
+                    .where('role', '==', 'patient')
+                    .where('assignedDoctor', '==', user.uid)
+                    .get();
+
+                if (patientsSnapshot.empty) {
+                    chatListDiv.innerHTML = '<p>担当患者が登録されていません</p>';
+                    return;
+                }
+
+                chatListDiv.innerHTML = '';
+
+                // 取得した患者一覧を表示
+                patientsSnapshot.forEach(doc => {
+                    const patient = doc.data();
+                    const avatarChar = patient.name ? patient.name.charAt(0) : '?';
+
+                    const chatItem = document.createElement('div');
+                    chatItem.className = 'chat-item';
+                    chatItem.onclick = () => {
+                        window.location.href = `serectchat.html?uid=${doc.id}`;
+                    };
+
+                    chatItem.innerHTML = `
+                        <div class="doctor-avatar">${avatarChar}</div>
+                        <div class="chat-info">
+                            <div class="doctor-name">${patient.name || '名無しの患者'}</div>
+                            <div class="last-message">メッセージ履歴表示はここに追加予定</div>
+                        </div>
+                        <div class="chat-time">--</div>
+                    `;
+
+                    chatListDiv.appendChild(chatItem);
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('データ取得中にエラーが発生しました: ' + error.message);
+            }
+        });
+
+        // 検索機能
+        document.getElementById('patientSearch').addEventListener('input', function(e) {
+            const searchText = e.target.value.toLowerCase();
+            const items = document.querySelectorAll('.chat-item');
+            items.forEach(item => {
+                const name = item.querySelector('.doctor-name').textContent.toLowerCase();
+                item.style.display = name.includes(searchText) ? 'flex' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

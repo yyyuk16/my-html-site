@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>チャット詳細（医療者用）</title>
+  <style>
+    :root {
+      --color-blue-light: #E3F2FD;
+      --color-blue: #90CAF9;
+      --color-blue-dark: #42A5F5;
+      --color-blue-accent: #2196F3;
+      --primary-color: var(--color-blue);
+      --secondary-color: var(--color-blue-dark);
+      --accent-color: var(--color-blue-accent);
+      --background-color: #F5F9FF;
+      --text-color: #1A1A1A;
+      --shadow-color: rgba(66, 165, 245, 0.15);
+      --card-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--color-blue-light), var(--color-blue));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-color);
+    }
+
+    #chat {
+      height: 400px;
+      overflow-y: auto;
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 20px;
+      margin: 10px 0 20px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+      width: 90%;
+      max-width: 800px;
+      white-space: pre-wrap;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      background: var(--color-blue-light);
+      border-radius: 8px;
+      font-size: 16px;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+
+    .message.self {
+      background: var(--color-blue-dark);
+      color: white;
+      margin-left: auto;
+    }
+
+    #inputArea {
+      width: 90%;
+      max-width: 800px;
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    input[type="text"] {
+      flex-grow: 1;
+      padding: 12px;
+      border: 2px solid var(--color-blue-light);
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 8px var(--shadow-color);
+      outline: none;
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow-color);
+    }
+  </style>
+</head>
+<body>
+  <h2>患者さんとのチャット</h2>
+  <div id="chat"></div>
+  <div id="inputArea">
+    <input type="text" id="messageInput" placeholder="メッセージを入力" />
+    <button id="sendBtn">送信</button>
+    <button onclick="window.location.href='chat.html'">戻る</button>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+      authDomain: "web01-2484d.firebaseapp.com",
+      databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.appspot.com",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:8a33ef04b4474b9911e21b"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // URLパラメータから患者UID取得
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    const patientUid = getQueryParam('uid');
+    let doctorUid = null;
+    let chatRoomId = null;
+
+    const chatDiv = document.getElementById('chat');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        alert('ログインしてください');
+        window.location.href = 'login.html';
+        return;
+      }
+      doctorUid = user.uid;
+
+      if (!patientUid) {
+        alert('患者UIDが指定されていません');
+        return;
+      }
+
+      // チャットルームIDはUID昇順で統一
+      chatRoomId = [doctorUid, patientUid].sort().join('_');
+
+      const messagesRef = db.ref('messages/' + chatRoomId);
+
+      // メッセージのリアルタイム取得
+      messagesRef.on('child_added', snapshot => {
+        const msg = snapshot.val();
+        const el = document.createElement('div');
+        el.textContent = `${msg.sender === doctorUid ? 'あなた' : '患者さん'}: ${msg.text}`;
+        chatDiv.appendChild(el);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      });
+
+      // 送信ボタン
+      sendBtn.onclick = () => {
+        const text = messageInput.value.trim();
+        if (!text) return;
+        messagesRef.push({
+          sender: doctorUid,
+          text: text,
+          timestamp: Date.now()
+        });
+        messageInput.value = '';
+      };
+    });
+  </script>
+</body>
+</html>

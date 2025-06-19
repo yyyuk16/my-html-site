@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>多言語 Gemini チャット</title>
+  <title>患者ログイン</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   
@@ -12,15 +12,12 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <style>
-     :root {
-      /* 新しいカラーパレット */
-      --color-pink-light: #FFE4E1; /* 薄いピンク */
-      --color-pink-medium: #FFB6C1; /* 中間のピンク */
-      --color-pink-dark: #FF69B4;   /* 濃いピンク */
-      --color-pink-accent: #FFC0CB; /* アクセントピンク */
-      --color-pink-gradient: #FFB6C1; /* グラデーション用ピンク */
-
-      /* アプリケーションで使用する色変数 */
+    /* 既存のスタイルはそのまま維持 */
+    :root {
+      --color-pink-light: #FFE4E1;
+      --color-pink-medium: #FFB6C1;
+      --color-pink-dark: #FF69B4;
+      --color-pink-accent: #FFC0CB;
       --primary-color: var(--color-pink-medium);
       --secondary-color: var(--color-pink-dark);
       --accent-color: var(--color-pink-accent);
@@ -44,162 +41,103 @@
       line-height: 1.6;
     }
 
-    button {
-      padding: 18px 36px;
-      font-size: 18px;
-      border: none;
-      border-radius: 16px;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      margin: 12px;
+    .container {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 1rem;
       box-shadow: 0 4px 6px var(--shadow-color);
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      position: relative;
-      overflow: hidden;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
     }
 
-    button::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 5px;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.5);
-      opacity: 0;
-      border-radius: 100%;
-      transform: scale(1, 1) translate(-50%);
-      transform-origin: 50% 50%;
+    h1 {
+      color: var(--text-color);
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ddd;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1rem;
+      transition: background-color 0.3s;
     }
 
     button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      background-color: var(--secondary-color);
     }
 
-    button:active::after {
-      animation: ripple 1s ease-out;
+    .back-link {
+      display: block;
+      margin-top: 1rem;
+      color: var(--text-color);
+      text-decoration: none;
     }
 
-    @keyframes ripple {
-      0% {
-        transform: scale(0, 0);
-        opacity: 0.5;
-      }
-      100% {
-        transform: scale(20, 20);
-        opacity: 0;
-      }
+    .back-link:hover {
+      text-decoration: underline;
     }
 
-   
-
-    input[type="text"] {
-      width: 70%;
-      max-width: 600px;
-      padding: 18px 28px;
-      border: 2px solid #E0E0E0;
-      border-radius: 16px;
-      font-size: 18px;
-      outline: none;
-      transition: all 0.3s ease;
-      background: var(--card-bg);
-      box-shadow: 0 2px 8px var(--shadow-color);
+    .signup-link {
+      display: block;
+      margin-top: 1rem;
+      color: var(--text-color);
+      text-decoration: none;
     }
 
-    input[type="text"]:focus {
-      border-color: var(--accent-color);
-      box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.4);
-    }
-
-    select {
-      padding: 16px 32px;
-      border-radius: 16px;
-      border: 2px solid #E0E0E0;
-      margin: 12px;
-      font-size: 18px;
-      background: var(--card-bg);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FF69B4%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px top 50%;
-      background-size: 12px auto;
-      padding-right: 40px;
-    }
-
-    @keyframes fadeIn {
-      from { 
-        opacity: 0;
-        transform: translateY(-16px);
-      }
-      to { 
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #F5F5F5;
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--primary-color);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--secondary-color);
+    .signup-link:hover {
+      text-decoration: underline;
     }
   </style>
-
-
 </head>
 <body>
-  <div id="greetingMessage"></div>
-  <div class="language-selector">
-    <label for="languageSelect">🌍 言語 / Language:</label>
-    <select id="languageSelect" onchange="updateLanguage()">
-      <option value="ja">日本語</option>
-      <option value="en">English</option>
-    </select>
-  </div>
-  <!-- Googleログイン -->
-  <div id="loginArea">
-    <button onclick="signInWithGoogle()" id="googleLoginBtn">Googleでログイン</button>
-    <button onclick="showMailOptions()" id="mailLoginBtn">メールアドレスでログイン</button>
-  </div>
-
-  <!-- メールログインオプション -->
-  <div id="mailOptions" style="display: none;">
-    <button onclick="showSignUp()" id="signUpBtn">新規登録</button>
-    <button onclick="showSignIn()" id="signInBtn">ログイン</button>
-    <button onclick="hideMailOptions()" class="back-button">← 戻る</button>
+  <div class="container">
+    <h1>患者ログイン</h1>
+    <form id="patientLoginForm">
+      <div class="form-group">
+        <label for="email">メールアドレス</label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">パスワード</label>
+        <input type="password" id="password" required>
+      </div>
+      <button type="submit" id="loginButton">ログイン</button>
+    </form>
+    <button onclick="location.href='Signup.html'" class="signup-button">新規登録はこちら</button>
+    <a href="doctor.html" class="back-link">← 医者の方はこちら</a>
   </div>
 
-  <!-- メールアドレス入力フォーム -->
-  <div id="emailInputUI" style="display: none;">
-    <h2 id="emailTitle">メールアドレスを入力してください</h2>
-    <input type="email" id="emailInput" placeholder="example@email.com">
-    <input type="password" id="passwordInput" placeholder="パスワード">
-    <button id="submitButton" onclick="handleEmailAuth()">次へ</button>
-    <button onclick="backToMailOptions()" class="back-button">← 戻る</button>
-  </div>
-
-  <!-- Firebase 設定 -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
-      authDomain: "web01-2484d.firebaseapp.com", 
+      authDomain: "web01-2484d.firebaseapp.com",
       projectId: "web01-2484d",
       storageBucket: "web01-2484d.appspot.com",
       messagingSenderId: "90159472898",
@@ -207,210 +145,23 @@
     };
     firebase.initializeApp(firebaseConfig);
 
-    // メールログイン関連の関数を追加
-    function showMailOptions() {
-      document.getElementById('loginArea').style.display = 'none';
-      document.getElementById('mailOptions').style.display = 'block';
-    }
+    // ログインフォームの処理
+    document.getElementById('patientLoginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
 
-    function hideMailOptions() {
-      document.getElementById('loginArea').style.display = 'block';
-      document.getElementById('mailOptions').style.display = 'none';
-    }
-
-    function showSignUp() {
-      document.getElementById('mailOptions').style.display = 'none';
-      document.getElementById('emailInputUI').style.display = 'block';
-      document.getElementById('emailTitle').textContent = '新規登録';
-      document.getElementById('submitButton').onclick = () => handleEmailAuth(true);
-    }
-
-    function showSignIn() {
-      document.getElementById('mailOptions').style.display = 'none';
-      document.getElementById('emailInputUI').style.display = 'block';
-      document.getElementById('emailTitle').textContent = 'ログイン';
-      document.getElementById('submitButton').onclick = () => handleEmailAuth(false);
-    }
-
-    function backToMailOptions() {
-      document.getElementById('emailInputUI').style.display = 'none';
-      document.getElementById('mailOptions').style.display = 'block';
-    }
-    function signInWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider)
-    .then((result) => {
-      const user = result.user;
-      const message = currentLang === 'ja' ? 
-        `${user.displayName} さんとしてログインしました！` :
-        `Logged in as ${user.displayName}!`;
-      alert(message);
-      const userName = user.displayName;
-      localStorage.setItem('loggedInUserName', userName);
-      window.location.href = 'choise.html';
-    })
-    .catch((error) => {
-      console.error("ログイン失敗:", error.message);
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          alert('ログインに成功しました！');
+          window.location.href = 'profile.html';
+        })
+        .catch((error) => {
+          alert('ログインに失敗しました: ' + error.message);
+        });
     });
-}
-
-    function handleEmailAuth(isNewUser) {
-      const email = document.getElementById("emailInput").value;
-      const password = document.getElementById("passwordInput").value;
-
-      if (isNewUser) {
-        // 新規登録
-        firebase.auth().createUserWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            const user = userCredential.user;
-            const message = currentLang === 'ja' ? 
-              '新規登録が完了しました！' : 
-              'Sign up successful!';
-            alert(message);
-            localStorage.setItem('loggedInUserName', email.split('@')[0]); // 仮に名前としてメールの前部分を使う
-            window.location.href = 'information.html'; // 新規登録時はinformation.htmlに遷移
-          })
-          .catch((error) => {
-            alert(error.message);
-          });
-      } else {
-        // ログイン
-        firebase.auth().signInWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            const user = userCredential.user;
-            const message = currentLang === 'ja' ? 
-              'ログインに成功しました！' : 
-              'Login successful!';
-            alert(message);
-            localStorage.setItem('loggedInUserName', email.split('@')[0]);
-            window.location.href = 'choise.html';
-          })
-          .catch((error) => {
-            alert(error.message);
-          });
-      }
-    }
-
-    // 言語選択の反映（greeting メッセージ）
-    let currentLang = 'ja';
-    function updateLanguage() {
-      currentLang = document.getElementById("languageSelect").value;
-      const greeting = currentLang === 'ja' ?
-        'ようこそ！言語を選んでログインしてください。' :
-        'Welcome! Please select a language and log in.';
-      document.getElementById("greetingMessage").textContent = greeting;
-    }
-
-    // 初期表示
-    window.onload = () => {
-      updateLanguage();
-    };
-
-    
   </script>
 </body>
 </html>
-
-      }
-    }
-  </script>
-    <script>
-      
-
-
-
-      function updateLanguage() {
-        currentLang = document.getElementById("languageSelect").value;
-        const t = translations[currentLang];
-
-        document.getElementById("nameTitle").innerText = t.nameTitle;
-        document.getElementById("userNameInput").placeholder = t.namePlaceholder;
-        document.getElementById("registerButton").innerText = t.register;
-        document.getElementById("aiChatBtn").innerText = t.aiChat;
-        document.getElementById("realtimeChatBtn").innerText = t.realtimeChat;
-        document.getElementById("userInput").placeholder = t.messagePlaceholder;
-        document.getElementById("sendButton").innerText = t.send;
-        document.getElementById("backButton").innerText = t.back;
-        document.getElementById("doraemonButton").innerText = t.doraemon;
-        document.getElementById("teacherButton").innerText = t.teacher;
-        document.getElementById("googleLoginBtn").innerText = t.googleLogin;
-
-        if (userName) {
-          document.getElementById("welcomeMessage").innerText = t.welcome.replace("{name}", userName);
-        }
-      }
-
-      window.onload = function () {
-        updateLanguage();
-      };
-
-      function registerName() {
-        const input = document.getElementById("userNameInput").value.trim();
-        if (!input) return alert("名前を入力してください！");
-        userName = input;
-        window.getUserName = () => userName;
-        document.getElementById("nameInputUI").style.display = "none";
-        document.getElementById("menuButtons").style.display = "block";
-        document.getElementById("welcomeMessage").textContent = translations[currentLang].welcome.replace("{name}", userName);
-      }
-
-      function hideAiCharacters() {
-        document.getElementById("aiCharacterButtons").style.display = "none";
-        document.getElementById("menuButtons").style.display = "block";
-        currentCharacter = "";
-      }
-
-      function backToMenu() {
-        document.getElementById("chatUI").style.display = "none";
-        document.getElementById("menuButtons").style.display = "block";
-        currentCharacter = "";
-        
-        window.chatHistory = [];
-        document.getElementById("chatBox").innerHTML = "";
-        
-        const oldScript = document.getElementById("scriptLoader");
-        if (oldScript) {
-          oldScript.remove();
-        }
-      }
-
-      function loadScriptWithCallback(filename, callback) {
-        const scriptLoader = document.getElementById("scriptLoader");
-        const newScript = document.createElement("script");
-        newScript.src = filename;
-        newScript.onload = () => {
-          console.log(`${filename} loaded.`);
-          if (typeof callback === "function") callback();
-        };
-        scriptLoader.replaceWith(newScript);
-        newScript.id = "scriptLoader";
-      }
-
-      function toggleUI(showChat) {
-        document.getElementById("menuButtons").style.display = showChat ? "none" : "block";
-        document.getElementById("aiCharacterButtons").style.display = "none";
-        document.getElementById("chatUI").style.display = showChat ? "block" : "none";
-        
-        if (!showChat) {
-          currentCharacter = "";
-          window.chatHistory = [];
-          document.getElementById("chatBox").innerHTML = "";
-          
-          const oldScript = document.getElementById("scriptLoader");
-          if (oldScript) {
-            oldScript.remove();
-          }
-        }
-      }
-
-      function sendMessage() {
-        if (typeof window.realSendMessage === "function") {
-          window.realSendMessage();
-        } else {
-          console.warn("realSendMessage がまだロードされていません。");
-        }
-      }
-
-
-   
-    </script>

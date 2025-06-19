@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>結核クイズ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <style>
+    /* 既存のスタイルは維持 */
+    :root {
+      --color-pink-light: #FFE4E1;
+      --color-pink-medium: #FFB6C1;
+      --color-pink-dark: #FF69B4;
+      --color-pink-accent: #FFC0CB;
+      --primary-color: var(--color-pink-medium);
+      --secondary-color: var(--color-pink-dark);
+      --accent-color: var(--color-pink-accent);
+      --background-color: var(--color-pink-light);
+      --text-color: #1A1A1A;
+      --shadow-color: rgba(0,0,0,0.08);
+      --card-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    /* 既存のスタイル定義は維持 */
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink-accent));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      width: 90%;
+      max-width: 500px;
+      margin: 2rem auto;
+    }
+
+    .quiz-container {
+      margin: 20px 0;
+    }
+
+    .question {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .choices {
+      display: grid;
+      gap: 10px;
+    }
+
+    .choice-btn {
+      padding: 10px;
+      border: 2px solid var(--color-pink-medium);
+      border-radius: 5px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .choice-btn:hover {
+      background: var(--color-pink-light);
+    }
+
+    .choice-btn.correct {
+      background: #90EE90;
+      border-color: #32CD32;
+    }
+
+    .choice-btn.incorrect {
+      background: #FFB6C1;
+      border-color: #FF69B4;
+    }
+
+    .result {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .result.correct {
+      background: #90EE90;
+      color: #006400;
+    }
+
+    .result.incorrect {
+      background: #FFB6C1;
+      color: #8B0000;
+    }
+
+    .next-btn {
+      display: none;
+      margin-top: 1rem;
+      padding: 10px 20px;
+      background: var(--color-pink-medium);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .next-btn:hover {
+      background: var(--color-pink-dark);
+    }
+
+    /* カテゴリー選択のスタイル */
+    .category-selector {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .category-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .category-button {
+      padding: 0.8rem 1.5rem;
+      border: 2px solid var(--color-pink-medium);
+      border-radius: 25px;
+      background: white;
+      color: var(--color-pink-dark);
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .category-button:hover {
+      background: var(--color-pink-light);
+      transform: translateY(-2px);
+    }
+
+    .category-button.active {
+      background: var(--color-pink-medium);
+      color: white;
+    }
+
+    .category-description {
+      margin-top: 0.5rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>結核クイズ</h1>
+
+    <div class="category-selector">
+      <h2>カテゴリーを選択</h2>
+      <div class="category-buttons">
+        <button class="category-button active" onclick="selectCategory('basic')">
+          基礎知識
+        </button>
+        <button class="category-button" onclick="selectCategory('clinical')">
+          臨床
+        </button>
+        <button class="category-button" onclick="selectCategory('ethics')">
+          倫理
+        </button>
+      </div>
+      <div class="category-description" id="category-description">
+        基礎的な結核の知識に関する問題です。
+      </div>
+    </div>
+  
+    <div class="quiz-container">
+      <div id="question" class="question"></div>
+      <div id="choices" class="choices"></div>
+      <div id="result" class="result"></div>
+      <button id="next-btn" class="next-btn">次の問題</button>
+    </div>
+  </div>
+
+  <script src="q&a.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+      authDomain: "web01-2484d.firebaseapp.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.appspot.com",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    let currentQuiz = null;
+    let questionCount = 0;
+    let correctCount = 0;
+
+    // カテゴリー説明の更新
+    const categoryDescriptions = {
+      basic: "基礎的な結核の知識に関する問題です。",
+      clinical: "結核の治療や臨床的な側面に関する問題です。",
+      ethics: "結核に関連する倫理的課題に関する問題です。"
+    };
+
+    function updateCategoryDescription(category) {
+      document.getElementById('category-description').textContent = 
+        categoryDescriptions[category];
+      
+      // ボタンのアクティブ状態を更新
+      document.querySelectorAll('.category-button').forEach(button => {
+        button.classList.remove('active');
+        if (button.textContent.trim() === quizCategories[category].name) {
+          button.classList.add('active');
+        }
+      });
+    }
+
+    // カテゴリー選択関数の拡張
+    const originalSelectCategory = selectCategory;
+    selectCategory = function(category) {
+      originalSelectCategory(category);
+      updateCategoryDescription(category);
+    };
+
+    // 初期カテゴリーの説明を表示
+    updateCategoryDescription('basic');
+
+    function displayQuiz(quiz) {
+      currentQuiz = quiz;
+      document.getElementById('question').textContent = quiz.question;
+      
+      const choicesContainer = document.getElementById('choices');
+      choicesContainer.innerHTML = '';
+      
+      quiz.choices.forEach((choice, index) => {
+        const button = document.createElement('button');
+        button.className = 'choice-btn';
+        button.textContent = choice;
+        button.onclick = () => checkAnswer(choice);
+        choicesContainer.appendChild(button);
+      });
+
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('next-btn').style.display = 'none';
+    }
+
+    function checkAnswer(selectedChoice) {
+      const buttons = document.getElementsByClassName('choice-btn');
+      const result = document.getElementById('result');
+      
+      for (let button of buttons) {
+        button.disabled = true;
+        if (button.textContent === currentQuiz.answer) {
+          button.classList.add('correct');
+        } else if (button.textContent === selectedChoice && selectedChoice !== currentQuiz.answer) {
+          button.classList.add('incorrect');
+        }
+      }
+
+      if (selectedChoice === currentQuiz.answer) {
+        result.textContent = '正解です！';
+        result.className = 'result correct';
+        correctCount++;
+      } else {
+        result.textContent = `不正解です。正解は ${currentQuiz.answer} でした。`;
+        result.className = 'result incorrect';
+      }
+      
+      result.style.display = 'block';
+      document.getElementById('next-btn').style.display = 'block';
+      
+      questionCount++;
+      
+      if (questionCount >= 5) {
+        const score = (correctCount / 5) * 100;
+        saveScore(score);
+      }
+    }
+
+    async function saveScore(score) {
+      const user = firebase.auth().currentUser;
+      if (user) {
+        try {
+          await firebase.firestore().collection('quiz_scores').add({
+            userId: user.uid,
+            score: score,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          window.location.href = 'score.html';
+        } catch (error) {
+          console.error('スコアの保存に失敗しました:', error);
+        }
+      }
+    }
+
+    document.getElementById('next-btn').onclick = () => {
+      if (questionCount < 5) {
+        generateQuiz();
+      }
+    };
+
+    // 初期クイズの生成
+    generateQuiz();
+  </script>
+</body>
+</html>

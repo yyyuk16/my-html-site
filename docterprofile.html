@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医師プロフィール</title>
+    <style>
+        /* 既存のスタイルを維持しつつ、医師向けの色調に変更 */
+        :root {
+            --color-blue-light: #E3F2FD;
+            --color-blue: #2196F3;
+            --color-blue-dark: #1976D2;
+            --color-blue-accent: #1565C0;
+            --color-blue-gradient: #42A5F5;
+            --primary-color: var(--color-blue);
+            --secondary-color: var(--color-blue-dark);
+            --accent-color: var(--color-blue-accent);
+            --background-color: #F5F9FF;
+            --text-color: #1A1A1A;
+            --shadow-color: rgba(33, 150, 243, 0.15);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --todo-bg: var(--card-bg);
+        }
+
+        /* 既存のスタイル定義は維持 */
+        body {
+            background: linear-gradient(135deg, var(--color-blue-light), var(--color-blue));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 24px var(--shadow-color);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin: 0;
+            padding: 20px 0;
+        }
+
+        /* 医師向けの追加スタイル */
+        .patient-list {
+            margin-top: 20px;
+        }
+
+        .patient-item {
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .patient-item h3 {
+            margin: 0 0 5px 0;
+            color: var(--text-color);
+        }
+
+        .patient-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .status-urgent {
+            background: #FFEBEE;
+            color: #D32F2F;
+        }
+
+        .status-normal {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .tab-header {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            background-color: var(--primary-color);
+            border-radius: 25px;
+            padding: 6px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            margin-bottom: 30px;
+        }
+
+        .tab-button {
+            padding: 12px 25px;
+            background: transparent;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 10px var(--shadow-color);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        /* カレンダーのスタイル */
+        .calendar {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 0 10px;
+        }
+
+        .calendar-header h2 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .calendar-header button {
+            background: var(--color-blue-light);
+            color: var(--primary-color);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-header button:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: 8px;
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            font-weight: 600;
+            padding: 10px 5px;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+            border-bottom: 2px solid var(--color-blue-light);
+            background: #f7fafd;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            padding: 0;
+            min-height: 330px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            text-align: left;
+            padding: 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            position: relative;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            min-height: 60px;
+            box-sizing: border-box;
+        }
+        .calendar-day > span {
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-bottom: 2px;
+            margin-left: 2px;
+        }
+        .calendar-event {
+            width: 100%;
+            background: #e3f2fd;
+            color: #1565c0;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            margin-top: 2px;
+            padding: 2px 6px;
+            word-break: break-all;
+            display: block;
+            text-align: left;
+            font-weight: bold;
+            box-sizing: border-box;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .calendar-event-title {
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+        .calendar-event[data-color="blue"] {
+            background: #42a5f5;
+            color: #fff;
+        }
+        .calendar-event[data-color="red"] {
+            background: #ef5350;
+            color: #fff;
+        }
+        .calendar-event[data-color="green"] {
+            background: #66bb6a;
+            color: #fff;
+        }
+        .calendar-event[data-color="yellow"] {
+            background: #ffd54f;
+            color: #795548;
+        }
+        .calendar-event[data-color="purple"] {
+            background: #ab47bc;
+            color: #fff;
+        }
+        .calendar-event[data-color="orange"] {
+            background: #ffa726;
+            color: #fff;
+        }
+        .calendar-event .event-delete {
+            margin-left: 10px;
+            color: #888;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .calendar-event .event-edit {
+            margin-left: 2px;
+            color: #888;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .calendar-event .event-edit:hover {
+            color: #1976d2;
+        }
+        .event-detail-pop {
+            position: absolute;
+            z-index: 2000;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px 15px;
+            min-width: 200px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            font-size: 0.95rem;
+            color: #333;
+            top: 30px;
+            left: 0;
+            display: none;
+        }
+        .event-detail-pop.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+
+        /* モーダルのスタイル */
+        .modal-bg {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-bg.active {
+            display: flex;
+        }
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            padding: 30px 20px 20px 20px;
+            min-width: 300px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.3rem;
+            color: #888;
+            cursor: pointer;
+        }
+        .modal input, .modal textarea {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+        .modal button {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .profile-main-content {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 30px;
+        }
+        .profile-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 40px;
+            min-width: 320px;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .profile-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+        .profile-avatar span {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .profile-title {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin: 0;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+        .profile-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            padding: 12px 16px;
+            background: var(--color-blue-light);
+            border-radius: 12px;
+            transition: transform 0.2s;
+        }
+        .profile-row:hover {
+            transform: translateX(5px);
+        }
+        .profile-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        .profile-label i {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+        .profile-value {
+            color: var(--text-color);
+            font-weight: 500;
+            text-align: right;
+            flex: 1;
+            margin-left: 16px;
+        }
+        .delete-btn {
+            margin-top: 20px;
+            background: #ef5350;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 36px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px #ef535033;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .delete-btn:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+        .delete-btn i {
+            font-size: 1.2rem;
+        }
+        @media (max-width: 768px) {
+            .profile-main-content {
+                margin-top: 20px;
+            }
+            .profile-card {
+                padding: 24px 16px;
+                min-width: unset;
+                max-width: 100%;
+            }
+            .profile-avatar {
+                width: 80px;
+                height: 80px;
+            }
+            .profile-avatar span {
+                font-size: 2rem;
+            }
+            .profile-title {
+                font-size: 1.5rem;
+            }
+            .profile-list {
+                gap: 16px;
+            }
+            .profile-row {
+                padding: 10px 12px;
+                font-size: 1rem;
+            }
+            .delete-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+           <h1>医療管理アプリ</h1>
+        </div>
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button" onclick="location.href='home.html'">
+                    <span class="tab-icon">🏥</span>
+                    <span class="tab-text">ダッシュボード</span>
+                </button>
+                <button class="tab-button" onclick="location.href='list.html'">
+                    <span class="tab-icon">👥</span>
+                    <span class="tab-text">患者診療記録</span>
+                </button>
+                <button class="tab-button" onclick="location.href='chat.html'">
+                    <span class="tab-icon">📅</span>
+                    <span class="tab-text">チャット</span>
+                </button>
+                <button class="tab-button active" onclick="location.href='docterprofile.html'">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text">プロフィール</span>
+                </button>
+            </div>
+        </div>
+        <div class="profile-main-content">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <span id="profileInitial"></span>
+                    </div>
+                    <h2 class="profile-title">登録情報</h2>
+                </div>
+                <div class="profile-list">
+                    <div class="profile-row">
+                        <div class="profile-label">
+                            <i class="fas fa-user"></i>
+                            <span>名前</span>
+                        </div>
+                        <span class="profile-value" id="doctorName"></span>
+                    </div>
+                    <div class="profile-row">
+                        <div class="profile-label">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span>年齢</span>
+                        </div>
+                        <span class="profile-value" id="doctorAge"></span>
+                    </div>
+                    <div class="profile-row">
+                        <div class="profile-label">
+                            <i class="fas fa-envelope"></i>
+                            <span>メール</span>
+                        </div>
+                        <span class="profile-value" id="doctorEmail"></span>
+                    </div>
+                    <div class="profile-row">
+                        <div class="profile-label">
+                            <i class="fas fa-stethoscope"></i>
+                            <span>専門</span>
+                        </div>
+                        <span class="profile-value" id="doctorSpecialty"></span>
+                    </div>
+                    <div class="profile-row">
+                        <div class="profile-label">
+                            <i class="fas fa-hospital"></i>
+                            <span>病院</span>
+                        </div>
+                        <span class="profile-value" id="doctorHospital"></span>
+                    </div>
+                    <div class="profile-row">
+                        <div class="profile-label">
+                            <i class="fas fa-clock"></i>
+                            <span>勤務年数</span>
+                        </div>
+                        <span class="profile-value" id="doctorExperience"></span>
+                    </div>
+                </div>
+                <button id="deleteAccountBtn" class="delete-btn">
+                    <i class="fas fa-user-times"></i>
+                    退会する
+                </button>
+            </div>
+        </div>
+    </div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+            authDomain: "web01-2484d.firebaseapp.com",
+            projectId: "web01-2484d",
+            storageBucket: "web01-2484d.appspot.com",
+            messagingSenderId: "90159472898",
+            appId: "1:90159472898:web:261ec71f9919611011e21b"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // 医師のプロフィール情報を取得
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                const db = firebase.firestore();
+                db.collection('users').doc(user.uid).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const data = doc.data();
+                            console.log('取得したユーザーデータ:', data); // デバッグ用
+                            // プロフィールイニシャルを設定
+                            const initial = data.name ? data.name.charAt(0).toUpperCase() : '?';
+                            document.getElementById('profileInitial').textContent = initial;
+                            
+                            // 既存のプロフィール情報設定
+                            if (document.getElementById('doctorName')) document.getElementById('doctorName').textContent = data.name || '';
+                            if (document.getElementById('doctorAge')) {
+                                if (data.age !== undefined && data.age !== null && data.age !== "") {
+                                    document.getElementById('doctorAge').textContent = `${data.age}歳`;
+                                } else {
+                                    document.getElementById('doctorAge').textContent = '未登録';
+                                }
+                            }
+                            if (document.getElementById('doctorEmail')) document.getElementById('doctorEmail').textContent = data.email || user.email || '';
+                            if (document.getElementById('doctorSpecialty')) document.getElementById('doctorSpecialty').textContent = data.specialty || '';
+                            if (document.getElementById('doctorHospital')) document.getElementById('doctorHospital').textContent = data.hospital || '';
+                            if (document.getElementById('doctorExperience')) document.getElementById('doctorExperience').textContent = (data.experience !== undefined && data.experience !== null && data.experience !== "") ? `${data.experience}年` : '';
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching user profile:", error);
+                    });
+            }
+        });
+
+        // 退会処理
+        document.getElementById('deleteAccountBtn').onclick = function() {
+            if (!confirm('本当に退会しますか？この操作は元に戻せません。')) return;
+            const user = firebase.auth().currentUser;
+            if (!user) return alert('ログイン情報がありません');
+            const db = firebase.firestore();
+            // Firestoreのユーザーデータ削除
+            db.collection('users').doc(user.uid).delete()
+                .then(() => {
+                    // Authユーザー削除
+                    user.delete().then(() => {
+                        alert('退会が完了しました');
+                        window.location.href = 'index.html';
+                    }).catch((error) => {
+                        if (error.code === 'auth/requires-recent-login') {
+                            const pw = prompt('再認証のためパスワードを入力してください');
+                            if (!pw) return alert('パスワードが必要です');
+                            const cred = firebase.auth.EmailAuthProvider.credential(user.email, pw);
+                            user.reauthenticateWithCredential(cred).then(() => {
+                                user.delete().then(() => {
+                                    alert('退会が完了しました');
+                                    window.location.href = 'index.html';
+                                });
+                            }).catch((e) => {
+                                alert('再認証に失敗しました: ' + e.message);
+                            });
+                        } else {
+                            alert('退会処理中にエラーが発生しました: ' + error.message);
+                        }
+                    });
+                })
+                .catch((error) => {
+                    alert('退会処理中にエラーが発生しました: ' + error.message);
+                });
+        };
+    </script>
+</body>
+</html>
