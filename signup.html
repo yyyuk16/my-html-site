@@ -13,11 +13,11 @@
 
   <style>
     :root {
-      --color-pink-light: #FCE4EC;
-      --color-pink: #EC407A;
-      --color-pink-dark: #D81B60;
-      --color-pink-accent: #C2185B;
-      --primary-color: var(--color-pink);
+      --color-pink-light: #FFE4E1;
+      --color-pink-medium: #FFB6C1;
+      --color-pink-dark: #FF69B4;
+      --color-pink-accent: #FFC0CB;
+      --primary-color: var(--color-pink-medium);
       --secondary-color: var(--color-pink-dark);
       --accent-color: var(--color-pink-accent);
       --background-color: var(--color-pink-light);
@@ -125,54 +125,61 @@
   <div class="container">
     <h1 data-i18n="signup-title">患者新規登録</h1>
     <form id="signupForm">
-      <div class="form-group">
-        <label for="name" data-i18n="name">お名前</label>
-        <input type="text" id="name" required>
+      <div class="form-section">
+        <div class="section-title">基本情報</div>
+        <div class="form-grid">
+          <div class="form-group half-width">
+            <label for="name" data-i18n="name">お名前</label>
+            <input type="text" id="name" required>
+          </div>
+          <div class="form-group half-width">
+            <label for="age" data-i18n="age">年齢</label>
+            <input type="number" id="age" min="0" max="120" required>
+          </div>
+          <div class="form-group half-width">
+            <label for="gender" data-i18n="gender">性別</label>
+            <select id="gender" required>
+              <option value="" data-i18n="select">選択してください</option>
+              <option value="male" data-i18n="male">男性</option>
+              <option value="female" data-i18n="female">女性</option>
+              <option value="other" data-i18n="other">その他</option>
+            </select>
+          </div>
+          <div class="form-group half-width">
+            <label for="language" data-i18n="language">言語選択</label>
+            <select id="language" required onchange="changeLanguage(this.value)">
+              <option value="" data-i18n="select">選択してください</option>
+              <option value="ja" data-i18n="ja">日本語</option>
+              <option value="en" data-i18n="en">English</option>
+              <option value="zh" data-i18n="zh">中文</option>
+              <option value="ko" data-i18n="ko">한국어</option>
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="gender" data-i18n="gender">性別</label>
-        <select id="gender" required>
-          <option value="" data-i18n="select">選択してください</option>
-          <option value="male" data-i18n="male">男性</option>
-          <option value="female" data-i18n="female">女性</option>
-          <option value="other" data-i18n="other">その他</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="age" data-i18n="age">年齢</label>
-        <input type="number" id="age" min="0" max="120" required>
-      </div>
-      <div class="form-group">
-        <label for="language" data-i18n="language">言語選択</label>
-        <select id="language" required onchange="changeLanguage(this.value)">
-          <option value="" data-i18n="select">選択してください</option>
-          <option value="ja" data-i18n="ja">日本語</option>
-          <option value="en" data-i18n="en">English</option>
-          <option value="zh" data-i18n="zh">中文</option>
-          <option value="ko" data-i18n="ko">한국어</option>
-           <label for="doctorSelect" data-i18n="select-doctor">担当医を選択</label>
-  <select id="doctorSelect" required>
-    <option value="" data-i18n="select">選択してください</option>
-  </select>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="email" data-i18n="email">メールアドレス</label>
-        <input type="email" id="email" required>
-      </div>
-      <div class="form-group">
-        <label for="doctorSelect" data-i18n="select-doctor">担当医を選択</label>
-        <select id="doctorSelect" required>
-          <option value="" data-i18n="select">選択してください</option>
-        </select>
-      </div>      
-      <div class="form-group">
-        <label for="password" data-i18n="password">パスワード</label>
-        <input type="password" id="password" required>
-      </div>
-      <div class="form-group">
-        <label for="confirmPassword" data-i18n="confirm-password">パスワード（確認）</label>
-        <input type="password" id="confirmPassword" required>
+
+      <div class="form-section">
+        <div class="section-title">アカウント情報</div>
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="email" data-i18n="email">メールアドレス</label>
+            <input type="email" id="email" required>
+          </div>
+          <div class="form-group full-width">
+            <label for="doctorSelect" data-i18n="select-doctor">担当医を選択</label>
+            <select id="doctorSelect" required>
+              <option value="" data-i18n="select">選択してください</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="password" data-i18n="password">パスワード</label>
+            <input type="password" id="password" required>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword" data-i18n="confirm-password">パスワード（確認）</label>
+            <input type="password" id="confirmPassword" required>
+          </div>
+        </div>
       </div>
       <button type="submit" data-i18n="register">登録</button>
     </form>
@@ -277,7 +284,7 @@
         'zh': '중국어',
         'ko': '한국어',
         'email': '이메일',
-         'select-doctor': '담당 의사 선택',
+        'select-doctor': '담당 의사 선택',
         'password': '비밀번호',
         'confirm-password': '비밀번호 확인',
         'register': '등록',
@@ -297,75 +304,71 @@
     }
 
     function loadDoctors() {
-  const doctorSelect = document.getElementById('doctorSelect');
-  firebase.firestore().collection('users')
-    .where('role', '==', 'staff')
-    .get()
-    .then(snapshot => {
-      snapshot.forEach(doc => {
-        const doctor = doc.data();
-        const option = document.createElement('option');
-        option.value = doc.id; // 医者のUID
-        option.textContent = doctor.name || doctor.email || '医者';
-        doctorSelect.appendChild(option);
-      });
-    })
-    .catch(error => {
-      console.error('医者の取得に失敗しました:', error);
+      const doctorSelect = document.getElementById('doctorSelect');
+      firebase.firestore().collection('users')
+        .where('role', '==', 'staff')
+        .get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            const doctor = doc.data();
+            const option = document.createElement('option');
+            option.value = doc.id; // 医者のUID
+            option.textContent = doctor.name || doctor.email || '医者';
+            doctorSelect.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.error('医者の取得に失敗しました:', error);
+        });
+    }
+
+    window.onload = function() {
+      loadDoctors();
+      // もし言語設定があればここで changeLanguage() を呼んでください
+    };
+
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const language = document.getElementById('language').value || 'ja';
+
+      const doctorSelect = document.getElementById('doctorSelect');
+      const assignedDoctorUid = doctorSelect.value;
+
+      if (password !== confirmPassword) {
+        alert(translations[language]['password-mismatch'] || 'パスワードが一致しません');
+        return;
+      }
+      if (!assignedDoctorUid) {
+        alert('担当医を選択してください');
+        return;
+      }
+
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          const user = userCredential.user;
+
+          return firebase.firestore().collection('users').doc(user.uid).set({
+            name: name,
+            email: email,
+            language: language,
+            role: 'patient',
+            assignedDoctor: assignedDoctorUid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        })
+        .then(() => {
+          alert(translations[language]['registration-success'] || '登録が完了しました！');
+          window.location.href = 'choise.html';
+        })
+        .catch(error => {
+          alert((translations[language]['registration-error'] || '登録に失敗しました: ') + error.message);
+        });
     });
-}
-
-window.onload = function() {
-  loadDoctors();
-  // もし言語設定があればここで changeLanguage() を呼んでください
-};
-
-
-document.getElementById('signupForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-
-  const name = document.getElementById('name').value;
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  const confirmPassword = document.getElementById('confirmPassword').value;
-  const language = document.getElementById('language').value || 'ja';
-
-  const doctorSelect = document.getElementById('doctorSelect');
-  const assignedDoctorUid = doctorSelect.value;
-
-  if (password !== confirmPassword) {
-    alert(translations[language]['password-mismatch'] || 'パスワードが一致しません');
-    return;
-  }
-  if (!assignedDoctorUid) {
-    alert('担当医を選択してください');
-    return;
-  }
-
-  firebase.auth().createUserWithEmailAndPassword(email, password)
-    .then(userCredential => {
-      const user = userCredential.user;
-
-      return firebase.firestore().collection('users').doc(user.uid).set({
-        name: name,
-        email: email,
-        language: language,
-        role: 'patient',
-        assignedDoctor: assignedDoctorUid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    })
-    .then(() => {
-      alert(translations[language]['registration-success'] || '登録が完了しました！');
-      window.location.href = 'choise.html';
-    })
-    .catch(error => {
-      alert((translations[language]['registration-error'] || '登録に失敗しました: ') + error.message);
-    });
-});
-
-
-</script>
-
+  </script>
 </body>
 </html>
