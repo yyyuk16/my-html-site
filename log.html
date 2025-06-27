@@ -168,17 +168,26 @@
 
         // URLから患者IDを取得
         const urlParams = new URLSearchParams(window.location.search);
-        const patientId = urlParams.get('id');
+        const patientId = urlParams.get('id') || urlParams.get('uid');
 
         // 患者情報の取得と表示
         async function loadPatientData() {
             try {
-                const patientDoc = await db.collection('patients').doc(patientId).get();
-                if (patientDoc.exists) {
-                    const data = patientDoc.data();
-                    document.getElementById('patientName').textContent = data.name;
-                    document.getElementById('patientAge').textContent = data.age;
-                    document.getElementById('patientGender').textContent = data.gender;
+                // patientsコレクション優先、なければusersコレクションから取得
+                let data = null;
+                let docRef = await db.collection('patients').doc(patientId).get();
+                if (docRef.exists) {
+                    data = docRef.data();
+                } else {
+                    docRef = await db.collection('users').doc(patientId).get();
+                    if (docRef.exists) {
+                        data = docRef.data();
+                    }
+                }
+                if (data) {
+                    document.getElementById('patientName').textContent = data.name || '-';
+                    document.getElementById('patientAge').textContent = data.age || '-';
+                    document.getElementById('patientGender').textContent = data.gender || '-';
                     document.getElementById('lastVisit').textContent = data.lastVisit || '-';
                 }
             } catch (error) {
@@ -217,25 +226,59 @@
         // クイズ結果の取得と表示
         async function loadQuizResults() {
             try {
-                const quizSnapshot = await db.collection('patients')
+                let quizContainer = document.getElementById('quizResults');
+                quizContainer.innerHTML = '';
+                let quizSnapshot = await db.collection('patients')
                     .doc(patientId)
                     .collection('quizzes')
                     .orderBy('date', 'desc')
                     .get();
-
-                const quizContainer = document.getElementById('quizResults');
-                quizContainer.innerHTML = '';
-
-                quizSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const quizCard = document.createElement('div');
-                    quizCard.className = 'quiz-card';
-                    quizCard.innerHTML = `
-                        <div class="history-date">${data.date}</div>
-                        <div class="quiz-score">スコア: ${data.score}</div>
-                        <div>クイズ名: ${data.quizName}</div>
-                    `;
-                    quizContainer.appendChild(quizCard);
+                let quizList = [];
+                if (quizSnapshot.empty) {
+                    const userQuizDoc = await db.collection('quiz_scores').doc(patientId).get();
+                    if (userQuizDoc.exists && userQuizDoc.data().scores) {
+                        quizList = userQuizDoc.data().scores.map(score => ({
+                            ...score,
+                            category: score.category || score.quizName || 'その他',
+                            date: score.timestamp && score.timestamp.toDate ? score.timestamp.toDate().toLocaleString('ja-JP') : '-',
+                            scoreValue: score.accuracy ?? score.score ?? '-'
+                        }));
+                    }
+                } else {
+                    quizSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        quizList.push({
+                            ...data,
+                            category: data.category || data.quizName || 'その他',
+                            date: data.date || '-',
+                            scoreValue: data.score || '-'
+                        });
+                    });
+                }
+                // 3区分＋その他でグループ化
+                const CATEGORIES = ['基礎知識', '臨床', '倫理'];
+                const grouped = { '基礎知識': [], '臨床': [], '倫理': [], 'その他': [] };
+                quizList.forEach(q => {
+                    const cat = CATEGORIES.includes(q.category) ? q.category : 'その他';
+                    grouped[cat].push(q);
+                });
+                CATEGORIES.concat(['その他']).forEach(cat => {
+                    if (grouped[cat].length > 0) {
+                        const block = document.createElement('div');
+                        block.className = 'quiz-category-block';
+                        block.innerHTML = `<h3>${cat}</h3>`;
+                        grouped[cat].forEach(q => {
+                            const quizCard = document.createElement('div');
+                            quizCard.className = 'quiz-card';
+                            quizCard.innerHTML = `
+                                <div class="history-date">${q.date}</div>
+                                <div class="quiz-score">スコア: ${q.scoreValue}</div>
+                                <div>クイズ名: ${q.quizName || '-'}</div>
+                            `;
+                            block.appendChild(quizCard);
+                        });
+                        quizContainer.appendChild(block);
+                    }
                 });
             } catch (error) {
                 console.error('クイズ結果の取得に失敗しました:', error);
