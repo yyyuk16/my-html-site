@@ -26,28 +26,34 @@ let currentCategory = 'basic'; // デフォルトカテゴリー
 
 // カテゴリー別の問題定義
 const quizCategories = {
-  basic: {
-    name: "基礎知識",
+  about: {
+    name: "結核とは",
     prompts: [
-      "結核の基本的な症状についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。",
-      "結核の原因となる細菌についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。",
-      "結核の基本的な検査方法についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。"
+      "結核とは何かについての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。"
     ]
   },
-  clinical: {
-    name: "臨床",
+  test: {
+    name: "検査方法",
     prompts: [
-      "結核の治療方法に関する4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。",
-      "結核の薬の副作用についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。",
-      "結核の治療期間についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。"
+      "結核の検査方法についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。"
     ]
   },
-  ethics: {
-    name: "倫理",
+  treatment: {
+    name: "治療方法",
     prompts: [
-      "結核患者のプライバシー保護についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。",
-      "結核の感染対策における倫理的配慮についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。",
-      "結核患者の就労制限に関する倫理的課題についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。"
+      "結核の治療方法についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。"
+    ]
+  },
+  target: {
+    name: "感染対象",
+    prompts: [
+      "結核の感染対象についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。"
+    ]
+  },
+  if: {
+    name: "結核になったら",
+    prompts: [
+      "結核になった場合の対応についての4択クイズを作成してください。JSON形式で「question」「choices」「answer」のキーを持つオブジェクトで返してください。"
     ]
   }
 };

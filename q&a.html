@@ -9,7 +9,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <style>
-    /* 既存のスタイルは維持 */
     :root {
       --color-pink-light: #FFE4E1;
       --color-pink-medium: #FFB6C1;
@@ -24,7 +23,6 @@
       --card-bg: rgba(255, 255, 255, 0.95);
     }
 
-    /* 既存のスタイル定義は維持 */
     body {
       font-family: 'Noto Sans JP', sans-serif;
       margin: 0;
@@ -119,7 +117,6 @@
       background: var(--color-pink-dark);
     }
 
-    /* カテゴリー選択のスタイル */
     .category-selector {
       margin-bottom: 2rem;
       text-align: center;
@@ -168,18 +165,24 @@
     <div class="category-selector">
       <h2>カテゴリーを選択</h2>
       <div class="category-buttons">
-        <button class="category-button active" onclick="selectCategory('basic')">
-          基礎知識
+        <button class="category-button active" onclick="selectCategory('about')">
+          結核とは
         </button>
-        <button class="category-button" onclick="selectCategory('clinical')">
-          臨床
+        <button class="category-button" onclick="selectCategory('test')">
+          検査方法
         </button>
-        <button class="category-button" onclick="selectCategory('ethics')">
-          倫理
+        <button class="category-button" onclick="selectCategory('treatment')">
+          治療方法
+        </button>
+        <button class="category-button" onclick="selectCategory('target')">
+          感染対象
+        </button>
+        <button class="category-button" onclick="selectCategory('if')">
+          結核になったら
         </button>
       </div>
       <div class="category-description" id="category-description">
-        基礎的な結核の知識に関する問題です。
+        結核とは何かについての問題です。
       </div>
     </div>
   
@@ -188,6 +191,12 @@
       <div id="choices" class="choices"></div>
       <div id="result" class="result"></div>
       <button id="next-btn" class="next-btn">次の問題</button>
+    </div>
+    <!-- スコア表示エリア -->
+    <div id="score-area" style="display:none; margin-top:2rem; text-align:center;">
+      <h2>あなたのスコア</h2>
+      <div id="score-value" style="font-size:2rem; font-weight:bold;"></div>
+      <button id="retry-btn" class="next-btn" style="display:inline-block; margin-top:1rem;">もう一度挑戦</button>
     </div>
   </div>
 
@@ -232,6 +241,9 @@
     selectCategory = function(category) {
       originalSelectCategory(category);
       updateCategoryDescription(category);
+      // カテゴリー変更時にスコア表示を非表示に
+      document.getElementById('score-area').style.display = 'none';
+      document.querySelector('.quiz-container').style.display = '';
     };
 
     // 初期カテゴリーの説明を表示
@@ -285,9 +297,26 @@
       
       if (questionCount >= 5) {
         const score = (correctCount / 5) * 100;
+        showScore(score);
         saveScore(score);
       }
     }
+
+    // スコアを画面に表示する関数
+    function showScore(score) {
+      document.querySelector('.quiz-container').style.display = 'none';
+      document.getElementById('score-area').style.display = 'block';
+      document.getElementById('score-value').textContent = `${score} 点`;
+    }
+
+    // もう一度挑戦ボタン
+    document.getElementById('retry-btn').onclick = function() {
+      questionCount = 0;
+      correctCount = 0;
+      document.getElementById('score-area').style.display = 'none';
+      document.querySelector('.quiz-container').style.display = '';
+      generateQuiz();
+    };
 
     async function saveScore(score) {
       const user = firebase.auth().currentUser;
@@ -298,7 +327,7 @@
             score: score,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
           });
-          window.location.href = 'score.html';
+          // window.location.href = 'score.html'; // スコアページへの遷移は行わず、画面に表示
         } catch (error) {
           console.error('スコアの保存に失敗しました:', error);
         }

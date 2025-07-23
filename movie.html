@@ -6,9 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* 既存のスタイルを維持しつつ、緑の色調に変更 */
     :root {
-        /* ピンクメインのカラーパレット */
         --color-pink-light: #FFE4E8;
         --color-pink: #FFB6C1;
         --color-pink-dark: #FF7080;
@@ -23,8 +21,6 @@
         --card-bg: rgba(255, 255, 255, 0.95);
         --todo-bg: var(--card-bg);
     }
-
-    /* 既存のスタイル定義は維持 */
     body {
         background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
         min-height: 100vh;
@@ -33,8 +29,8 @@
         align-items: center;
         margin: 0;
         padding: 20px;
+        font-family: 'Noto Sans JP', sans-serif;
     }
-
     .container {
         width: 100%;
         max-width: 1200px;
@@ -43,12 +39,10 @@
         padding: 30px;
         box-shadow: 0 8px 24px var(--shadow-color);
     }
-
     .header {
         text-align: center;
         margin-bottom: 30px;
     }
-
     .header h1 {
         font-size: 2.5rem;
         color: var(--primary-color);
@@ -109,7 +103,6 @@
         box-shadow: 0 4px 12px var(--shadow-color);
         margin-bottom: 30px;
     }
-
     .tab-button {
         padding: 12px 25px;
         background: transparent;
@@ -124,251 +117,132 @@
         align-items: center;
         gap: 6px;
     }
-
     .tab-button.active {
         background: white;
         color: var(--primary-color);
         box-shadow: 0 2px 10px var(--shadow-color);
     }
-
-    .main-content {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
+    /* --- 動画セクション --- */
+    .movie-section {
         margin-top: 30px;
-    }
-
-    /* カレンダーのスタイル */
-    .calendar {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 4px 15px var(--shadow-color);
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .calendar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        padding: 0 10px;
-    }
-
-    .calendar-header h2 {
-        font-size: 1.5rem;
-        color: var(--primary-color);
-        margin: 0;
-    }
-
-    .calendar-header button {
-        background: var(--color-pink-light);
-        color: var(--primary-color);
-        border: none;
-        padding: 10px 15px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 1.1rem;
-        transition: all 0.3s ease;
-    }
-
-    .calendar-header button:hover {
-        background: var(--primary-color);
-        color: white;
-    }
-
-    .calendar-weekdays {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        margin-bottom: 8px;
-    }
-
-    .calendar-weekday {
-        text-align: center;
-        font-weight: 600;
-        padding: 10px 5px;
-        color: var(--primary-color);
-        font-size: 0.95rem;
-        border-bottom: 2px solid var(--color-pink-light);
-        background: #f5f9f5;
-    }
-
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 8px;
-        padding: 0;
-        min-height: 330px;
-    }
-
-    .calendar-day {
-        aspect-ratio: 1;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px var(--shadow-color);
+        padding: 32px 24px 28px 24px;
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        justify-content: flex-start;
-        text-align: left;
-        padding: 5px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 0.95rem;
-        position: relative;
-        transition: all 0.2s ease;
-        border: 1px solid transparent;
-        min-height: 60px;
-        box-sizing: border-box;
-    }
-    .calendar-day > span {
-        font-size: 0.95rem;
-        font-weight: bold;
-        margin-bottom: 2px;
-        margin-left: 2px;
-    }
-    .calendar-event {
-        width: 100%;
-        background: var(--color-pink-light);
-        color: var(--color-pink-accent);
-        border-radius: 8px;
-        font-size: 0.8rem;
-        margin-top: 2px;
-        padding: 2px 6px;
-        word-break: break-all;
-        display: block;
-        text-align: left;
-        font-weight: bold;
-        box-sizing: border-box;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .calendar-event-title {
-        font-size: 0.8rem;
-        font-weight: bold;
-        margin-right: 4px;
-    }
-    .calendar-event[data-color="blue"] {
-        background: #66BB6A;
-        color: #fff;
-    }
-    .calendar-event[data-color="red"] {
-        background: #4CAF50;
-        color: #fff;
-    }
-    .calendar-event[data-color="green"] {
-        background: #81C784;
-        color: #fff;
-    }
-    .calendar-event[data-color="yellow"] {
-        background: #A5D6A7;
-        color: #2E7D32;
-    }
-    .calendar-event[data-color="purple"] {
-        background: #388E3C;
-        color: #fff;
-    }
-    .calendar-event[data-color="orange"] {
-        background: #66BB6A;
-        color: #fff;
-    }
-    .calendar-event .event-delete {
-        margin-left: 10px;
-        color: #888;
-        font-size: 1rem;
-        cursor: pointer;
-    }
-    .calendar-event .event-edit {
-        margin-left: 2px;
-        color: #888;
-        font-size: 1rem;
-        cursor: pointer;
-    }
-    .calendar-event .event-edit:hover {
-        color: var(--color-pink-dark);
-    }
-    .event-detail-pop {
-        position: absolute;
-        z-index: 2000;
-        background: #fff;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        padding: 10px 15px;
-        min-width: 200px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-        font-size: 0.95rem;
-        color: #333;
-        top: 30px;
-        left: 0;
-        display: none;
-    }
-    .event-detail-pop.active {
-        display: block;
-    }
-
-    @media (max-width: 768px) {
-        .main-content {
-            grid-template-columns: 1fr;
-        }
-        
-        .container {
-            padding: 20px;
-        }
-    }
-
-    /* モーダルのスタイル */
-    .modal-bg {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.3);
-        z-index: 1000;
-        justify-content: center;
         align-items: center;
     }
-    .modal-bg.active {
-        display: flex;
+    .movie-section h2 {
+        color: var(--primary-color);
+        font-size: 2rem;
+        margin-bottom: 18px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
     }
-    .modal {
-        background: #fff;
-        border-radius: 10px;
-        padding: 30px 20px 20px 20px;
-        min-width: 300px;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-        position: relative;
-    }
-    .modal-close {
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        font-size: 1.3rem;
-        color: #888;
-        cursor: pointer;
-    }
-    .modal input, .modal textarea {
+    .movie-search-row {
         width: 100%;
-        margin-bottom: 12px;
-        padding: 8px;
-        border-radius: 5px;
+        max-width: 500px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        margin-top: 8px;
+    }
+    .movie-search-row input[type="text"] {
+        flex: 1;
+        padding: 10px 14px;
+        border-radius: 8px;
         border: 1px solid #ccc;
         font-size: 1rem;
+        background: #f8f8f8;
+        transition: border 0.2s;
     }
-    .modal button {
+    .movie-search-row input[type="text"]:focus {
+        border: 1.5px solid var(--primary-color);
+        outline: none;
+        background: #fff;
+    }
+    .movie-search-row button {
         background: var(--primary-color);
         color: #fff;
         border: none;
-        padding: 8px 18px;
-        border-radius: 5px;
-        cursor: pointer;
+        border-radius: 8px;
+        padding: 10px 18px;
         font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
     }
-</style>
+    .movie-search-row button:hover {
+        background: var(--color-pink-dark);
+    }
+    .movie-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+        margin-bottom: 18px;
+        margin-top: 8px;
+    }
+    .movie-buttons button {
+        background: var(--color-pink-light);
+        color: var(--primary-color);
+        border: none;
+        border-radius: 10px;
+        padding: 12px 24px;
+        font-size: 1.05rem;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 1px 4px var(--shadow-color);
+        transition: background 0.2s, color 0.2s;
+    }
+    .movie-buttons button.active,
+    .movie-buttons button:focus {
+        background: var(--primary-color);
+        color: #fff;
+        outline: none;
+    }
+    #info-content {
+        margin-top: 20px;
+        padding: 18px 20px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        background: #f9f9f9;
+        min-height: 60px;
+        width: 100%;
+        max-width: 600px;
+        font-size: 1.08rem;
+        color: #333;
+        box-shadow: 0 1px 4px var(--shadow-color);
+        display: none;
+        transition: box-shadow 0.2s;
+    }
+    @media (max-width: 600px) {
+        .container {
+            padding: 10px;
+        }
+        .movie-section {
+            padding: 16px 4px 16px 4px;
+        }
+        .movie-search-row {
+            flex-direction: column;
+            gap: 8px;
+        }
+        .movie-buttons {
+            gap: 8px;
+        }
+        #info-content {
+            padding: 12px 6px;
+        }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1>医療情報管理アプリ</h1>
     </div>
-    
     <div class="tab-container">
       <div class="tab-header">
         <button class="tab-button" onclick="location.href='choise.html'">
@@ -394,29 +268,99 @@
       </div>
     </div>
 
-    <div class="video-container">
-      <!-- ローカル動画再生 -->
-      <video id="myVideo" controls>
-        <source src="video.mp4" type="video/mp4">
-        このブラウザは video タグをサポートしていません。
-      </video>
-
-      <!-- YouTube埋め込み例 -->
-      <h3>YouTubeから再生</h3>
-      <iframe
-        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-        title="YouTube video"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen>
-      </iframe>
+    <div class="movie-section">
+      <h2>結核について</h2>
+      <div class="movie-search-row">
+        <input type="text" id="movie-search-input" placeholder="キーワードで検索..." oninput="filterMovieButtons()" />
+        <button onclick="filterMovieButtons()">検索</button>
+      </div>
+      <div class="movie-buttons" id="movie-buttons">
+        <button data-keywords="結核 とは 病気 感染" onclick="showInfo('about', this)">結核とは</button>
+        <button data-keywords="検査 方法 X線 喀痰 ツベルクリン IGRA" onclick="showInfo('test', this)">検査方法</button>
+        <button data-keywords="治療 方法 薬 服用 期間" onclick="showInfo('treatment', this)">治療方法</button>
+        <button data-keywords="感染 対象 免疫 高齢者 乳幼児 糖尿病" onclick="showInfo('target', this)">感染対象</button>
+        <button data-keywords="結核 なったら 受診 治療 咳エチケット マスク 換気" onclick="showInfo('if', this)">結核になったら</button>
+      </div>
+      <div id="info-content"></div>
     </div>
-    <button onclick="goBack()" class="back-btn">← 戻る</button>
   </div>
-
   <script>
-    function goBack() {
-      window.location.href = 'index.html';
+    // 動画ボタンの内容
+    // ※後で動画を埋め込む予定のため、仮の枠だけ用意しています
+    const movieInfos = {
+      about: {
+        title: "結核とは",
+        content: `<div style="border:2px dashed #ccc; border-radius:12px; padding:32px; text-align:center; color:#888; background:#f9f9f9;">
+          ここに「結核とは」の動画が入ります（準備中）
+        </div>`
+      },
+      test: {
+        title: "検査方法",
+        content: `<div style="border:2px dashed #ccc; border-radius:12px; padding:32px; text-align:center; color:#888; background:#f9f9f9;">
+          ここに「検査方法」の動画が入ります（準備中）
+        </div>`
+      },
+      treatment: {
+        title: "治療方法",
+        content: `<div style="border:2px dashed #ccc; border-radius:12px; padding:32px; text-align:center; color:#888; background:#f9f9f9;">
+          ここに「治療方法」の動画が入ります（準備中）
+        </div>`
+      },
+      target: {
+        title: "感染対象",
+        content: `<div style="border:2px dashed #ccc; border-radius:12px; padding:32px; text-align:center; color:#888; background:#f9f9f9;">
+          ここに「感染対象」の動画が入ります（準備中）
+        </div>`
+      },
+      if: {
+        title: "結核になったら",
+        content: `<div style="border:2px dashed #ccc; border-radius:12px; padding:32px; text-align:center; color:#888; background:#f9f9f9;">
+          ここに「結核になったら」の動画が入ります（準備中）
+        </div>`
+      }
+    };
+
+    // ボタンのactive状態管理
+    function clearActiveButtons() {
+      const btns = document.querySelectorAll('.movie-buttons button');
+      btns.forEach(btn => btn.classList.remove('active'));
+    }
+
+    function showInfo(type, btn) {
+      const info = movieInfos[type];
+      if (!info) return;
+      const infoDiv = document.getElementById("info-content");
+      infoDiv.innerHTML = `<strong>${info.title}</strong><br>${info.content}`;
+      infoDiv.style.display = "block";
+      clearActiveButtons();
+      if (btn) btn.classList.add('active');
+    }
+
+    // 検索機能
+    function filterMovieButtons() {
+      const input = document.getElementById('movie-search-input').value.trim().toLowerCase();
+      const buttons = document.querySelectorAll('#movie-buttons button');
+      let anyVisible = false;
+      buttons.forEach(btn => {
+        const keywords = btn.getAttribute('data-keywords').toLowerCase();
+        if (input === "" || keywords.includes(input)) {
+          btn.style.display = "";
+          anyVisible = true;
+        } else {
+          btn.style.display = "none";
+        }
+      });
+      // 検索で何もヒットしなかった場合
+      const infoDiv = document.getElementById("info-content");
+      if (!anyVisible && input !== "") {
+        infoDiv.innerHTML = "該当する項目が見つかりませんでした。";
+        infoDiv.style.display = "block";
+        clearActiveButtons();
+      } else if (input === "") {
+        infoDiv.innerHTML = "";
+        infoDiv.style.display = "none";
+        clearActiveButtons();
+      }
     }
   </script>
 </body>
