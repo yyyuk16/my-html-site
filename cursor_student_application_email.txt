@@ -1,0 +1,28 @@
+Subject: Student Plan Application - Tokyo Denki University (.ac.jp domain)
+
+Dear Cursor Support Team,
+
+My name is Yukino Shoji, and I am a university student in Japan. I would like to apply for the student plan on Cursor, but my university email address ends with ".ac.jp" instead of ".edu", which your system does not recognize for student verification.
+
+To support my request, I have attached the following documents as proof of my student status:
+- My student ID card (with visible name and expiration date)
+- Screenshot of my university portal showing my enrollment
+
+Here are my details:
+- Name: Yukino Shoji
+- University: Tokyo Denki University (東京電機大学)
+- Student ID: 22RD106
+- Department: Information System Design (情報システムデザイン学系)
+- University Email: 22rd106@ms.dendai.ac.jp
+- Enrollment Date: April 2022
+
+My student ID card shows that I am currently enrolled at Tokyo Denki University, Faculty of Science and Engineering, Information System Design Department. The card is valid and contains the official university seal.
+
+Please let me know if any additional information or documentation is needed to verify my student status.
+
+Thank you very much for your time and consideration.
+
+Best regards,
+Yukino Shoji
+Tokyo Denki University
+Student ID: 22RD106
