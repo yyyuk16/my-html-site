@@ -73,6 +73,38 @@
       margin-left: auto;
     }
 
+    /* メッセージ候補ボタンのスタイル */
+    .message-suggestions {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .suggestion-btn {
+      background: var(--color-pink-light);
+      border: 2px solid var(--primary-color);
+      color: var(--primary-color);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .suggestion-btn:hover {
+      background: var(--primary-color);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px var(--shadow-color);
+    }
+
+    .suggestion-btn.loading {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .input-container {
       width: 90%;
       max-width: 800px;
@@ -187,6 +219,96 @@
     const assignedDoctorNameElem = document.getElementById("assignedDoctorName");
     const languageSelect = document.getElementById("languageSelect");
 
+    // Gemini API設定
+    const GEMINI_API_KEY = "AIzaSyB4H5H00b7sMJ4pwpnE133Lxlg-mJCoAN8"; // 実際のAPIキーに置き換えてください
+    const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+
+    // Gemini APIを使用してメッセージ候補を生成
+    async function generateMessageSuggestionsWithGemini(doctorMessage, userMessage = "") {
+      try {
+        const prompt = `
+以下の医者からのメッセージに対して、患者が次に言いそうな返信候補を3つ生成してください。
+候補は自然で実用的なものにしてください。
+
+医者のメッセージ: "${doctorMessage}"
+${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
+
+返信候補（3つ、カンマ区切りで返してください）:
+`;
+
+        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: prompt
+              }]
+            }]
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Gemini API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const suggestions = data.candidates[0].content.parts[0].text
+          .split(',')
+          .map(s => s.trim())
+          .filter(s => s.length > 0)
+          .slice(0, 3);
+
+        return suggestions;
+      } catch (error) {
+        console.error("Gemini API error:", error);
+        // エラー時はフォールバック候補を返す
+        return [
+          "詳しく教えてください",
+          "ありがとうございます",
+          "他に気をつけることはありますか？"
+        ];
+      }
+    }
+
+    // フォールバック用の候補生成（Gemini APIが使えない場合）
+    function generateFallbackSuggestions(lastMessage) {
+      const suggestions = {
+        default: [
+          "詳しく教えてください",
+          "ありがとうございます",
+          "他に気をつけることはありますか？"
+        ],
+        symptoms: [
+          "痛みが続いています",
+          "熱が下がりません",
+          "食欲がありません"
+        ],
+        medicine: [
+          "薬の飲み方を教えてください",
+          "薬の副作用が出ています",
+          "薬を忘れてしまいました"
+        ],
+        appointment: [
+          "予約を変更したいです",
+          "緊急で診察を受けたいです",
+          "検査結果について質問があります"
+        ]
+      };
+
+      if (lastMessage.includes('痛') || lastMessage.includes('熱') || lastMessage.includes('症状')) {
+        return suggestions.symptoms;
+      } else if (lastMessage.includes('薬') || lastMessage.includes('副作用')) {
+        return suggestions.medicine;
+      } else if (lastMessage.includes('予約') || lastMessage.includes('診察')) {
+        return suggestions.appointment;
+      } else {
+        return suggestions.default;
+      }
+    }
+
     // ユーザー情報取得（Firestore usersコレクションから）
     async function getUserInfo(uid) {
       try {
@@ -211,16 +333,71 @@
       assignedDoctorNameElem.textContent = doctorInfo.userName || "担当医者なし";
     }
 
-    // メッセージ表示関数
-    function displayMessage(msg) {
+    // メッセージ候補ボタンをクリックした時の処理
+    function handleSuggestionClick(suggestion) {
+      messageInput.value = suggestion;
+      messageInput.focus();
+    }
+
+    // メッセージ表示関数（候補ボタン付き）
+    async function displayMessage(msg) {
       const el = document.createElement("div");
       el.classList.add("message");
+      
       if (msg.sender === currentUserUid) {
         el.classList.add("self");
         el.textContent = `あなた: ${msg.text}`;
       } else {
         el.textContent = `担当医: ${msg.text}`;
+        
+        // 医者からの返信の場合、メッセージ候補を表示
+        if (msg.sender === assignedDoctorUid) {
+          // ローディング状態の候補ボタンを表示
+          const suggestionsDiv = document.createElement("div");
+          suggestionsDiv.className = "message-suggestions";
+          
+          const loadingBtn = document.createElement("button");
+          loadingBtn.className = "suggestion-btn loading";
+          loadingBtn.textContent = "候補を生成中...";
+          loadingBtn.disabled = true;
+          suggestionsDiv.appendChild(loadingBtn);
+          
+          el.appendChild(suggestionsDiv);
+          chatDiv.appendChild(el);
+          chatDiv.scrollTop = chatDiv.scrollHeight;
+
+          // Gemini APIで候補を生成
+          try {
+            const suggestions = await generateMessageSuggestionsWithGemini(msg.text);
+            
+            // ローディングボタンを削除して実際の候補を表示
+            suggestionsDiv.innerHTML = '';
+            
+            suggestions.forEach(suggestion => {
+              const btn = document.createElement("button");
+              btn.className = "suggestion-btn";
+              btn.textContent = suggestion;
+              btn.onclick = () => handleSuggestionClick(suggestion);
+              suggestionsDiv.appendChild(btn);
+            });
+          } catch (error) {
+            console.error("候補生成エラー:", error);
+            // エラー時はフォールバック候補を表示
+            suggestionsDiv.innerHTML = '';
+            const fallbackSuggestions = generateFallbackSuggestions(msg.text);
+            fallbackSuggestions.forEach(suggestion => {
+              const btn = document.createElement("button");
+              btn.className = "suggestion-btn";
+              btn.textContent = suggestion;
+              btn.onclick = () => handleSuggestionClick(suggestion);
+              suggestionsDiv.appendChild(btn);
+            });
+          }
+          
+          return; // 既にメッセージを追加済みなので早期リターン
+        }
       }
+      
       chatDiv.appendChild(el);
       chatDiv.scrollTop = chatDiv.scrollHeight;
     }

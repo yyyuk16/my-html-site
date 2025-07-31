@@ -551,15 +551,6 @@
         </div>
     </div>
 
-    <!-- カテゴリータブ -->
-    <div class="category-tabs">
-        <button class="category-tab active" data-category="about">結核とは</button>
-        <button class="category-tab" data-category="test">検査方法</button>
-        <button class="category-tab" data-category="treatment">治療方法</button>
-        <button class="category-tab" data-category="target">感染対象</button>
-        <button class="category-tab" data-category="if">結核になったら</button>
-    </div>
-
     <!-- 統計情報 -->
     <div class="stats-container">
         <div class="stats-card">
@@ -574,12 +565,15 @@
                 <canvas id="categoryChart"></canvas>
             </div>
         </div>
+        <div class="stats-card">
+            <h2>動画クイズ成績推移</h2>
+            <div class="chart-container">
+                <canvas id="movieScoreChart"></canvas>
+            </div>
+        </div>
     </div>
 
     <div id="scores-container"></div>
-    <button class="quiz-button" onclick="location.href='q&a.html'">
-      クイズに挑戦する
-    </button>
   </div>
 
   <!-- Firebaseのスクリプトは変更なし -->
@@ -600,8 +594,11 @@
 
     let scoreChart = null;
     let categoryChart = null;
+    let movieScoreChart = null;
     let allScores = [];
+    let allMovieScores = [];
 
+    // 通常クイズのスコアを取得
     async function loadScores(userId) {
         try {
             const db = firebase.firestore();
@@ -637,14 +634,32 @@
         }
     }
 
+    // 動画クイズのスコアを取得
+    async function loadMovieScores(userId) {
+        try {
+            const db = firebase.firestore();
+            // 動画クイズのスコアは "movie_quiz_scores" コレクションに保存されていると仮定
+            const doc = await db.collection('movie_quiz_scores').doc(userId).get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.scores && Array.isArray(data.scores)) {
+                    const sortedScores = data.scores.sort((a, b) => 
+                        b.timestamp.toDate() - a.timestamp.toDate()
+                    );
+                    allMovieScores = sortedScores;
+                    updateMovieScoreChart(sortedScores);
+                }
+            }
+        } catch (error) {
+            console.error("動画クイズスコアの読み込みに失敗しました:", error);
+        }
+    }
+
     function showNoScores() {
         const scoresContainer = document.getElementById('scores-container');
         scoresContainer.innerHTML = `
             <div class="no-scores">
                 <p>まだクイズの結果がありません</p>
-                <button class="quiz-button" onclick="location.href='q&a.html'">
-                    クイズに挑戦する
-                </button>
             </div>
         `;
     }
@@ -747,6 +762,78 @@
         });
     }
 
+    // 動画クイズの成績推移グラフ
+    function updateMovieScoreChart(scores) {
+        const ctx = document.getElementById('movieScoreChart').getContext('2d');
+        if (movieScoreChart) {
+            movieScoreChart.destroy();
+        }
+        if (!scores || scores.length === 0) {
+            movieScoreChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '正答率',
+                        data: [],
+                        borderColor: '#4D8CFF',
+                        backgroundColor: 'rgba(77, 140, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '正答率 (%)'
+                            }
+                        }
+                    }
+                }
+            });
+            return;
+        }
+        const labels = scores.map(score => 
+            score.timestamp.toDate().toLocaleDateString('ja-JP')
+        ).reverse();
+        const data = scores.map(score => score.accuracy).reverse();
+
+        movieScoreChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '正答率',
+                    data: data,
+                    borderColor: '#4D8CFF',
+                    backgroundColor: 'rgba(77, 140, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: '正答率 (%)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     function getRank(accuracy) {
         if (accuracy === null || accuracy === undefined) {
             return { label: 'N/A', class: 'rank-d' };
@@ -802,31 +889,54 @@
         });
     }
 
-    // カテゴリータブの切り替え
-    document.querySelectorAll('.category-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.category-tab').forEach(t => 
-                t.classList.remove('active')
-            );
-            tab.classList.add('active');
-            const category = tab.dataset.category;
-            filterScoresByCategory(category);
-        });
-    });
-
-    // カテゴリでスコアをフィルタリングして表示
-    function filterScoresByCategory(category) {
-        let filtered = allScores;
-        if (category !== 'all') {
-            filtered = allScores.filter(score => score.category === category);
+    // 動画クイズのスコアカード描画
+    function renderMovieScores(scores) {
+        const scoresContainer = document.getElementById('scores-container');
+        if (!scores || scores.length === 0) {
+            scoresContainer.innerHTML = '<p>動画クイズの結果はありません。</p>';
+            return;
         }
-        renderScores(filtered);
+        scoresContainer.innerHTML = '';
+        // 最高スコアを特定
+        const bestScore = scores.reduce((best, current) =>
+            current.accuracy > best.accuracy ? current : best
+        );
+        scores.forEach(score => {
+            const scoreCard = document.createElement('div');
+            scoreCard.className = 'score-card';
+            let dateObj;
+            if (score.timestamp && typeof score.timestamp.toDate === 'function') {
+                dateObj = score.timestamp.toDate();
+            } else {
+                dateObj = new Date(score.timestamp);
+            }
+            const formattedDate = dateObj.toLocaleString('ja-JP');
+            const rank = getRank(score.accuracy);
+            if (score === bestScore) {
+                scoreCard.classList.add('best-score');
+            }
+            scoreCard.innerHTML = `
+                <div class="score-header">
+                    <span class="timestamp">${formattedDate}</span>
+                    <div>
+                        <span class="accuracy">正答率: ${score.accuracy?.toFixed(1) ?? '-'}%</span>
+                        <span class="rank-badge ${rank.class}">${rank.label}ランク</span>
+                    </div>
+                </div>
+                <div class="score-details">
+                    <p>正解数: ${score.correct ?? '-'} / ${score.total ?? '-'}</p>
+                    <p>動画クイズ</p>
+                </div>
+            `;
+            scoresContainer.appendChild(scoreCard);
+        });
     }
 
     // ページ読み込み時の処理
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
             loadScores(user.uid);
+            loadMovieScores(user.uid);
         } else {
             window.location.href = 'login.html';
         }
