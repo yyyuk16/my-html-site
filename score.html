@@ -530,7 +530,7 @@
         <div class="tab-header">
           <button class="tab-button" onclick="location.href='choise.html'">
             <span class="tab-icon">👤</span>
-            <span class="tab-text">ホーム</span>
+            <span class="tab-text">HOME</span>
           </button>
           <button class="tab-button" onclick="location.href='ai.html'">
             <span class="tab-icon">💬</span>
@@ -550,397 +550,252 @@
           </button>
         </div>
     </div>
+    <!-- クイズのスコア表示とランク表示の画面 -->
 
-    <!-- 統計情報 -->
     <div class="stats-container">
         <div class="stats-card">
-            <h2>成績推移</h2>
-            <div class="chart-container">
-                <canvas id="scoreChart"></canvas>
-            </div>
-        </div>
-        <div class="stats-card">
-            <h2>カテゴリー別成績</h2>
-            <div class="chart-container">
-                <canvas id="categoryChart"></canvas>
-            </div>
-        </div>
-        <div class="stats-card">
-            <h2>動画クイズ成績推移</h2>
+            <h2>クイズ成績推移</h2>
             <div class="chart-container">
                 <canvas id="movieScoreChart"></canvas>
             </div>
         </div>
     </div>
 
+    <div style="display: flex; justify-content: center; gap: 32px; margin: 30px 0;">
+      <div class="stats-card" style="flex: 1; min-width: 320px;">
+        <!-- クイズ成績推移グラフは既に上部にあるため、ここは空欄または他の要素を追加可能 -->
+      </div>
+      <div class="rank-container" style="margin: 0; flex: 0 0 400px;">
+        <div class="rank-card" style="background: #f8f9fa; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); max-width: 400px;">
+          <h3 style="margin-bottom: 10px;">あなたのランク</h3>
+          <div id="userRankInfo" style="font-size: 1.1rem; color: #333;">
+            <!-- ランク情報がここに表示されます -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="scores-container"></div>
   </div>
-
-  <!-- Firebaseのスクリプトは変更なし -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Firebaseの設定と認証部分は変更なし
-    const firebaseConfig = {
-        apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
-        authDomain: "web01-2484d.firebaseapp.com",
-        projectId: "web01-2484d",
-        storageBucket: "web01-2484d.appspot.com",
-        messagingSenderId: "90159472898",
-        appId: "1:90159472898:web:261ec71f9919611011e21b"
-    };
-    firebase.initializeApp(firebaseConfig);
+      // Firebaseの設定
+      const firebaseConfig = {
+          apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+          authDomain: "web01-2484d.firebaseapp.com",
+          projectId: "web01-2484d",
+          storageBucket: "web01-2484d.appspot.com",
+          messagingSenderId: "90159472898",
+          appId: "1:90159472898:web:261ec71f9919611011e21b"
+      };
+      firebase.initializeApp(firebaseConfig);
 
-    let scoreChart = null;
-    let categoryChart = null;
-    let movieScoreChart = null;
-    let allScores = [];
-    let allMovieScores = [];
+      let movieScoreChart = null;
+      let allMovieScores = [];
 
-    // 通常クイズのスコアを取得
-    async function loadScores(userId) {
-        try {
-            const db = firebase.firestore();
-            const doc = await db.collection('quiz_scores').doc(userId).get();
-            
-            if (doc.exists) {
-                const data = doc.data();
-                const scoresContainer = document.getElementById('scores-container');
-                
-                if (data.scores && Array.isArray(data.scores)) {
-                    const sortedScores = data.scores.sort((a, b) => 
-                        b.timestamp.toDate() - a.timestamp.toDate()
-                    );
+      // クイズスコア取得
+      async function loadMovieScores(userId) {
+          try {
+              const db = firebase.firestore();
+              const doc = await db.collection('movie_quiz_scores').doc(userId).get();
+              if (doc.exists) {
+                  const data = doc.data();
+                  if (data.scores && Array.isArray(data.scores)) {
+                      const sortedScores = data.scores.sort((a, b) =>
+                          b.timestamp.toDate() - a.timestamp.toDate()
+                      );
+                      allMovieScores = sortedScores;
+                      updateMovieScoreChart(sortedScores);
+                      renderMovieScores(sortedScores);
+                  } else {
+                      renderMovieScores([]);
+                  }
+              } else {
+                  renderMovieScores([]);
+              }
+          } catch (error) {
+              console.error("クイズスコアの読み込みに失敗しました:", error);
+              renderMovieScores([]);
+          }
+      }
 
-                    allScores = sortedScores; // すべてのスコアを保存
+      // 全ユーザーのスコアからランク計算
+      async function loadAllMovieScoresAndRank(currentUserId) {
+          try {
+              const db = firebase.firestore();
+              const scoresRef = db.collection('movie_quiz_scores');
+              const snapshot = await scoresRef.get();
 
-                    if (sortedScores.length === 0) {
-                        showNoScores();
-                        return;
-                    }
+              if (snapshot.empty) {
+                  updateUserRankDisplay(null, 0, null);
+                  return;
+              }
 
-                    // 初期表示は「すべて」
-                    renderScores(sortedScores);
-                    updateScoreChart(sortedScores);
-                    updateCategoryChart(sortedScores);
-                }
-            } else {
-                showNoScores();
-            }
-        } catch (error) {
-            console.error("スコアの読み込みに失敗しました:", error);
-            alert("スコアの読み込みに失敗しました");
-        }
-    }
+              const allUserAverageScores = [];
+              snapshot.forEach(doc => {
+                  const data = doc.data();
+                  if (data.scores && Array.isArray(data.scores) && data.scores.length > 0) {
+                      const userId = doc.id;
+                      const totalAccuracy = data.scores.reduce((sum, score) => sum + score.accuracy, 0);
+                      const averageAccuracy = totalAccuracy / data.scores.length;
+                      allUserAverageScores.push({
+                          userId: userId,
+                          average: averageAccuracy
+                      });
+                  }
+              });
 
-    // 動画クイズのスコアを取得
-    async function loadMovieScores(userId) {
-        try {
-            const db = firebase.firestore();
-            // 動画クイズのスコアは "movie_quiz_scores" コレクションに保存されていると仮定
-            const doc = await db.collection('movie_quiz_scores').doc(userId).get();
-            if (doc.exists) {
-                const data = doc.data();
-                if (data.scores && Array.isArray(data.scores)) {
-                    const sortedScores = data.scores.sort((a, b) => 
-                        b.timestamp.toDate() - a.timestamp.toDate()
-                    );
-                    allMovieScores = sortedScores;
-                    updateMovieScoreChart(sortedScores);
-                }
-            }
-        } catch (error) {
-            console.error("動画クイズスコアの読み込みに失敗しました:", error);
-        }
-    }
+              allUserAverageScores.sort((a, b) => b.average - a.average);
 
-    function showNoScores() {
-        const scoresContainer = document.getElementById('scores-container');
-        scoresContainer.innerHTML = `
-            <div class="no-scores">
-                <p>まだクイズの結果がありません</p>
-            </div>
-        `;
-    }
+              const userRank = allUserAverageScores.findIndex(user => user.userId === currentUserId) + 1;
+              const totalUsers = allUserAverageScores.length;
+              const userAverageScore = allUserAverageScores.find(user => user.userId === currentUserId)?.average;
 
-    function updateScoreChart(scores) {
-        const ctx = document.getElementById('scoreChart').getContext('2d');
-        
-        if (scoreChart) {
-            scoreChart.destroy();
-        }
+              updateUserRankDisplay(userRank, totalUsers, userAverageScore);
 
-        const labels = scores.map(score => 
-            score.timestamp.toDate().toLocaleDateString('ja-JP')
-        ).reverse();
-        
-        const data = scores.map(score => score.accuracy).reverse();
+          } catch (error) {
+              console.error("全スコアの読み込みとランク計算に失敗しました:", error);
+              updateUserRankDisplay(null, 0, null);
+          }
+      }
 
-        scoreChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '正答率',
-                    data: data,
-                    borderColor: '#FF4D6D',
-                    backgroundColor: 'rgba(255, 77, 109, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: '正答率 (%)'
-                        }
-                    }
-                }
-            }
-        });
-    }
+      // ランク表示
+      function updateUserRankDisplay(rank, total, average) {
+          const userRankInfo = document.getElementById('userRankInfo');
+          if (userRankInfo) {
+              if (average !== undefined && average !== null) {
+                  const rankObj = getRank(average);
+                  userRankInfo.innerHTML = `
+                      <div style="font-size:1.3em; margin-bottom:8px;">
+                        <span class="rank-badge ${rankObj.class}" style="font-size:1.2em; padding:4px 12px; border-radius:8px; background:#e3eaff; color:#2a4d8c; margin-right:8px;">${rankObj.label}ランク</span>
+                        <span>（平均正答率: <b>${average.toFixed(1)}%</b>）</span>
+                      </div>
+                      <div>あなたの順位: <b>${rank}</b> / <b>${total}</b> 人中</div>
+                  `;
+              } else {
+                  userRankInfo.innerHTML = `
+                      <p>クイズに挑戦して、<b>ランクを上げていこう！</b></p>
+                  `;
+              }
+          }
+      }
 
-    function updateCategoryChart(scores) {
-        const ctx = document.getElementById('categoryChart').getContext('2d');
-        
-        if (categoryChart) {
-            categoryChart.destroy();
-        }
+      // 正答率からランクを取得
+      function getRank(accuracy) {
+          if (accuracy === null || accuracy === undefined) {
+              return { label: 'N/A', class: 'rank-d' };
+          }
+          if (accuracy >= 90) return { label: 'S', class: 'rank-s' };
+          if (accuracy >= 80) return { label: 'A', class: 'rank-a' };
+          if (accuracy >= 60) return { label: 'B', class: 'rank-b' };
+          if (accuracy >= 40) return { label: 'C', class: 'rank-c' };
+          return { label: 'D', class: 'rank-d' };
+      }
 
-        // カテゴリー別の平均スコアを計算
-        const categoryScores = {};
-        scores.forEach(score => {
-            const category = score.category || '未分類';
-            if (!categoryScores[category]) {
-                categoryScores[category] = { total: 0, count: 0 };
-            }
-            categoryScores[category].total += score.accuracy;
-            categoryScores[category].count++;
-        });
+      // クイズ成績推移グラフ
+      function updateMovieScoreChart(scores) {
+          const ctx = document.getElementById('movieScoreChart').getContext('2d');
+          if (movieScoreChart) {
+              movieScoreChart.destroy();
+          }
+          if (!scores || scores.length === 0) {
+              movieScoreChart = new Chart(ctx, {
+                  type: 'line',
+                  data: { labels: [], datasets: [{ label: '正答率', data: [] }] },
+                  options: { responsive: true, maintainAspectRatio: false }
+              });
+              return;
+          }
 
-        const categories = Object.keys(categoryScores);
-        const averages = categories.map(category => 
-            categoryScores[category].total / categoryScores[category].count
-        );
+          const labels = scores.map(score =>
+              score.timestamp.toDate().toLocaleDateString('ja-JP')
+          ).reverse();
+          const data = scores.map(score => score.accuracy).reverse();
 
-        categoryChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: categories,
-                datasets: [{
-                    label: '平均正答率',
-                    data: averages,
-                    backgroundColor: [
-                        '#FF4D6D',
-                        '#FF8FA3',
-                        '#FFB6C1',
-                        '#FFE4E8'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: '平均正答率 (%)'
-                        }
-                    }
-                }
-            }
-        });
-    }
+          movieScoreChart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                  labels: labels,
+                  datasets: [{
+                      label: '正答率',
+                      data: data,
+                      borderColor: '#4D8CFF',
+                      backgroundColor: 'rgba(77, 140, 255, 0.1)',
+                      tension: 0.4,
+                      fill: true
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                      y: {
+                          beginAtZero: true,
+                          max: 100,
+                          title: {
+                              display: true,
+                              text: '正答率 (%)'
+                          }
+                      }
+                  }
+              }
+          });
+      }
 
-    // 動画クイズの成績推移グラフ
-    function updateMovieScoreChart(scores) {
-        const ctx = document.getElementById('movieScoreChart').getContext('2d');
-        if (movieScoreChart) {
-            movieScoreChart.destroy();
-        }
-        if (!scores || scores.length === 0) {
-            movieScoreChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: '正答率',
-                        data: [],
-                        borderColor: '#4D8CFF',
-                        backgroundColor: 'rgba(77, 140, 255, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: '正答率 (%)'
-                            }
-                        }
-                    }
-                }
-            });
-            return;
-        }
-        const labels = scores.map(score => 
-            score.timestamp.toDate().toLocaleDateString('ja-JP')
-        ).reverse();
-        const data = scores.map(score => score.accuracy).reverse();
+      // クイズスコアカード描画
+      function renderMovieScores(scores) {
+          const scoresContainer = document.getElementById('scores-container');
+          if (!scores || scores.length === 0) {
+              scoresContainer.innerHTML = '<p>クイズの結果はありません。</p>';
+              return;
+          }
+          scoresContainer.innerHTML = '';
+          const bestScore = scores.reduce((best, current) =>
+              current.accuracy > best.accuracy ? current : best
+          );
+          scores.forEach(score => {
+              const scoreCard = document.createElement('div');
+              scoreCard.className = 'score-card';
+              let dateObj;
+              if (score.timestamp && typeof score.timestamp.toDate === 'function') {
+                  dateObj = score.timestamp.toDate();
+              } else {
+                  dateObj = new Date(score.timestamp);
+              }
+              const formattedDate = dateObj.toLocaleString('ja-JP');
+              const rank = getRank(score.accuracy);
+              if (score === bestScore) {
+                  scoreCard.classList.add('best-score');
+              }
+              scoreCard.innerHTML = `
+                  <div class="score-header">
+                      <span class="timestamp">${formattedDate}</span>
+                      <div>
+                          <span class="accuracy">正答率: ${score.accuracy?.toFixed(1) ?? '-'}%</span>
+                          <span class="rank-badge ${rank.class}">${rank.label}ランク</span>
+                      </div>
+                  </div>
+                  <div class="score-details">
+                      <p>正解数: ${score.correct ?? '-'} / ${score.total ?? '-'}</p>
+                      <p>クイズ種別: 動画クイズ</p>
+                  </div>
+              `;
+              scoresContainer.appendChild(scoreCard);
+          });
+      }
 
-        movieScoreChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '正答率',
-                    data: data,
-                    borderColor: '#4D8CFF',
-                    backgroundColor: 'rgba(77, 140, 255, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: '正答率 (%)'
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    function getRank(accuracy) {
-        if (accuracy === null || accuracy === undefined) {
-            return { label: 'N/A', class: 'rank-d' };
-        }
-        if (accuracy >= 90) return { label: 'S', class: 'rank-s' };
-        if (accuracy >= 80) return { label: 'A', class: 'rank-a' };
-        if (accuracy >= 60) return { label: 'B', class: 'rank-b' };
-        if (accuracy >= 40) return { label: 'C', class: 'rank-c' };
-        return { label: 'D', class: 'rank-d' };
-    }
-
-    // スコアカードの描画関数
-    function renderScores(scores) {
-        const scoresContainer = document.getElementById('scores-container');
-        if (scores.length === 0) {
-            scoresContainer.innerHTML = '<p>このカテゴリーの結果はありません。</p>';
-            return;
-        }
-        scoresContainer.innerHTML = '';
-        // 最高スコアを特定
-        const bestScore = scores.reduce((best, current) =>
-            current.accuracy > best.accuracy ? current : best
-        );
-        scores.forEach(score => {
-            const scoreCard = document.createElement('div');
-            scoreCard.className = 'score-card';
-            // timestamp型の判定
-            let dateObj;
-            if (score.timestamp && typeof score.timestamp.toDate === 'function') {
-                dateObj = score.timestamp.toDate();
-            } else {
-                dateObj = new Date(score.timestamp);
-            }
-            const formattedDate = dateObj.toLocaleString('ja-JP');
-            const rank = getRank(score.accuracy);
-            if (score === bestScore) {
-                scoreCard.classList.add('best-score');
-            }
-            scoreCard.innerHTML = `
-                <div class="score-header">
-                    <span class="timestamp">${formattedDate}</span>
-                    <div>
-                        <span class="accuracy">正答率: ${score.accuracy?.toFixed(1) ?? '-'}%</span>
-                        <span class="rank-badge ${rank.class}">${rank.label}ランク</span>
-                    </div>
-                </div>
-                <div class="score-details">
-                    <p>正解数: ${score.correct ?? '-'} / ${score.total ?? '-'}</p>
-                    <p>カテゴリー: ${score.category || '未分類'}</p>
-                </div>
-            `;
-            scoresContainer.appendChild(scoreCard);
-        });
-    }
-
-    // 動画クイズのスコアカード描画
-    function renderMovieScores(scores) {
-        const scoresContainer = document.getElementById('scores-container');
-        if (!scores || scores.length === 0) {
-            scoresContainer.innerHTML = '<p>動画クイズの結果はありません。</p>';
-            return;
-        }
-        scoresContainer.innerHTML = '';
-        // 最高スコアを特定
-        const bestScore = scores.reduce((best, current) =>
-            current.accuracy > best.accuracy ? current : best
-        );
-        scores.forEach(score => {
-            const scoreCard = document.createElement('div');
-            scoreCard.className = 'score-card';
-            let dateObj;
-            if (score.timestamp && typeof score.timestamp.toDate === 'function') {
-                dateObj = score.timestamp.toDate();
-            } else {
-                dateObj = new Date(score.timestamp);
-            }
-            const formattedDate = dateObj.toLocaleString('ja-JP');
-            const rank = getRank(score.accuracy);
-            if (score === bestScore) {
-                scoreCard.classList.add('best-score');
-            }
-            scoreCard.innerHTML = `
-                <div class="score-header">
-                    <span class="timestamp">${formattedDate}</span>
-                    <div>
-                        <span class="accuracy">正答率: ${score.accuracy?.toFixed(1) ?? '-'}%</span>
-                        <span class="rank-badge ${rank.class}">${rank.label}ランク</span>
-                    </div>
-                </div>
-                <div class="score-details">
-                    <p>正解数: ${score.correct ?? '-'} / ${score.total ?? '-'}</p>
-                    <p>動画クイズ</p>
-                </div>
-            `;
-            scoresContainer.appendChild(scoreCard);
-        });
-    }
-
-    // ページ読み込み時の処理
-    firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-            loadScores(user.uid);
-            loadMovieScores(user.uid);
-        } else {
-            window.location.href = 'login.html';
-        }
-    });
+      // ページ読み込み時
+      firebase.auth().onAuthStateChanged(user => {
+          if (user) {
+              loadMovieScores(user.uid);
+              loadAllMovieScoresAndRank(user.uid);
+          } else {
+              window.location.href = 'login.html';
+          }
+      });
   </script>
 </body>
 </html>

@@ -373,7 +373,7 @@
             <div class="tab-header">
                 <button class="tab-button" onclick="location.href='choise.html'">
                     <span class="tab-icon">👤</span>
-                    <span class="tab-text">ホーム</span>
+                    <span class="tab-text">HOME</span>
                   </button>
                 <button class="tab-button active" onclick="location.href='ai.html'">
                     <span class="tab-icon">💬</span>
@@ -400,24 +400,14 @@
             <div class="ai-card" onclick="startChat('teacher')">
                 <div class="card-content">
                     <div class="icon-wrapper">
-                        <span class="ai-icon">👨‍🏫</span>
+                        <span class="ai-icon">👨‍⚕️</span>
                     </div>
                     <h3>AI先生</h3>
-                    <p>学習や教育に関する質問に答えます</p>
+                    <p>24時間いつでも返答可能です</p>
                     <button class="start-chat-btn">チャットを始める</button>
                 </div>
             </div>
             
-            <div class="ai-card" onclick="startChat('friend')">
-                <div class="card-content">
-                    <div class="icon-wrapper">
-                        <span class="ai-icon">👥</span>
-                    </div>
-                    <h3>AI友達</h3>
-                    <p>カジュアルな会話を楽しめます</p>
-                    <button class="start-chat-btn">チャットを始める</button>
-                </div>
-            </div>
 
             <div class="ai-card" onclick="startChat('real')">
                 <div class="card-content">
@@ -425,7 +415,7 @@
                         <span class="ai-icon">💬</span>
                     </div>
                     <h3>リアルタイム</h3>
-                    <p>実際の会話を楽しめます</p>
+                    <p>先生と会話ができます</p>
                     <button class="start-chat-btn">チャットを始める</button>
                 </div>
             </div>
@@ -525,8 +515,6 @@
         function startChat(aiType) {
             if (aiType === 'teacher') {
                 window.location.href = 'teacher.html';
-            } else if (aiType === 'friend') {
-                window.location.href = 'friend.html';
             } else if (aiType === 'real') {
                 window.location.href = 'real.html';
             }
