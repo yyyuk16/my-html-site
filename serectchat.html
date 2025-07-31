@@ -123,6 +123,7 @@
 
     #inputArea {
       width: 100%;
+      max-width: 800px;
       display: flex;
       gap: 8px;
       padding: 20px 32px 24px 32px;
@@ -159,27 +160,11 @@
       font-size: 16px;
       font-weight: 500;
       transition: all 0.3s ease;
-      min-width: 80px;
     }
 
     button:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px var(--shadow-color);
-    }
-
-    @media (max-width: 600px) {
-      .chat-container {
-        max-width: 100vw;
-        min-height: 80vh;
-        border-radius: 0;
-      }
-      .chat-header, #chat, #inputArea {
-        padding-left: 10px;
-        padding-right: 10px;
-      }
-      #inputArea {
-        padding-bottom: 10px;
-      }
     }
   </style>
 </head>
@@ -228,34 +213,22 @@
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
 
-    // 日時を「HH:mm」形式で返す
-    function formatTime(ts) {
-      const d = new Date(ts);
-      return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0");
-    }
-
-    // メッセージをきれいに表示
-    function appendMessage(msg, isSelf) {
+    // メッセージ表示関数（real.html風レイアウト）
+    function displayMessage(msg) {
       const row = document.createElement('div');
       row.className = 'message-row';
-      row.style.justifyContent = isSelf ? 'flex-end' : 'flex-start';
 
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'message ' + (isSelf ? 'self' : 'other');
-      msgDiv.textContent = msg.text;
-
-      // メタ情報（時刻）
-      const meta = document.createElement('div');
-      meta.className = 'message-meta';
-      meta.textContent = formatTime(msg.timestamp || Date.now());
-
-      if (isSelf) {
-        msgDiv.appendChild(meta);
+      const el = document.createElement('div');
+      el.classList.add('message');
+      if (msg.sender === doctorUid) {
+        el.classList.add('self');
+        el.textContent = `あなた: ${msg.text}`;
+        row.appendChild(el);
       } else {
-        msgDiv.appendChild(meta);
+        el.classList.add('other');
+        el.textContent = `患者さん: ${msg.text}`;
+        row.appendChild(el);
       }
-
-      row.appendChild(msgDiv);
       chatDiv.appendChild(row);
       chatDiv.scrollTop = chatDiv.scrollHeight;
     }
@@ -281,7 +254,7 @@
       // メッセージのリアルタイム取得
       messagesRef.on('child_added', snapshot => {
         const msg = snapshot.val();
-        appendMessage(msg, msg.sender === doctorUid);
+        displayMessage(msg);
       });
 
       // 送信ボタン
@@ -297,8 +270,8 @@
       };
 
       // Enterキーで送信
-      messageInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
+      messageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
           sendBtn.click();
         }
       });
