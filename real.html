@@ -443,19 +443,6 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
         return;
       }
 
-      // Firestoreから担当医の名前を取得して表示
-      try {
-        const doctorDoc = await getDoc(doc(firestore, "users", assignedDoctorUid));
-        if (doctorDoc.exists()) {
-          const doctorData = doctorDoc.data();
-          assignedDoctorNameElem.textContent = doctorData.name || "担当医者";
-        } else {
-          assignedDoctorNameElem.textContent = "担当医者（名前不明）";
-        }
-      } catch (e) {
-        assignedDoctorNameElem.textContent = "担当医者（取得失敗）";
-      }
-
       // chatRoomIdをUID昇順で統一して作成
       chatRoomId = [currentUserUid, assignedDoctorUid].sort().join("_");
 
