@@ -179,281 +179,283 @@
 
   <div id="chat"></div>
 
-  <div class="input-container">
-    <input type="text" id="messageInput" placeholder="メッセージを入力" autocomplete="off" />
-    <button id="sendBtn">送信</button>
-    <button onclick="window.location.href='choise.html'">戻る</button>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
-      authDomain: "web01-2484d.firebaseapp.com",
-      databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
-      projectId: "web01-2484d",
-      storageBucket: "web01-2484d.appspot.com",
-      messagingSenderId: "90159472898",
-      appId: "1:90159472898:web:8a33ef04b4474b9911e21b",
-      measurementId: "G-148XJR01WS"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
-    const firestore = getFirestore(app);
-
-    let currentUserUid = null;
-    let assignedDoctorUid = null;
-    let chatRoomId = null;
-
-    const chatDiv = document.getElementById("chat");
-    const messageInput = document.getElementById("messageInput");
-    const sendBtn = document.getElementById("sendBtn");
-    const assignedDoctorNameElem = document.getElementById("assignedDoctorName");
-    const languageSelect = document.getElementById("languageSelect");
-
-    // Gemini API設定
-    const GEMINI_API_KEY = "AIzaSyDLJ1JSeGR680zsw-iUC2xnhZTqRphH-rg";
-    const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=";
-    // Gemini APIを使用してメッセージ候補を生成
-   // Gemini APIを使用してメッセージ候補を生成
-       async function generateMessageSuggestionsWithGemini(doctorMessage, userMessage = "") {
-      try {
-        const prompt = `
-以下の医者からのメッセージに対して、患者が次に言いそうな返信候補を3つ生成してください。
-候補は自然で実用的なものにしてください。
-
-医者のメッセージ: "${doctorMessage}"
-${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
-
-返信候補（3つ、カンマ区切りで返してください）:
-`;
-        // ここを修正
-        const response = await fetch(`${GEMINI_API_URL}${GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }]
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error(`Gemini API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const suggestions = data.candidates[0].content.parts[0].text
-          .split(',')
-          .map(s => s.trim())
-          .filter(s => s.length > 0)
-          .slice(0, 3);
-
-        return suggestions;
-      } catch (error) {
-        console.error("Gemini API error:", error);
-        // エラー時はフォールバック候補を返す
-        return [
-          "詳しく教えてください",
-          "ありがとうございます",
-          "他に気をつけることはありますか？"
-        ];
-      }
-    }
-
-    // フォールバック用の候補生成（Gemini APIが使えない場合）
-    function generateFallbackSuggestions(lastMessage) {
-      const suggestions = {
-        default: [
-          "詳しく教えてください",
-          "ありがとうございます",
-          "他に気をつけることはありますか？"
-        ],
-        symptoms: [
-          "痛みが続いています",
-          "熱が下がりません",
-          "食欲がありません"
-        ],
-        medicine: [
-          "薬の飲み方を教えてください",
-          "薬の副作用が出ています",
-          "薬を忘れてしまいました"
-        ],
-        appointment: [
-          "予約を変更したいです",
-          "緊急で診察を受けたいです",
-          "検査結果について質問があります"
-        ]
+  <body>
+    <div class="input-container">
+      <input type="text" id="messageInput" placeholder="メッセージを入力" autocomplete="off" />
+      <button id="sendBtn">送信</button>
+      <button onclick="window.location.href='choise.html'">戻る</button>
+    </div>
+  
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+      import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+  
+      const firebaseConfig = {
+        apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+        authDomain: "web01-2484d.firebaseapp.com",
+        databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+        projectId: "web01-2484d",
+        storageBucket: "web01-2484d.appspot.com",
+        messagingSenderId: "90159472898",
+        appId: "1:90159472898:web:8a33ef04b4474b9911e21b",
+        measurementId: "G-148XJR01WS"
       };
-
-      if (lastMessage.includes('痛') || lastMessage.includes('熱') || lastMessage.includes('症状')) {
-        return suggestions.symptoms;
-      } else if (lastMessage.includes('薬') || lastMessage.includes('副作用')) {
-        return suggestions.medicine;
-      } else if (lastMessage.includes('予約') || lastMessage.includes('診察')) {
-        return suggestions.appointment;
-      } else {
-        return suggestions.default;
-      }
-    }
-
-    // ユーザー情報取得（Firestore usersコレクションから）
-    async function getUserInfo(uid) {
-      try {
-        const userDocRef = doc(firestore, "users", uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          return userDocSnap.data();
-        }
-      } catch (error) {
-        console.error("ユーザー情報取得エラー:", error);
-      }
-      return { userName: "名無し", language: "ja" };
-    }
-
-    // 担当医者名表示
-    async function displayAssignedDoctor() {
-      if (!assignedDoctorUid) {
-        assignedDoctorNameElem.textContent = "佐々木先生";
-        return;
-      }
-      const doctorInfo = await getUserInfo(assignedDoctorUid);
-      assignedDoctorNameElem.textContent = doctorInfo.userName || "佐々木先生";
-    }
-
-    // メッセージ候補ボタンをクリックした時の処理
-    function handleSuggestionClick(suggestion) {
-      messageInput.value = suggestion;
-      messageInput.focus();
-    }
-
-    // メッセージ表示関数（候補ボタン付き）
-    async function displayMessage(msg) {
-      const el = document.createElement("div");
-      el.classList.add("message");
-
-      // 既存の候補ボタンをすべて削除する
-      const allSuggestions = document.querySelectorAll('.message-suggestions');
-      allSuggestions.forEach(s => s.remove());
-      
-      if (msg.sender === currentUserUid) {
-        el.classList.add("self");
-        el.textContent = `あなた: ${msg.text}`;
-        chatDiv.appendChild(el);
-      } else {
-        el.textContent = `担当医: ${msg.text}`;
-        chatDiv.appendChild(el);
-        
-        // 医者からの最新のメッセージに対してのみ候補を表示
-        if (msg.sender === assignedDoctorUid) {
-          const suggestionsDiv = document.createElement("div");
-          suggestionsDiv.className = "message-suggestions";
+  
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const auth = getAuth(app);
+      const firestore = getFirestore(app);
+  
+      let currentUserUid = null;
+      let assignedDoctorUid = null;
+      let chatRoomId = null;
+  
+      const chatDiv = document.getElementById("chat");
+      const messageInput = document.getElementById("messageInput");
+      const sendBtn = document.getElementById("sendBtn");
+      const assignedDoctorNameElem = document.getElementById("assignedDoctorName");
+      const languageSelect = document.getElementById("languageSelect");
+  
+      // Gemini API設定
+      // 成功したテストコードのAPIキーとエンドポイントを反映
+      const GEMINI_API_KEY = "AIzaSyDLJ1JSeGR680zsw-iUC2xnhZTqRphH-rg";
+      const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
+  
+      // Gemini APIを使用してメッセージ候補を生成
+      async function generateMessageSuggestionsWithGemini(doctorMessage, userMessage = "") {
+        try {
+          const prompt = `
+  以下の医者からのメッセージに対して、患者が次に言いそうな返信候補を3つ生成してください。
+  候補は自然で実用的なものにしてください。
+  
+  医者のメッセージ: "${doctorMessage}"
+  ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
+  
+  返信候補（3つ、カンマ区切りで返してください）:
+  `;
           
-          const loadingBtn = document.createElement("button");
-          loadingBtn.className = "suggestion-btn loading";
-          loadingBtn.textContent = "候補を生成中...";
-          loadingBtn.disabled = true;
-          suggestionsDiv.appendChild(loadingBtn);
-          
-          el.appendChild(suggestionsDiv);
-          chatDiv.scrollTop = chatDiv.scrollHeight;
-
-          try {
-            const suggestions = await generateMessageSuggestionsWithGemini(msg.text);
-            
-            suggestionsDiv.innerHTML = '';
-            
-            suggestions.forEach(suggestion => {
-              const btn = document.createElement("button");
-              btn.className = "suggestion-btn";
-              btn.textContent = suggestion;
-              btn.onclick = () => handleSuggestionClick(suggestion);
-              suggestionsDiv.appendChild(btn);
-            });
-          } catch (error) {
-            console.error("候補生成エラー:", error);
-            suggestionsDiv.innerHTML = '';
-            const fallbackSuggestions = generateFallbackSuggestions(msg.text);
-            fallbackSuggestions.forEach(suggestion => {
-              const btn = document.createElement("button");
-              btn.className = "suggestion-btn";
-              btn.textContent = suggestion;
-              btn.onclick = () => handleSuggestionClick(suggestion);
-              suggestionsDiv.appendChild(btn);
-            });
+          const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: prompt
+                }]
+              }]
+            })
+          });
+  
+          if (!response.ok) {
+            throw new Error(`Gemini API error: ${response.status}`);
           }
+  
+          const data = await response.json();
+          const suggestions = data.candidates[0].content.parts[0].text
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0)
+            .slice(0, 3);
+  
+          return suggestions;
+        } catch (error) {
+          console.error("Gemini API error:", error);
+          // エラー時はフォールバック候補を返す
+          return [
+            "詳しく教えてください",
+            "ありがとうございます",
+            "他に気をつけることはありますか？"
+          ];
+        }
+      }
+  
+      // フォールバック用の候補生成（Gemini APIが使えない場合）
+      function generateFallbackSuggestions(lastMessage) {
+        const suggestions = {
+          default: [
+            "詳しく教えてください",
+            "ありがとうございます",
+            "他に気をつけることはありますか？"
+          ],
+          symptoms: [
+            "痛みが続いています",
+            "熱が下がりません",
+            "食欲がありません"
+          ],
+          medicine: [
+            "薬の飲み方を教えてください",
+            "薬の副作用が出ています",
+            "薬を忘れてしまいました"
+          ],
+          appointment: [
+            "予約を変更したいです",
+            "緊急で診察を受けたいです",
+            "検査結果について質問があります"
+          ]
+        };
+  
+        if (lastMessage.includes('痛') || lastMessage.includes('熱') || lastMessage.includes('症状')) {
+          return suggestions.symptoms;
+        } else if (lastMessage.includes('薬') || lastMessage.includes('副作用')) {
+          return suggestions.medicine;
+        } else if (lastMessage.includes('予約') || lastMessage.includes('診察')) {
+          return suggestions.appointment;
+        } else {
+          return suggestions.default;
+        }
+      }
+  
+      // ユーザー情報取得（Firestore usersコレクションから）
+      async function getUserInfo(uid) {
+        try {
+          const userDocRef = doc(firestore, "users", uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            return userDocSnap.data();
+          }
+        } catch (error) {
+          console.error("ユーザー情報取得エラー:", error);
+        }
+        return { userName: "名無し", language: "ja" };
+      }
+  
+      // 担当医者名表示
+      async function displayAssignedDoctor() {
+        if (!assignedDoctorUid) {
+          assignedDoctorNameElem.textContent = "佐々木先生";
           return;
         }
+        const doctorInfo = await getUserInfo(assignedDoctorUid);
+        assignedDoctorNameElem.textContent = doctorInfo.userName || "佐々木先生";
       }
-      
-      chatDiv.scrollTop = chatDiv.scrollHeight;
-    }
-
-    // メッセージ送信
-    sendBtn.addEventListener("click", () => {
-      const text = messageInput.value.trim();
-      if (!text) return;
-      if (!chatRoomId) {
-        alert("チャットルームが設定されていません");
-        return;
+  
+      // メッセージ候補ボタンをクリックした時の処理
+      function handleSuggestionClick(suggestion) {
+        messageInput.value = suggestion;
+        messageInput.focus();
       }
-      const chatRef = ref(db, "messages/" + chatRoomId);
-      push(chatRef, {
-        sender: currentUserUid,
-        text: text,
-        timestamp: Date.now()
+  
+      // メッセージ表示関数（候補ボタン付き）
+      async function displayMessage(msg) {
+        const el = document.createElement("div");
+        el.classList.add("message");
+  
+        // 既存の候補ボタンをすべて削除する
+        const allSuggestions = document.querySelectorAll('.message-suggestions');
+        allSuggestions.forEach(s => s.remove());
+        
+        if (msg.sender === currentUserUid) {
+          el.classList.add("self");
+          el.textContent = `あなた: ${msg.text}`;
+          chatDiv.appendChild(el);
+        } else {
+          el.textContent = `担当医: ${msg.text}`;
+          chatDiv.appendChild(el);
+          
+          // 医者からの最新のメッセージに対してのみ候補を表示
+          if (msg.sender === assignedDoctorUid) {
+            const suggestionsDiv = document.createElement("div");
+            suggestionsDiv.className = "message-suggestions";
+            
+            const loadingBtn = document.createElement("button");
+            loadingBtn.className = "suggestion-btn loading";
+            loadingBtn.textContent = "候補を生成中...";
+            loadingBtn.disabled = true;
+            suggestionsDiv.appendChild(loadingBtn);
+            
+            el.appendChild(suggestionsDiv);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+  
+            try {
+              const suggestions = await generateMessageSuggestionsWithGemini(msg.text);
+              
+              suggestionsDiv.innerHTML = '';
+              
+              suggestions.forEach(suggestion => {
+                const btn = document.createElement("button");
+                btn.className = "suggestion-btn";
+                btn.textContent = suggestion;
+                btn.onclick = () => handleSuggestionClick(suggestion);
+                suggestionsDiv.appendChild(btn);
+              });
+            } catch (error) {
+              console.error("候補生成エラー:", error);
+              suggestionsDiv.innerHTML = '';
+              const fallbackSuggestions = generateFallbackSuggestions(msg.text);
+              fallbackSuggestions.forEach(suggestion => {
+                const btn = document.createElement("button");
+                btn.className = "suggestion-btn";
+                btn.textContent = suggestion;
+                btn.onclick = () => handleSuggestionClick(suggestion);
+                suggestionsDiv.appendChild(btn);
+              });
+            }
+            return;
+          }
+        }
+        
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      }
+  
+      // メッセージ送信
+      sendBtn.addEventListener("click", () => {
+        const text = messageInput.value.trim();
+        if (!text) return;
+        if (!chatRoomId) {
+          alert("チャットルームが設定されていません");
+          return;
+        }
+        const chatRef = ref(db, "messages/" + chatRoomId);
+        push(chatRef, {
+          sender: currentUserUid,
+          text: text,
+          timestamp: Date.now()
+        });
+        messageInput.value = "";
       });
-      messageInput.value = "";
-    });
-
-    // Enterキーで送信
-    messageInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        sendBtn.click();
-      }
-    });
-
-    // ログイン状態監視
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        alert("ログインしてください");
-        window.location.href = "login.html";
-        return;
-      }
-      currentUserUid = user.uid;
-
-      // ユーザー情報取得
-      const userInfo = await getUserInfo(currentUserUid);
-      assignedDoctorUid = userInfo.assignedDoctor;
-      if (!assignedDoctorUid) {
-        alert("担当医者が割り当てられていません");
-        assignedDoctorNameElem.textContent = "佐々木先生";
-        return;
-      }
-
-      // chatRoomIdをUID昇順で統一して作成
-      chatRoomId = [currentUserUid, assignedDoctorUid].sort().join("_");
-
-      // 担当医者名表示
-      displayAssignedDoctor();
-
-      // メッセージ受信監視
-      const chatRef = ref(db, "messages/" + chatRoomId);
-      onChildAdded(chatRef, (snapshot) => {
-        const msg = snapshot.val();
-        displayMessage(msg);
+  
+      // Enterキーで送信
+      messageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          sendBtn.click();
+        }
       });
-    });
-  </script>
-</body>
-</html>
+  
+      // ログイン状態監視
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          alert("ログインしてください");
+          window.location.href = "login.html";
+          return;
+        }
+        currentUserUid = user.uid;
+  
+        // ユーザー情報取得
+        const userInfo = await getUserInfo(currentUserUid);
+        assignedDoctorUid = userInfo.assignedDoctor;
+        if (!assignedDoctorUid) {
+          alert("担当医者が割り当てられていません");
+          assignedDoctorNameElem.textContent = "佐々木先生";
+          return;
+        }
+  
+        // chatRoomIdをUID昇順で統一して作成
+        chatRoomId = [currentUserUid, assignedDoctorUid].sort().join("_");
+  
+        // 担当医者名表示
+        displayAssignedDoctor();
+  
+        // メッセージ受信監視
+        const chatRef = ref(db, "messages/" + chatRoomId);
+        onChildAdded(chatRef, (snapshot) => {
+          const msg = snapshot.val();
+          displayMessage(msg);
+        });
+      });
+    </script>
+  </body>
+  </html>
