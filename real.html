@@ -220,13 +220,13 @@
     const languageSelect = document.getElementById("languageSelect");
 
     // Gemini API設定
-    const GEMINI_API_KEY = "AIzaSyB4H5H00b7sMJ4pwpnE133Lxlg-mJCoAN8";
-    const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
-
+    const GEMINI_API_KEY = "AIzaSyDLJ1JSeGR680zsw-iUC2xnhZTqRphH-rg";
+    const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=";
     // Gemini APIを使用してメッセージ候補を生成
-    async function generateMessageSuggestionsWithGemini(doctorMessage, userMessage = "") {
-      try {
-        const prompt = `
+   // Gemini APIを使用してメッセージ候補を生成
+       async function generateMessageSuggestionsWithGemini(doctorMessage, userMessage = "") {
+      try {
+        const prompt = `
 以下の医者からのメッセージに対して、患者が次に言いそうな返信候補を3つ生成してください。
 候補は自然で実用的なものにしてください。
 
@@ -235,20 +235,20 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
 
 返信候補（3つ、カンマ区切りで返してください）:
 `;
-
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }]
-          })
-        });
+        // ここを修正
+        const response = await fetch(`${GEMINI_API_URL}${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: prompt
+              }]
+            }]
+          })
+        });
 
         if (!response.ok) {
           throw new Error(`Gemini API error: ${response.status}`);
