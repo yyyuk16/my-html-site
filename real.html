@@ -326,11 +326,11 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
     // 担当医者名表示
     async function displayAssignedDoctor() {
       if (!assignedDoctorUid) {
-        assignedDoctorNameElem.textContent = "担当医者なし";
+        assignedDoctorNameElem.textContent = "佐々木先生";
         return;
       }
       const doctorInfo = await getUserInfo(assignedDoctorUid);
-      assignedDoctorNameElem.textContent = doctorInfo.userName || "担当医者なし";
+      assignedDoctorNameElem.textContent = doctorInfo.userName || "佐々木先生";
     }
 
     // メッセージ候補ボタンをクリックした時の処理
