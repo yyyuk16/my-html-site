@@ -220,7 +220,7 @@
     const languageSelect = document.getElementById("languageSelect");
 
     // Gemini API設定
-    const GEMINI_API_KEY = "AIzaSyB4H5H00b7sMJ4pwpnE133Lxlg-mJCoAN8"; // 実際のAPIキーに置き換えてください
+    const GEMINI_API_KEY = "AIzaSyB4H5H00b7sMJ4pwpnE133Lxlg-mJCoAN8";
     const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
     // Gemini APIを使用してメッセージ候補を生成
@@ -343,16 +343,21 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
     async function displayMessage(msg) {
       const el = document.createElement("div");
       el.classList.add("message");
+
+      // 既存の候補ボタンをすべて削除する
+      const allSuggestions = document.querySelectorAll('.message-suggestions');
+      allSuggestions.forEach(s => s.remove());
       
       if (msg.sender === currentUserUid) {
         el.classList.add("self");
         el.textContent = `あなた: ${msg.text}`;
+        chatDiv.appendChild(el);
       } else {
         el.textContent = `担当医: ${msg.text}`;
+        chatDiv.appendChild(el);
         
-        // 医者からの返信の場合、メッセージ候補を表示
+        // 医者からの最新のメッセージに対してのみ候補を表示
         if (msg.sender === assignedDoctorUid) {
-          // ローディング状態の候補ボタンを表示
           const suggestionsDiv = document.createElement("div");
           suggestionsDiv.className = "message-suggestions";
           
@@ -363,14 +368,11 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
           suggestionsDiv.appendChild(loadingBtn);
           
           el.appendChild(suggestionsDiv);
-          chatDiv.appendChild(el);
           chatDiv.scrollTop = chatDiv.scrollHeight;
 
-          // Gemini APIで候補を生成
           try {
             const suggestions = await generateMessageSuggestionsWithGemini(msg.text);
             
-            // ローディングボタンを削除して実際の候補を表示
             suggestionsDiv.innerHTML = '';
             
             suggestions.forEach(suggestion => {
@@ -382,7 +384,6 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
             });
           } catch (error) {
             console.error("候補生成エラー:", error);
-            // エラー時はフォールバック候補を表示
             suggestionsDiv.innerHTML = '';
             const fallbackSuggestions = generateFallbackSuggestions(msg.text);
             fallbackSuggestions.forEach(suggestion => {
@@ -393,12 +394,10 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
               suggestionsDiv.appendChild(btn);
             });
           }
-          
-          return; // 既にメッセージを追加済みなので早期リターン
+          return;
         }
       }
       
-      chatDiv.appendChild(el);
       chatDiv.scrollTop = chatDiv.scrollHeight;
     }
 
