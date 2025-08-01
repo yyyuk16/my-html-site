@@ -186,13 +186,12 @@
     <button id="sendBtn">送信</button>
     <button onclick="window.location.href='choise.html'">戻る</button>
   </div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
     import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
-
+  
     const firebaseConfig = {
       apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
       authDomain: "web01-2484d.firebaseapp.com",
@@ -203,39 +202,38 @@
       appId: "1:90159472898:web:8a33ef04b4474b9911e21b",
       measurementId: "G-148XJR01WS"
     };
-
+  
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
     const firestore = getFirestore(app);
-
+  
     let currentUserUid = null;
     let assignedDoctorUid = null;
     let chatRoomId = null;
-
+  
     const chatDiv = document.getElementById("chat");
     const messageInput = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
     const assignedDoctorNameElem = document.getElementById("assignedDoctorName");
     const languageSelect = document.getElementById("languageSelect");
-
+  
     // Gemini API設定
-    const GEMINI_API_KEY = "AIzaSyDLJ1JSeGR680zsw-iUC2xnhZTqRphH-rg";
-    // APIのエンドポイントURLを v1beta に、モデル名を gemini-pro に戻す
-    const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
-
+    const GEMINI_API_KEY = "AIzaSyDMq79gWPAgCDffjZJqlJSAhygxC4G2bpE";
+    const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
+  
     // Gemini APIを使用してメッセージ候補を生成
     async function generateMessageSuggestionsWithGemini(doctorMessage, userMessage = "") {
       try {
         const prompt = `
-以下の医者からのメッセージに対して、患者が次に言いそうな返信候補を3つ生成してください。
-候補は自然で実用的なものにしてください。
-
-医者のメッセージ: "${doctorMessage}"
-${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
-
-返信候補（3つ、カンマ区切りで返してください）:
-`;
+  以下の医者からのメッセージに対して、患者が次に言いそうな返信候補を3つ生成してください。
+  候補は自然で実用的なものにしてください。
+  
+  医者のメッセージ: "${doctorMessage}"
+  ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
+  
+  返信候補（3つ、カンマ区切りで返してください）:
+  `;
         
         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
           method: 'POST',
@@ -250,18 +248,18 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
             }]
           })
         });
-
+  
         if (!response.ok) {
           throw new Error(`Gemini API error: ${response.status}`);
         }
-
+  
         const data = await response.json();
         const suggestions = data.candidates[0].content.parts[0].text
           .split(',')
           .map(s => s.trim())
           .filter(s => s.length > 0)
           .slice(0, 3);
-
+  
         return suggestions;
       } catch (error) {
         console.error("Gemini API error:", error);
@@ -273,7 +271,7 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
         ];
       }
     }
-
+  
     // フォールバック用の候補生成（Gemini APIが使えない場合）
     function generateFallbackSuggestions(lastMessage) {
       const suggestions = {
@@ -298,7 +296,7 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
           "検査結果について質問があります"
         ]
       };
-
+  
       if (lastMessage.includes('痛') || lastMessage.includes('熱') || lastMessage.includes('症状')) {
         return suggestions.symptoms;
       } else if (lastMessage.includes('薬') || lastMessage.includes('副作用')) {
@@ -309,7 +307,7 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
         return suggestions.default;
       }
     }
-
+  
     // ユーザー情報取得（Firestore usersコレクションから）
     async function getUserInfo(uid) {
       try {
@@ -323,35 +321,32 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
       }
       return { userName: "名無し", language: "ja" };
     }
-
+  
     // 担当医者名表示
     async function displayAssignedDoctor() {
       if (!assignedDoctorUid) {
-        // assignedDoctorNameElem が null でないことを確認
         if (assignedDoctorNameElem) {
           assignedDoctorNameElem.textContent = "佐々木先生";
         }
         return;
       }
       const doctorInfo = await getUserInfo(assignedDoctorUid);
-      // assignedDoctorNameElem が null でないことを確認
       if (assignedDoctorNameElem) {
         assignedDoctorNameElem.textContent = doctorInfo.userName || "佐々木先生";
       }
     }
-
+  
     // メッセージ候補ボタンをクリックした時の処理
     function handleSuggestionClick(suggestion) {
       messageInput.value = suggestion;
       messageInput.focus();
     }
-
+  
     // メッセージ表示関数（候補ボタン付き）
     async function displayMessage(msg) {
       const el = document.createElement("div");
       el.classList.add("message");
-
-      // 既存の候補ボタンをすべて削除する
+  
       const allSuggestions = document.querySelectorAll('.message-suggestions');
       allSuggestions.forEach(s => s.remove());
       
@@ -363,7 +358,6 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
         el.textContent = `担当医: ${msg.text}`;
         chatDiv.appendChild(el);
         
-        // 医者からの最新のメッセージに対してのみ候補を表示
         if (msg.sender === assignedDoctorUid) {
           const suggestionsDiv = document.createElement("div");
           suggestionsDiv.className = "message-suggestions";
@@ -376,7 +370,7 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
           
           el.appendChild(suggestionsDiv);
           chatDiv.scrollTop = chatDiv.scrollHeight;
-
+  
           try {
             const suggestions = await generateMessageSuggestionsWithGemini(msg.text);
             
@@ -407,7 +401,7 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
       
       chatDiv.scrollTop = chatDiv.scrollHeight;
     }
-
+  
     // メッセージ送信
     sendBtn.addEventListener("click", () => {
       const text = messageInput.value.trim();
@@ -424,14 +418,14 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
       });
       messageInput.value = "";
     });
-
+  
     // Enterキーで送信
     messageInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         sendBtn.click();
       }
     });
-
+  
     // ログイン状態監視
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -440,7 +434,7 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
         return;
       }
       currentUserUid = user.uid;
-
+  
       // ユーザー情報取得
       const userInfo = await getUserInfo(currentUserUid);
       assignedDoctorUid = userInfo.assignedDoctor;
@@ -449,13 +443,13 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
         assignedDoctorNameElem.textContent = "佐々木先生";
         return;
       }
-
+  
       // chatRoomIdをUID昇順で統一して作成
       chatRoomId = [currentUserUid, assignedDoctorUid].sort().join("_");
-
+  
       // 担当医者名表示
       displayAssignedDoctor();
-
+  
       // メッセージ受信監視
       const chatRef = ref(db, "messages/" + chatRoomId);
       onChildAdded(chatRef, (snapshot) => {
@@ -464,5 +458,4 @@ ${userMessage ? `患者の前回のメッセージ: "${userMessage}"` : ""}
       });
     });
   </script>
-</body>
-</html>
+  </html>
