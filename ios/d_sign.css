@@ -1,0 +1,107 @@
+:root {
+  --color-blue-light: #E3F2FD;
+  --color-blue-medium: #64B5F6;
+  --color-blue-dark: #1976D2;
+  --color-blue-accent: #90CAF9;
+  --primary-color: var(--color-blue-medium);
+  --secondary-color: var(--color-blue-dark);
+  --accent-color: var(--color-blue-accent);
+  --background-color: var(--color-blue-light);
+  --text-color: #1A1A1A;
+  --shadow-color: rgba(0,0,0,0.08);
+  --card-bg: rgba(255, 255, 255, 0.95);
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, var(--color-blue-light), var(--color-blue-accent));
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.container {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  width: 90%;
+  max-width: 500px;
+  margin: 2rem auto;
+}
+
+h1 {
+  text-align: center;
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+input, select {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+select {
+  background-color: white;
+  cursor: pointer;
+}
+
+button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 1rem;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: var(--secondary-color);
+}
+
+.back-link {
+  display: block;
+  margin-top: 1rem;
+  color: var(--text-color);
+  text-decoration: none;
+  text-align: center;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  input, select, button {
+    padding: 0.7rem;
+  }
+}

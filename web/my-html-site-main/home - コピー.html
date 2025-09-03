@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医療情報管理アプリ - 医師用ダッシュボード</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://apis.google.com/js/api.js"></script>
+    <style>
+        /* 既存のスタイルを維持しつつ、医師向けの色調に変更 */
+        :root {
+            --color-blue-light: #E3F2FD;
+            --color-blue: #2196F3;
+            --color-blue-dark: #1976D2;
+            --color-blue-accent: #1565C0;
+            --color-blue-gradient: #42A5F5;
+            --primary-color: var(--color-blue);
+            --secondary-color: var(--color-blue-dark);
+            --accent-color: var(--color-blue-accent);
+            --background-color: #F5F9FF;
+            --text-color: #1A1A1A;
+            --shadow-color: rgba(33, 150, 243, 0.15);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --todo-bg: var(--card-bg);
+        }
+
+        /* 既存のスタイル定義は維持 */
+        body {
+            background: linear-gradient(135deg, var(--color-blue-light), var(--color-blue));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 24px var(--shadow-color);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin: 0;
+            padding: 20px 0;
+        }
+
+        /* 医師向けの追加スタイル */
+        .patient-list {
+            margin-top: 20px;
+        }
+
+        .patient-item {
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .patient-item h3 {
+            margin: 0 0 5px 0;
+            color: var(--text-color);
+        }
+
+        .patient-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .status-urgent {
+            background: #FFEBEE;
+            color: #D32F2F;
+        }
+
+        .status-normal {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .tab-header {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            background-color: var(--primary-color);
+            border-radius: 25px;
+            padding: 6px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            margin-bottom: 30px;
+        }
+
+        .tab-button {
+            padding: 12px 25px;
+            background: transparent;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 10px var(--shadow-color);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        /* Googleカレンダーのスタイル */
+        .calendar-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 0 10px;
+        }
+
+        .calendar-header h2 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .calendar-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .calendar-controls button {
+            background: var(--color-blue-light);
+            color: var(--primary-color);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-controls button:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .auth-button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .auth-button:hover {
+            background: #3367d6;
+        }
+
+        .auth-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #calendar {
+            width: 100%;
+            height: 400px;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .event-list {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .event-list h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .event-item {
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+            background: #f8f9fa;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .event-item:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+        }
+
+        .event-title {
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .event-time {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .event-description {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #d32f2f;
+            background: #ffebee;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+
+            .calendar-controls {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>医療管理アプリ</h1>
+        </div>
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button active" onclick="location.href='home.html'">
+                    <span class="tab-icon">🏥</span>
+                    <span class="tab-text">ダッシュボード</span>
+                </button>
+                <button class="tab-button" onclick="location.href='list.html'">
+                    <span class="tab-icon">👥</span>
+                    <span class="tab-text">患者診療記録</span>
+                </button>
+                <button class="tab-button" onclick="location.href='chat.html'">
+                    <span class="tab-icon">📅</span>
+                    <span class="tab-text">チャット</span>
+                </button>
+                <button class="tab-button" onclick="location.href='docterprofile.html'">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text">プロフィール</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="event-list">
+                <h2>今日の予定</h2>
+                <div id="todayEvents">
+                    <div class="loading">Googleカレンダーに接続中...</div>
+                </div>
+            </div>
+            
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2>Googleカレンダー</h2>
+                    <div class="calendar-controls">
+                        <button class="auth-button" id="authButton" onclick="handleAuthClick()">
+                            Googleカレンダーに接続
+                        </button>
+                        <button onclick="refreshCalendar()" id="refreshButton" style="display: none;">
+                            更新
+                        </button>
+                    </div>
+                </div>
+                <div id="calendar">
+                    <div class="loading">カレンダーを読み込み中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+            authDomain: "web01-2484d.firebaseapp.com",
+            projectId: "web01-2484d",
+            storageBucket: "web01-2484d.appspot.com",
+            messagingSenderId: "90159472898",
+            appId: "1:90159472898:web:261ec71f9919611011e21b"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // GoogleカレンダーAPI設定
+        const CLIENT_ID = '617423566038-4pmjfej48v3i5e85mi2qvk9tfb134tnh.apps.googleusercontent.com'; // Google Cloud Consoleで取得
+        const API_KEY = 'AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k'; // Google Cloud Consoleで取得
+        const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
+        const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+
+        let tokenClient;
+        let gapiInited = false;
+        let gisInited = false;
+
+        let doctorName = localStorage.getItem('doctorName') || "ドクター";
+
+        function generateGreeting() {
+            const hour = new Date().getHours();
+            const greetings = {
+                morning: [
+                    `${doctorName}、おはようございます。今日も一日よろしくお願いします。`,
+                    `${doctorName}、朝の回診の準備はよろしいでしょうか。`,
+                ],
+                afternoon: [
+                    `${doctorName}、お疲れ様です。午後の診察も頑張りましょう。`,
+                    `${doctorName}、昼食はお済みでしょうか。`,
+                ],
+                evening: [
+                    `${doctorName}、お疲れ様でした。明日もよろしくお願いします。`,
+                    `${doctorName}、本日の診察お疲れ様でした。`,
+                ]
+            };
+
+            let timeOfDay;
+            if (hour >= 5 && hour < 12) {
+                timeOfDay = 'morning';
+            } else if (hour >= 12 && hour < 18) {
+                timeOfDay = 'afternoon';
+            } else {
+                timeOfDay = 'evening';
+            }
+
+            return greetings[timeOfDay][Math.floor(Math.random() * greetings[timeOfDay].length)];
+        }
+
+        function updateGreeting() {
+            const greetingElement = document.getElementById('greetingText');
+            if (greetingElement) {
+                greetingElement.textContent = generateGreeting();
+                greetingElement.style.animation = 'none';
+                greetingElement.offsetHeight;
+                greetingElement.style.animation = 'fadeIn 1s ease';
+            }
+        }
+
+        updateGreeting();
+        setInterval(updateGreeting, 10000);
+
+        // Google API初期化
+        function gapiLoaded() {
+            gapi.load('client', initializeGapiClient);
+        }
+
+        async function initializeGapiClient() {
+            await gapi.client.init({
+                apiKey: API_KEY,
+                discoveryDocs: [DISCOVERY_DOC],
+            });
+            gapiInited = true;
+            maybeEnableButtons();
+        }
+
+        function gisLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: '', // 後で設定
+            });
+            gisInited = true;
+            maybeEnableButtons();
+        }
+
+        function maybeEnableButtons() {
+            if (gapiInited && gisInited) {
+                document.getElementById('authButton').disabled = false;
+            }
+        }
+
+        function handleAuthClick() {
+            tokenClient.callback = async (resp) => {
+                if (resp.error !== undefined) {
+                    throw resp;
+                }
+                document.getElementById('authButton').style.display = 'none';
+                document.getElementById('refreshButton').style.display = 'block';
+                await listUpcomingEvents();
+                loadGoogleCalendar();
+            };
+
+            if (gapi.client.getToken() === null) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                tokenClient.requestAccessToken({prompt: ''});
+            }
+        }
+
+        async function listUpcomingEvents() {
+            try {
+                const request = {
+                    'calendarId': 'primary',
+                    'timeMin': (new Date()).toISOString(),
+                    'showDeleted': false,
+                    'singleEvents': true,
+                    'maxResults': 10,
+                    'orderBy': 'startTime',
+                };
+
+                const response = await gapi.client.calendar.events.list(request);
+                const events = response.result.items;
+                displayTodayEvents(events);
+            } catch (err) {
+                console.error('イベントの取得に失敗しました:', err);
+                document.getElementById('todayEvents').innerHTML = 
+                    '<div class="error">イベントの取得に失敗しました</div>';
+            }
+        }
+
+        function displayTodayEvents(events) {
+            const todayEventsDiv = document.getElementById('todayEvents');
+            
+            if (!events || events.length === 0) {
+                todayEventsDiv.innerHTML = '<div class="event-item">今日の予定はありません</div>';
+                return;
+            }
+
+            const today = new Date();
+            const todayEvents = events.filter(event => {
+                const eventDate = new Date(event.start.dateTime || event.start.date);
+                return eventDate.toDateString() === today.toDateString();
+            });
+
+            if (todayEvents.length === 0) {
+                todayEventsDiv.innerHTML = '<div class="event-item">今日の予定はありません</div>';
+                return;
+            }
+
+            todayEventsDiv.innerHTML = todayEvents.map(event => {
+                const start = new Date(event.start.dateTime || event.start.date);
+                const end = new Date(event.end.dateTime || event.end.date);
+                const timeStr = event.start.dateTime ? 
+                    `${start.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})} - ${end.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})}` :
+                    '終日';
+                
+                return `
+                    <div class="event-item">
+                        <div class="event-title">${event.summary}</div>
+                        <div class="event-time">${timeStr}</div>
+                        ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadGoogleCalendar() {
+            const calendarDiv = document.getElementById('calendar');
+            const iframe = document.createElement('iframe');
+            iframe.src = 'https://calendar.google.com/calendar/embed?src=primary&ctz=Asia%2FTokyo&mode=WEEK';
+            iframe.style.width = '100%';
+            iframe.style.height = '400px';
+            iframe.style.border = 'none';
+            iframe.style.borderRadius = '10px';
+            
+            calendarDiv.innerHTML = '';
+            calendarDiv.appendChild(iframe);
+        }
+
+        function refreshCalendar() {
+            listUpcomingEvents();
+        }
+
+        // ページ読み込み時の処理
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                // ユーザーがログインしている場合の処理
+                console.log('ユーザーがログインしています:', user.email);
+            } else {
+                // ログインしていない場合はログインページにリダイレクト
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Google APIスクリプトの読み込み
+        gapiLoaded();
+        gisLoaded();
+    </script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+</body>
+</html>

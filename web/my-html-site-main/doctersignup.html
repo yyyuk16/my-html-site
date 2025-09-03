@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title data-i18n="title">医者新規登録</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="d_sign.css">
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <!-- 多言語対応スクリプト -->
+  <script src="translation.js"></script>
+  <script src="firebase-translations.js"></script>
+</head>
+<body>
+  <!-- 言語選択コンポーネント -->
+  <div class="language-selector">
+    <div class="language-selector-container">
+      <label for="languageSelect" class="language-label">
+        <span class="language-icon">🌍</span>
+        <span class="language-text" data-i18n="language">言語</span>
+      </label>
+      <select id="languageSelect" class="language-select" onchange="changeLanguage(this.value)">
+        <option value="ja" data-i18n="ja">日本語</option>
+        <option value="en" data-i18n="en">English</option>
+        <option value="zh" data-i18n="zh">中文</option>
+        <option value="ko" data-i18n="ko">한국어</option>
+        <option value="es" data-i18n="es">Español</option>
+        <option value="fr" data-i18n="fr">Français</option>
+        <option value="de" data-i18n="de">Deutsch</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1 data-i18n="signup-title">医療管理アプリ</h1>
+    <form id="signupForm">
+      <div class="form-group">
+        <label for="name" data-i18n="name">お名前</label>
+        <input type="text" id="name" required>
+      </div>
+      <div class="form-group">
+        <label for="gender" data-i18n="gender">性別</label>
+        <select id="gender" required>
+          <option value="" data-i18n="select">選択してください</option>
+          <option value="male" data-i18n="male">男性</option>
+          <option value="female" data-i18n="female">女性</option>
+          <option value="other" data-i18n="other">その他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="age" data-i18n="age">年齢</label>
+        <input type="number" id="age" min="0" max="120" required>
+      </div>
+      <div class="form-group">
+        <label for="language" data-i18n="language">言語選択</label>
+        <select id="language" required onchange="changeLanguage(this.value)">
+          <option value="" data-i18n="select">選択してください</option>
+          <option value="ja" data-i18n="ja">日本語</option>
+          <option value="en" data-i18n="en">English</option>
+          <option value="zh" data-i18n="zh">中文</option>
+          <option value="ko" data-i18n="ko">한국어</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="email" data-i18n="email">メールアドレス</label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="form-group">
+        <label for="specialty" data-i18n="specialty">専門</label>
+        <select id="specialty" required>
+          <option value="" data-i18n="select">選択してください</option>
+          <option value="内科" data-i18n="internal-medicine">内科</option>
+          <option value="外科" data-i18n="surgery">外科</option>
+          <option value="小児科" data-i18n="pediatrics">小児科</option>
+          <option value="整形外科" data-i18n="orthopedics">整形外科</option>
+          <option value="皮膚科" data-i18n="dermatology">皮膚科</option>
+          <option value="精神科" data-i18n="psychiatry">精神科</option>
+          <option value="眼科" data-i18n="ophthalmology">眼科</option>
+          <option value="耳鼻咽喉科" data-i18n="otolaryngology">耳鼻咽喉科</option>
+          <option value="産婦人科" data-i18n="obstetrics-gynecology">産婦人科</option>
+          <option value="その他" data-i18n="other">その他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="hospital" data-i18n="hospital">病院</label>
+        <input type="text" id="hospital">
+      </div>
+      <div class="form-group">
+        <label for="experience" data-i18n="experience">勤務年数</label>
+        <input type="number" id="experience" min="0">
+      </div>
+      <div class="form-group">
+        <label for="password" data-i18n="password">パスワード</label>
+        <input type="password" id="password" >
+      </div>
+      <div class="form-group">
+        <label for="confirmPassword" data-i18n="confirm-password">パスワード（確認）</label>
+        <input type="password" id="confirmPassword" >
+      </div>
+      
+      <button type="submit" data-i18n="register">登録</button>
+    </form>
+    <a href="index.html" class="back-link" data-i18n="back-to-login">← ログイン画面に戻る</a>
+  </div>
+
+  <style>
+  .language-selector {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .language-selector:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .language-selector-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .language-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+  }
+
+  .language-icon {
+    font-size: 16px;
+  }
+
+  .language-text {
+    white-space: nowrap;
+  }
+
+  .language-select {
+    padding: 6px 12px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    background: white;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+  }
+
+  .language-select:focus {
+    outline: none;
+    border-color: #42a5f5;
+    box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.1);
+  }
+
+  .language-select:hover {
+    border-color: #42a5f5;
+  }
+
+  @media (max-width: 768px) {
+    .language-selector {
+      top: 10px;
+      right: 10px;
+      padding: 8px 12px;
+    }
+    
+    .language-label {
+      font-size: 12px;
+    }
+    
+    .language-select {
+      font-size: 12px;
+      min-width: 100px;
+      padding: 4px 8px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .language-selector {
+      position: relative;
+      top: auto;
+      right: auto;
+      margin: 10px auto;
+      width: fit-content;
+    }
+    
+    .language-text {
+      display: none;
+    }
+  }
+  </style>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+      authDomain: "web01-2484d.firebaseapp.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.appspot.com",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    // 新しい多言語システムを使用
+    // 翻訳データは translation.js と firebase-translations.js で管理されます
+
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const name = document.getElementById('name').value;
+  const age = document.getElementById('age').value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  const language = document.getElementById('language').value;
+  const specialty = document.getElementById('specialty').value;
+  const hospital = document.getElementById('hospital').value;
+  const experience = document.getElementById('experience').value;
+
+  if (password !== confirmPassword) {
+    const errorMessage = window.translationManager ? 
+      window.translationManager.getText('password-mismatch', 'パスワードが一致しません') : 
+      'パスワードが一致しません';
+    alert(errorMessage);
+    return;
+  }
+
+  firebase.auth().createUserWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+
+      // Firestoreのusersコレクションに保存（このUIDが doctorId として患者が参照する）
+      return firebase.firestore().collection('users').doc(user.uid).set({
+        name: name,
+        email: email,
+        age:age,
+        language: language,
+        role: 'staff',  // 医者
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        specialty: specialty,
+        hospital: hospital,
+        experience: experience
+      });
+    })
+    .then(() => {
+      const successMessage = window.translationManager ? 
+        window.translationManager.getText('registration-success', '登録が完了しました！') : 
+        '登録が完了しました！';
+      alert(successMessage);
+
+      // 登録後の遷移先（必要に応じて変更）
+      window.location.href = 'home.html';
+    })
+    .catch((error) => {
+      const errorMessage = window.translationManager ? 
+        window.translationManager.getText('registration-error', '登録に失敗しました: ') : 
+        '登録に失敗しました: ';
+      alert(errorMessage + error.message);
+    });
+});
+
+  </script>
+</body>
+</html>

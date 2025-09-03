@@ -1,0 +1,668 @@
+/* 患者側の色味にアップデート */
+/* 追加: より柔軟なデザイン・テーマ用のCSS変数（患者向けカラー） */
+
+/* -------------------------------
+   ルート変数（テーマカラー・フォント等）
+-------------------------------- */
+:root {
+    /* --- グリーン系カラー（患者向け） --- */
+    --color-green-light: #E8F5E9;
+    --color-green: #43A047;
+    --color-green-dark: #2E7D32;
+    --color-green-accent: #388E3C;
+    --color-green-gradient: linear-gradient(120deg, #E8F5E9 0%, #A5D6A7 100%);
+    --primary-color: var(--color-green);
+    --secondary-color: var(--color-green-dark);
+    --accent-color: var(--color-green-accent);
+
+    /* --- グレー・ホワイト系カラー --- */
+    --background-color: var(--color-green-light);
+    --background-gradient: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    --background-gradient-dark: linear-gradient(135deg, #A5D6A7 0%, #2E7D32 100%);
+    --card-bg: rgba(255, 255, 255, 0.98);
+    --modal-bg: #fff;
+    --modal-overlay: rgba(67,160,71,0.13);
+
+    /* --- テキストカラー --- */
+    --text-color: #1A1A1A;
+    --text-color-light: #fff;
+    --text-color-dark: #222;
+    --text-color-muted: #4A4A4A;
+    --heading-color: var(--primary-color);
+
+    /* --- ボーダー・シャドウ --- */
+    --border-color: #E8F5E9;
+    --border-color-light: #C8E6C9;
+    --border-color-dark: #2E7D32;
+    --shadow-color: rgba(67, 160, 71, 0.10);
+    --shadow-color-strong: rgba(67,160,71,0.18);
+
+    /* --- 角丸・トランジション --- */
+    --border-radius: 22px;
+    --border-radius-sm: 10px;
+    --border-radius-md: 16px;
+    --border-radius-lg: 32px;
+    --transition: 0.25s cubic-bezier(.4,0,.2,1);
+
+    /* --- ステータス・アクセントカラー --- */
+    --status-urgent-bg: #FFF3E0;
+    --status-urgent-color: #F57C00;
+    --status-urgent-border: #FFCC80;
+    --status-normal-bg: #E8F5E9;
+    --status-normal-color: #2E7D32;
+    --status-normal-border: #C8E6C9;
+
+    /* --- カレンダーイベントカラー --- */
+    --event-green-bg: linear-gradient(90deg, #66BB6A 80%, #A5D6A7 100%);
+    --event-green-color: #fff;
+    --event-blue-bg: linear-gradient(90deg, #42A5F5 80%, #90CAF9 100%);
+    --event-blue-color: #fff;
+    --event-red-bg: linear-gradient(90deg, #EF5350 80%, #FFCDD2 100%);
+    --event-red-color: #fff;
+    --event-yellow-bg: linear-gradient(90deg, #FFEE58 80%, #FFF9C4 100%);
+    --event-yellow-color: #333;
+    --event-purple-bg: linear-gradient(90deg, #7E57C2 80%, #B39DDB 100%);
+    --event-purple-color: #fff;
+    --event-orange-bg: linear-gradient(90deg, #FFA726 80%, #FFE0B2 100%);
+    --event-orange-color: #fff;
+
+    /* --- フォント --- */
+    --font-family-base: 'Noto Sans JP', 'Segoe UI', sans-serif;
+    --font-size-base: 16px;
+    --font-size-lg: 1.18rem;
+    --font-size-xl: 2.7rem;
+    --font-size-sm: 0.92rem;
+    --font-size-xs: 0.88rem;
+    --font-weight-bold: 700;
+    --font-weight-semi: 600;
+
+    /* --- スペース --- */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 36px;
+    --spacing-xxl: 40px;
+  }
+  
+  /* -------------------------------
+     body全体の背景・基本フォント
+  -------------------------------- */
+  body {
+      background: var(--background-gradient);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      padding: var(--spacing-lg);
+      font-family: var(--font-family-base);
+      color: var(--text-color);
+      letter-spacing: 0.02em;
+  }
+  
+  /* -------------------------------
+     メインコンテナ
+  -------------------------------- */
+  .container {
+      width: 100%;
+      max-width: 1100px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: var(--spacing-xxl) var(--spacing-xl) var(--spacing-xl) var(--spacing-xl);
+      box-shadow: 0 8px 32px var(--shadow-color);
+      backdrop-filter: blur(2px);
+      border: 1.5px solid var(--border-color);
+  }
+  
+  /* -------------------------------
+     ヘッダー
+  -------------------------------- */
+  .header {
+      text-align: center;
+      margin-bottom: var(--spacing-xl);
+  }
+  
+  /* ヘッダーのタイトル */
+  .header h1 {
+      font-size: var(--font-size-xl);
+      color: var(--heading-color);
+      margin: 0;
+      padding: 24px 0 10px 0;
+      letter-spacing: 0.04em;
+      font-weight: var(--font-weight-bold);
+      background: linear-gradient(90deg, #43A047 60%, #66BB6A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+  }
+  
+  /* -------------------------------
+     患者リスト
+  -------------------------------- */
+  .patient-list {
+      margin-top: 28px;
+  }
+  
+  /* 患者リストの各アイテム */
+  .patient-item {
+      padding: 18px 22px;
+      border-left: 5px solid var(--primary-color);
+      background: linear-gradient(90deg, #fff 80%, #E8F5E9 100%);
+      margin-bottom: 14px;
+      border-radius: var(--border-radius-sm);
+      box-shadow: 0 2px 10px var(--shadow-color);
+      transition: box-shadow var(--transition), transform var(--transition);
+      position: relative;
+  }
+  .patient-item:hover {
+      box-shadow: 0 6px 24px var(--shadow-color-strong);
+      transform: translateY(-2px) scale(1.01);
+  }
+  
+  /* 患者名 */
+  .patient-item h3 {
+      margin: 0 0 6px 0;
+      color: var(--primary-color);
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semi);
+  }
+  
+  /* 患者情報（サブテキスト） */
+  .patient-info {
+      font-size: 15px;
+      color: var(--text-color-muted);
+      letter-spacing: 0.01em;
+  }
+  
+  /* ステータスバッジ */
+  .status-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: var(--font-weight-semi);
+      margin-left: 10px;
+      box-shadow: 0 1px 4px var(--shadow-color);
+      border: 1px solid var(--border-color);
+      letter-spacing: 0.02em;
+  }
+  
+  /* 緊急・通常バッジ色 */
+  .status-urgent {
+      background: var(--status-urgent-bg);
+      color: var(--status-urgent-color);
+      border-color: var(--status-urgent-border);
+  }
+  .status-normal {
+      background: var(--status-normal-bg);
+      color: var(--status-normal-color);
+      border-color: var(--status-normal-border);
+  }
+  
+  /* -------------------------------
+     タブヘッダー・タブボタン
+  -------------------------------- */
+  .tab-header {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      background: linear-gradient(90deg, #43A047 80%, #66BB6A 100%);
+      border-radius: var(--border-radius-lg);
+      padding: 8px 10px;
+      box-shadow: 0 4px 18px var(--shadow-color);
+      margin-bottom: var(--spacing-xl);
+      position: relative;
+  }
+  
+  /* タブボタン */
+  .tab-button {
+      padding: 13px 32px;
+      background: transparent;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 19px;
+      font-weight: var(--font-weight-semi);
+      color: rgba(255, 255, 255, 0.85);
+      transition: background var(--transition), color var(--transition), box-shadow var(--transition), transform var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      outline: none;
+  }
+  .tab-button:hover, .tab-button:focus {
+      background: rgba(255,255,255,0.13);
+      color: #fff;
+      transform: translateY(-1px) scale(1.03);
+  }
+  .tab-button.active {
+      background: #fff;
+      color: var(--primary-color);
+      box-shadow: 0 2px 14px var(--shadow-color);
+      font-weight: var(--font-weight-bold);
+      z-index: 2;
+  }
+  
+  /* タブアイコン・テキスト */
+  .tab-icon {
+      font-size: 1.3em;
+  }
+  .tab-text {
+      font-size: 1.05em;
+      letter-spacing: 0.01em;
+  }
+  
+  /* -------------------------------
+     メインコンテンツ（2カラム）
+  -------------------------------- */
+  .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xl);
+      margin-top: var(--spacing-xl);
+  }
+  
+  
+  
+  /* イベント詳細ポップアップ */
+  .event-detail-pop {
+      position: absolute;
+      z-index: 2000;
+      background: #fff;
+      border: 1.5px solid var(--border-color-light);
+      border-radius: 12px;
+      padding: 14px 18px;
+      min-width: 220px;
+      box-shadow: 0 6px 24px var(--shadow-color-strong);
+      font-size: 1rem;
+      color: #333;
+      top: 36px;
+      left: 0;
+      display: none;
+      animation: fadeInPop 0.25s;
+  }
+  @keyframes fadeInPop {
+      from { opacity: 0; transform: translateY(10px);}
+      to { opacity: 1; transform: none;}
+  }
+  .event-detail-pop.active {
+      display: block;
+  }
+  
+  /* -------------------------------
+     レスポンシブデザイン
+  -------------------------------- */
+  @media (max-width: 900px) {
+      /* メインコンテンツ1カラム化 */
+      .main-content {
+          grid-template-columns: 1fr;
+          gap: var(--spacing-md);
+      }
+      .container {
+          padding: 18px 6px;
+      }
+      .calendar {
+          padding: 18px 6px;
+      }
+  }
+  
+  @media (max-width: 600px) {
+      /* スマホ用調整 */
+      .container {
+          padding: var(--spacing-xs) 2px;
+          border-radius: var(--border-radius-sm);
+      }
+      .calendar {
+          padding: var(--spacing-xs) 2px;
+          border-radius: var(--border-radius-sm);
+      }
+      .header h1 {
+          font-size: 1.5rem;
+          padding: 12px 0 6px 0;
+      }
+      .tab-header {
+          gap: 6px;
+          padding: 4px 2px;
+          border-radius: 16px;
+      }
+      .tab-button {
+          padding: 7px 10px;
+          font-size: 1em;
+          border-radius: var(--border-radius-sm);
+      }
+  }
+  
+  /* -------------------------------
+     モーダル関連
+  -------------------------------- */
+  .modal-bg {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--modal-overlay);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(2px);
+  }
+  .modal-bg.active {
+      display: flex;
+  }
+  .modal {
+      background: var(--modal-bg);
+      border-radius: var(--border-radius-md);
+      padding: 36px 24px 24px 24px;
+      min-width: 320px;
+      box-shadow: 0 8px 32px var(--shadow-color-strong);
+      position: relative;
+      border: 1.5px solid var(--border-color);
+      animation: fadeInPop 0.25s;
+  }
+  .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 18px;
+      font-size: 1.4rem;
+      color: #888;
+      cursor: pointer;
+      transition: color var(--transition);
+  }
+  .modal-close:hover {
+      color: var(--primary-color);
+  }
+  .modal input, .modal textarea {
+      width: 100%;
+      margin-bottom: 14px;
+      padding: 10px;
+      border-radius: 7px;
+      border: 1.5px solid var(--border-color-light);
+      font-size: 1.05rem;
+      background: #F5F9FF;
+      transition: border var(--transition), box-shadow var(--transition);
+  }
+  .modal input:focus, .modal textarea:focus {
+      border: 1.5px solid var(--primary-color);
+      outline: none;
+      box-shadow: 0 2px 8px var(--shadow-color);
+  }
+  .modal button {
+      background: linear-gradient(90deg, #2196F3 80%, #42A5F5 100%);
+      color: #fff;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 1.05rem;
+      font-weight: var(--font-weight-semi);
+      box-shadow: 0 2px 8px var(--shadow-color);
+      transition: background var(--transition), box-shadow var(--transition);
+  }
+  .modal button:hover, .modal button:focus {
+      background: var(--primary-color);
+      box-shadow: 0 4px 16px var(--shadow-color);
+  }
+  
+  /* -------------------------------
+     下部：body, container, header等の
+     旧デザイン（参考・互換用？）
+  -------------------------------- */
+  
+    .flex-container {
+      display: flex;
+      gap: 32px;
+      padding: 32px 40px 0 40px;
+      justify-content: stretch;
+    }
+    .patient-list-panel {
+      background: var(--background-color, #E3F2FD);
+      border-radius: var(--border-radius-md, 16px);
+      box-shadow: 0 2px 8px var(--shadow-color, rgba(33, 150, 243, 0.10));
+      padding: 28px 24px 24px 24px;
+      min-width: 320px;
+      max-width: 350px;
+      flex: 0 0 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .patient-list-panel h2 {
+      font-size: 1.3rem;
+      color: var(--secondary-color, #1976D2);
+      margin-bottom: 18px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-align: left;
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px var(--shadow-color, rgba(33, 150, 243, 0.10));
+      padding: 6px 12px;
+      margin-bottom: 18px;
+    }
+    .search-box input[type="text"] {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 1rem;
+      flex: 1;
+      padding: 8px 0;
+    }
+    .search-box .fa-search {
+      color: var(--primary-color, #2196F3);
+      font-size: 1.1em;
+      margin-left: 8px;
+    }
+    .chat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 520px;
+      overflow-y: auto;
+    }
+    .chat-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 6px var(--shadow-color, rgba(33, 150, 243, 0.10));
+      padding: 14px 18px;
+      cursor: pointer;
+      transition: background 0.18s, box-shadow 0.18s, transform 0.15s;
+      border: 2px solid transparent;
+      position: relative;
+    }
+    .chat-item.selected, .chat-item:hover {
+      background: var(--color-blue, #2196F3);
+      color: #fff;
+      border: 2px solid var(--secondary-color, #1976D2);
+      box-shadow: 0 4px 16px var(--shadow-color-strong, rgba(33,150,243,0.18));
+      transform: translateY(-2px) scale(1.02);
+    }
+    .doctor-avatar {
+      width: 44px;
+      height: 44px;
+      background: var(--color-blue-dark, #1976D2);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      font-weight: 700;
+      box-shadow: 0 2px 8px var(--shadow-color, rgba(33, 150, 243, 0.10));
+      flex-shrink: 0;
+      letter-spacing: 0.05em;
+    }
+    .chat-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .doctor-name {
+      font-size: 1.1em;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    .last-message {
+      font-size: 0.95em;
+      color: var(--text-color-muted, #4A4A4A);
+    }
+    .chat-item.selected .doctor-avatar,
+    .chat-item:hover .doctor-avatar {
+      background: #fff;
+      color: var(--color-blue-dark, #1976D2);
+      border: 2px solid var(--color-blue-dark, #1976D2);
+    }
+    .memo-area {
+      background: #fff;
+      border-radius: var(--border-radius-md, 16px);
+      box-shadow: 0 2px 8px var(--shadow-color, rgba(33, 150, 243, 0.10));
+      padding: 32px 32px 24px 32px;
+      flex: 1 1 0%;
+      min-width: 0;
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+    }
+    .memo-area h2 {
+      color: var(--primary-color, #2196F3);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      letter-spacing: 0.04em;
+    }
+    #memoForm {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px 32px;
+      margin-bottom: 28px;
+      align-items: flex-end;
+    }
+    .memo-field {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 220px;
+      min-width: 180px;
+    }
+    .memo-field label {
+      font-size: 1em;
+      color: var(--secondary-color, #1976D2);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .memo-input {
+      border: 1.5px solid var(--border-color-light, #BBDEFB);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 1em;
+      background: #f8fbff;
+      transition: border 0.2s, box-shadow 0.2s;
+      resize: vertical;
+    }
+    .memo-input:focus {
+      border-color: var(--primary-color, #2196F3);
+      box-shadow: 0 0 8px var(--shadow-color, rgba(33, 150, 243, 0.10));
+      outline: none;
+    }
+    .save-btn {
+      background: linear-gradient(135deg, var(--primary-color, #2196F3), var(--secondary-color, #1976D2));
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px var(--shadow-color, rgba(33, 150, 243, 0.10));
+      margin-top: 18px;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    }
+    .save-btn:hover {
+      background: linear-gradient(135deg, var(--secondary-color, #1976D2), var(--primary-color, #2196F3));
+      box-shadow: 0 4px 16px var(--shadow-color-strong, rgba(33,150,243,0.18));
+      transform: translateY(-2px) scale(1.03);
+    }
+    .memo-history {
+      margin-top: 12px;
+      background: #f8fbff;
+      border-radius: 10px;
+      padding: 18px 18px 10px 18px;
+      box-shadow: 0 1px 4px var(--shadow-color, rgba(33, 150, 243, 0.08));
+      min-height: 80px;
+    }
+    .memo-history h3 {
+      font-size: 1.1em;
+      color: var(--secondary-color, #1976D2);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .memo-entry {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px var(--shadow-color, rgba(33, 150, 243, 0.08));
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      transition: box-shadow 0.18s;
+    }
+    .memo-entry:hover {
+      box-shadow: 0 4px 16px var(--shadow-color-strong, rgba(33,150,243,0.13));
+    }
+    .memo-date {
+      font-size: 1em;
+      color: var(--primary-color, #2196F3);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .memo-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+    }
+    .memo-item {
+      font-size: 0.98em;
+      color: var(--text-color, #1A1A1A);
+      margin-bottom: 2px;
+    }
+    .memo-label {
+      color: var(--secondary-color, #1976D2);
+      font-weight: 500;
+      margin-right: 4px;
+    }
+    @media (max-width: 900px) {
+      .flex-container {
+        flex-direction: column;
+        gap: 24px;
+        padding: 24px 8px 0 8px;
+      }
+      .patient-list-panel, .memo-area {
+        min-width: 0;
+        max-width: 100%;
+      }
+      .memo-area {
+        padding: 24px 10px 18px 10px;
+      }
+    }
+    @media (max-width: 600px) {
+      .container {
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+      }
+      .header {
+        border-radius: 0;
+        padding: 18px 0 12px 0;
+      }
+      .tab-header {
+        gap: 4px;
+        padding: 12px 0 0 0;
+      }
+      .tab-button {
+        padding: 8px 10px 8px 10px;
+        font-size: 0.98rem;
+      }
+  }
