@@ -1,0 +1,509 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <!-- 文字エンコーディングとビューポートの設定 -->
+  <meta charset="UTF-8">
+  <title>4択クイズアプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google Fontsの読み込み -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* カラーパレットの定義 */
+      --color-pink-light: #FFE4E8;
+      --color-pink: #FFB6C1;
+      --color-pink-dark: #FF7080;
+      --color-pink-accent: #FF4D6D;
+      --color-pink-gradient: #FF8FA3;
+
+      /* アプリケーション全体で使用する色変数 */
+      --primary-color: var(--color-pink);
+      --secondary-color: var(--color-pink-dark);
+      --accent-color: var(--color-pink-accent);
+      --background-color: #FFF5F6;
+      --text-color: #1A1A1A;
+      --shadow-color: rgba(255, 112, 128, 0.15);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --todo-bg: var(--card-bg);
+    }
+
+    /* 全体のスタイリング */
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    /* メインコンテナのスタイリング */
+    .container {
+      padding: 25px;
+      max-width: 1000px;
+      width: 95%;
+      margin: 30px auto;
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+      text-align: center;
+      min-height: 80vh;
+    }
+
+    /* ヘッダー部分のスタイリング */
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 28px;
+      color: var(--text-color);
+    }
+
+    .header p {
+      font-size: 18px;
+      color: #555;
+    }
+
+    /* タブナビゲーションのスタイリング */
+    .tab-container {
+      margin-bottom: 25px;
+    }
+
+    .tab-header {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      background-color: var(--primary-color);
+      border-radius: 25px;
+      padding: 6px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+    }
+
+    /* タブボタンのスタイリング */
+    .tab-button {
+      padding: 12px 25px;
+      background: transparent;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.8);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* アクティブなタブボタンのスタイリング */
+    .tab-button.active {
+      background: white;
+      color: var(--primary-color);
+      box-shadow: 0 2px 10px var(--shadow-color);
+    }
+
+    /* 入力フィールドのスタイリング */
+    input[type="text"] {
+      width: 70%;
+      max-width: 600px;
+      padding: 15px 25px;
+      border: 2px solid var(--color-pink-light);
+      border-radius: 25px;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s ease;
+      background: #ffffff;
+      box-shadow: inset 0 2px 4px var(--shadow-color);
+      margin-bottom: 20px;
+    }
+
+    /* 入力フィールドのフォーカス時のスタイリング */
+    input[type="text"]:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 15px var(--shadow-color);
+      transform: scale(1.02);
+    }
+
+    /* ボタンの基本スタイリング */
+    button {
+      padding: 12px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0 5px;
+      box-shadow: 0 4px 15px var(--shadow-color);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    /* ボタンのホバー時のスタイリング */
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 20px var(--shadow-color);
+      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    }
+
+    /* クイズエリアのスタイリング */
+    #quiz-area {
+      width: 90%;
+      max-width: 800px;
+      margin-top: 30px;
+      padding: 25px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 0 5px 15px var(--shadow-color);
+      backdrop-filter: blur(10px);
+    }
+
+    /* 結果表示エリアのスタイリング */
+    #result {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    /* 正解時のスタイリング */
+    .correct {
+      color: #2ecc71;
+      background: rgba(46, 204, 113, 0.1);
+    }
+
+    /* 不正解時のスタイリング */
+    .incorrect {
+      color: #e74c3c;
+      background: rgba(231, 76, 60, 0.1);
+    }
+
+    /* 次の問題ボタンのスタイリング */
+    #next-button {
+      display: none;
+      margin-top: 20px;
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+
+    #next-button:hover {
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+    }
+  </style>
+</head>
+<body>
+  <!-- メインコンテナ -->
+  <div class="container">
+    <!-- ヘッダー部分 -->
+    <div class="header">
+      <h1>医療情報管理アプリ</h1>
+    </div>
+    
+    <!-- ナビゲーションタブ -->
+    <div class="tab-container">
+      <div class="tab-header">
+        <button class="tab-button" onclick="location.href='choise.html'">
+          <span class="tab-icon">👤</span>
+          <span class="tab-text">ホーム</span>
+        </button>
+        <button class="tab-button" onclick="location.href='ai.html'">
+          <span class="tab-icon">💬</span>
+          <span class="tab-text">チャット</span>
+        </button>
+        <button class="tab-button active" onclick="location.href='Q&A.html'">
+          <span class="tab-icon">❓</span>
+          <span class="tab-text">Q&A</span>
+        </button>
+        <button class="tab-button" onclick="location.href='movie.html'">
+          <span class="tab-icon">🎬</span>
+          <span class="tab-text">動画視聴</span>
+        </button>
+        <button class="tab-button" onclick="location.href='profile.html'">
+          <span class="tab-icon">👤</span>
+          <span class="tab-text">プロフィール</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- クイズセクション -->
+            <h1>AIクイズ</h1>
+    <input type="text" id="topic" placeholder="クイズのジャンル（例：日本の歴史）" />
+    <button onclick="generateQuiz()">クイズを作成</button>
+
+    <!-- クイズ表示エリア -->
+    <div id="quiz-area">
+      <div id="result"></div>
+    </div>
+
+    <button id="next-button" onclick="generateQuiz()">次の問題へ</button>
+  </div>
+
+  <script src="q&a.js"></script>
+</body>
+</html>
+=======
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <!-- 文字エンコーディングとビューポートの設定 -->
+  <meta charset="UTF-8">
+  <title>4択クイズアプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google Fontsの読み込み -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* カラーパレットの定義 */
+      --color-pink-light: #FFE4E8;
+      --color-pink: #FFB6C1;
+      --color-pink-dark: #FF7080;
+      --color-pink-accent: #FF4D6D;
+      --color-pink-gradient: #FF8FA3;
+
+      /* アプリケーション全体で使用する色変数 */
+      --primary-color: var(--color-pink);
+      --secondary-color: var(--color-pink-dark);
+      --accent-color: var(--color-pink-accent);
+      --background-color: #FFF5F6;
+      --text-color: #1A1A1A;
+      --shadow-color: rgba(255, 112, 128, 0.15);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --todo-bg: var(--card-bg);
+    }
+
+    /* 全体のスタイリング */
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    /* メインコンテナのスタイリング */
+    .container {
+      padding: 25px;
+      max-width: 1000px;
+      width: 95%;
+      margin: 30px auto;
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+      text-align: center;
+      min-height: 80vh;
+    }
+
+    /* ヘッダー部分のスタイリング */
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 28px;
+      color: var(--text-color);
+    }
+
+    .header p {
+      font-size: 18px;
+      color: #555;
+    }
+
+    /* タブナビゲーションのスタイリング */
+    .tab-container {
+      margin-bottom: 25px;
+    }
+
+    .tab-header {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      background-color: var(--primary-color);
+      border-radius: 25px;
+      padding: 6px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+    }
+
+    /* タブボタンのスタイリング */
+    .tab-button {
+      padding: 12px 25px;
+      background: transparent;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.8);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* アクティブなタブボタンのスタイリング */
+    .tab-button.active {
+      background: white;
+      color: var(--primary-color);
+      box-shadow: 0 2px 10px var(--shadow-color);
+    }
+
+    /* 入力フィールドのスタイリング */
+    input[type="text"] {
+      width: 70%;
+      max-width: 600px;
+      padding: 15px 25px;
+      border: 2px solid var(--color-pink-light);
+      border-radius: 25px;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s ease;
+      background: #ffffff;
+      box-shadow: inset 0 2px 4px var(--shadow-color);
+      margin-bottom: 20px;
+    }
+
+    /* 入力フィールドのフォーカス時のスタイリング */
+    input[type="text"]:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 15px var(--shadow-color);
+      transform: scale(1.02);
+    }
+
+    /* ボタンの基本スタイリング */
+    button {
+      padding: 12px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0 5px;
+      box-shadow: 0 4px 15px var(--shadow-color);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    /* ボタンのホバー時のスタイリング */
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 20px var(--shadow-color);
+      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    }
+
+    /* クイズエリアのスタイリング */
+    #quiz-area {
+      width: 90%;
+      max-width: 800px;
+      margin-top: 30px;
+      padding: 25px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 0 5px 15px var(--shadow-color);
+      backdrop-filter: blur(10px);
+    }
+
+    /* 結果表示エリアのスタイリング */
+    #result {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    /* 正解時のスタイリング */
+    .correct {
+      color: #2ecc71;
+      background: rgba(46, 204, 113, 0.1);
+    }
+
+    /* 不正解時のスタイリング */
+    .incorrect {
+      color: #e74c3c;
+      background: rgba(231, 76, 60, 0.1);
+    }
+
+    /* 次の問題ボタンのスタイリング */
+    #next-button {
+      display: none;
+      margin-top: 20px;
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+
+    #next-button:hover {
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+    }
+  </style>
+</head>
+<body>
+  <!-- メインコンテナ -->
+  <div class="container">
+    <!-- ヘッダー部分 -->
+    <div class="header">
+      <h1>医療情報管理アプリ</h1>
+    </div>
+    
+    <!-- ナビゲーションタブ -->
+    <div class="tab-container">
+      <div class="tab-header">
+        <button class="tab-button" onclick="location.href='choise.html'">
+          <span class="tab-icon">👤</span>
+          <span class="tab-text">ホーム</span>
+        </button>
+        <button class="tab-button" onclick="location.href='ai.html'">
+          <span class="tab-icon">💬</span>
+          <span class="tab-text">チャット</span>
+        </button>
+        <button class="tab-button active" onclick="location.href='Q&A.html'">
+          <span class="tab-icon">❓</span>
+          <span class="tab-text">Q&A</span>
+        </button>
+        <button class="tab-button" onclick="location.href='movie.html'">
+          <span class="tab-icon">🎬</span>
+          <span class="tab-text">動画視聴</span>
+        </button>
+        <button class="tab-button" onclick="location.href='profile.html'">
+          <span class="tab-icon">👤</span>
+          <span class="tab-text">プロフィール</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- クイズセクション -->
+            <h1>AIクイズ</h1>
+    <input type="text" id="topic" placeholder="クイズのジャンル（例：日本の歴史）" />
+    <button onclick="generateQuiz()">クイズを作成</button>
+
+    <!-- クイズ表示エリア -->
+    <div id="quiz-area">
+      <div id="result"></div>
+    </div>
+
+    <button id="next-button" onclick="generateQuiz()">次の問題へ</button>
+  </div>
+
+  <script src="q&a.js"></script>
+</body>
+</html>
+>>>>>>> 21d985d (first commit)

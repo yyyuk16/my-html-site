@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="クイズ結果">クイズ結果</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="maintab.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- 翻訳機能 -->
+    <script src="translation.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 data-translate="医療情報管理アプリ">医療情報管理アプリ</h1>
+    </div>
+      
+    <div class="tab-container">
+        <div class="tab-header">
+          <button class="tab-button" onclick="location.href='choise.html'">
+            <span class="tab-icon">👤</span>
+            <span class="tab-text" data-translate="HOME">HOME</span>
+          </button>
+          <button class="tab-button" onclick="location.href='ai.html'">
+            <span class="tab-icon">💬</span>
+            <span class="tab-text" data-translate="チャット">チャット</span>
+          </button>
+          <button class="tab-button active" onclick="location.href='score.html'">
+            <span class="tab-icon">❓</span>
+            <span class="tab-text" data-translate="Q&A">Q&A</span>
+          </button>
+          <button class="tab-button" onclick="location.href='movie.html'">
+            <span class="tab-icon">🎬</span>
+            <span class="tab-text" data-translate="動画視聴">動画視聴</span>
+          </button>
+          <button class="tab-button" onclick="location.href='profile.html'">
+            <span class="tab-icon">👤</span>
+            <span class="tab-text" data-translate="プロフィール">プロフィール</span>
+          </button>
+        </div>
+    </div>
+    <!-- クイズのスコア表示とランク表示の画面 -->
+<div class="quiz-container" style="max-width:600px;margin:40px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+  <h2 style="text-align:center;">AIクイズ（5問ランダム）</h2>
+  <div id="quiz-area">
+    <div style="text-align:center;margin:32px 0;">
+      <button id="startQuizBtn" style="font-size:1.2em;padding:12px 32px;border-radius:8px;background:#1976d2;color:#fff;border:none;cursor:pointer;">クイズを始める</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Firebaseの設定
+const firebaseConfig = {
+  apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+  authDomain: "web01-2484d.firebaseapp.com",
+  databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+  projectId: "web01-2484d",
+  storageBucket: "web01-2484d.firebasestorage.app",
+  messagingSenderId: "90159472898",
+  appId: "1:90159472898:web:261ec71f9919611011e21b",
+  measurementId: "G-9TGR07ZSY9"
+};
+
+// Firebaseの初期化
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const HF_API_KEY = "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"; // Hugging FaceのAPIトークン
+const HF_API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium";
+
+async function fetchQuizQuestions() {
+  const prompt = `
+あなたは医療分野のクイズ作成AIです。結核に関する4択クイズを日本語で5問ランダムに作成してください。
+各問題は以下の形式で有効なJSON配列として出力してください：
+
+[
+  {
+    "question": "問題文",
+    "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
+    "answer": "正解の選択肢",
+    "explanation": "解説文"
+  }
+]
+  `;
+
+  try {
+    const res = await fetch(HF_API_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${HF_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: {
+          max_new_tokens: 1200,   // 出力が途中で切れないように長め
+          temperature: 0.7,       // ランダム性（小さめにすると真面目な回答になりやすい）
+        }
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error(`APIエラー: ${res.status} - ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    console.log("APIレスポンス:", data);
+
+    // Hugging Face の返答からテキストを抽出
+    let text = "";
+    if (Array.isArray(data) && data[0]?.generated_text) {
+      text = data[0].generated_text;
+    } else if (data.generated_text) {
+      text = data.generated_text;
+    }
+
+    // JSON部分だけを抽出
+    const jsonStart = text.indexOf("[");
+    const jsonEnd = text.lastIndexOf("]");
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      text = text.substring(jsonStart, jsonEnd + 1);
+    }
+
+    // パース
+    const questions = JSON.parse(text);
+    console.log("パースされたクイズ:", questions);
+    return questions;
+  } catch (e) {
+    console.error("クイズ取得エラー:", e);
+    alert("クイズの取得に失敗しました。フォールバックを使用します。\nエラー: " + e.message);
+    return [];
+  }
+}
+
+// フォールバック用のクイズデータ（5問）
+const fallbackQuestions = [
+  {
+    question: "結核とはどんな病気ですか？",
+    choices: ["細菌による感染症", "ウイルスによる感染症", "遺伝性の病気", "自己免疫疾患"],
+    answer: "細菌による感染症",
+    explanation: "結核は結核菌という細菌によって引き起こされる感染症です。主に肺に感染しますが、他の臓器にも感染する可能性があります。"
+  },
+  {
+    question: "結核の主な症状は何ですか？",
+    choices: ["長引く咳", "腹痛", "皮膚のかゆみ", "視力低下"],
+    answer: "長引く咳",
+    explanation: "結核の主な症状は2週間以上続く咳、痰、発熱、体重減少、倦怠感などです。風邪と似ているため、診断が遅れることがあります。"
+  },
+  {
+    question: "結核の治療期間はどれくらいですか？",
+    choices: ["1週間", "1か月", "6か月以上", "1年未満"],
+    answer: "6か月以上",
+    explanation: "結核の治療は通常6か月から9か月間、複数の抗結核薬を組み合わせて行います。途中で薬をやめると耐性菌ができる危険があります。"
+  },
+  {
+    question: "結核は肺以外の臓器にも影響しますか？",
+    choices: ["はい", "いいえ", "わからない", "その他"],
+    answer: "はい",
+    explanation: "結核は肺以外にも、骨、腸、皮膚、脳など全身の臓器に発症する可能性があります。これを肺外結核と呼びます。"
+  },
+  {
+    question: "結核の感染を防ぐために、普段から心がけることはありますか？",
+    choices: ["健康的な生活", "運動を控える", "日光を避ける", "読書を控える"],
+    answer: "健康的な生活",
+    explanation: "免疫力を高めるため、規則正しい生活、バランスの取れた食事、適度な運動、十分な睡眠が重要です。また、定期的な健康診断も大切です。"
+  }
+];
+
+// ログイン状態をチェック
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    console.log("ログイン中:", user.uid);
+  } else {
+    console.log("ログインしていません");
+  }
+});
+
+// クイズ開始
+document.getElementById("startQuizBtn").onclick = async function() {
+  document.getElementById("quiz-area").innerHTML = "<div style='text-align:center;margin:32px;'>クイズを準備中...</div>";
+  
+  // APIを無効化してフォールバッククイズを直接使用
+  console.log("フォールバッククイズを使用します");
+  quizQuestions = fallbackQuestions;
+  
+  if (quizQuestions.length >= 5) {
+    currentQuestion = 0;
+    score = 0;
+    userAnswers = [];
+    showQuestion();
+  } else {
+    document.getElementById("quiz-area").innerHTML = "<div style='color:red;text-align:center;'>クイズの準備に失敗しました。</div>";
+  }
+};
+
+// 問題表示
+function showQuestion() {
+  const q = quizQuestions[currentQuestion];
+  let html = `
+    <div style="margin-bottom:16px;">
+      <span style="font-weight:bold;">Q${currentQuestion+1}：</span>${q.question}
+    </div>
+    <form id="quizForm">
+  `;
+  
+  // choicesが存在するかチェック
+  if (q.choices && Array.isArray(q.choices)) {
+    q.choices.forEach((choice, idx) => {
+      html += `
+        <div style="margin:8px 0;">
+          <label>
+            <input type="radio" name="choice" value="${choice}" required>
+            ${String.fromCharCode(65+idx)}. ${choice}
+          </label>
+        </div>
+      `;
+    });
+  } else {
+    // choicesがない場合はデフォルトの選択肢を生成
+    const defaultChoices = [
+      "はい",
+      "いいえ", 
+      "わからない",
+      "その他"
+    ];
+    defaultChoices.forEach((choice, idx) => {
+      html += `
+        <div style="margin:8px 0;">
+          <label>
+            <input type="radio" name="choice" value="${choice}" required>
+            ${String.fromCharCode(65+idx)}. ${choice}
+          </label>
+        </div>
+      `;
+    });
+  }
+  
+  html += `
+      <button type="submit" style="margin-top:16px;padding:8px 24px;background:#1976d2;color:#fff;border:none;border-radius:6px;cursor:pointer;">回答する</button>
+    </form>
+    <div style="margin-top:16px;text-align:right;">${currentQuestion+1} / 5問</div>
+  `;
+  document.getElementById("quiz-area").innerHTML = html;
+
+  document.getElementById("quizForm").onsubmit = function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const selected = form.choice.value;
+    userAnswers.push(selected);
+    
+    // 正解判定を修正
+    const correctAnswer = q.answer || q.choices?.[0] || "はい";
+    if (selected === correctAnswer) score++;
+    
+    currentQuestion++;
+    if (currentQuestion < 5) {
+      showQuestion();
+    } else {
+      showResult();
+    }
+  };
+}
+
+// Firebaseにスコアを保存する関数
+async function saveQuizScore() {
+  try {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      console.log("ユーザーがログインしていません");
+      return;
+    }
+
+    const db = firebase.firestore();
+    const quizData = {
+      userId: user.uid,
+      userEmail: user.email,
+      userName: user.displayName || "匿名ユーザー",
+      correct: score,
+      total: 5,
+      accuracy: parseFloat((score / 5 * 100).toFixed(1)),
+      category: "AIクイズ（5問ランダム）",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      userType: "registered"
+    };
+
+    await db.collection('ai_quiz_scores').add(quizData);
+    console.log("AIクイズのスコアを保存しました:", quizData);
+    
+    // 成功メッセージを表示
+    showSaveSuccessMessage();
+  } catch (error) {
+    console.error("スコア保存エラー:", error);
+    showSaveErrorMessage();
+  }
+}
+
+// 保存成功メッセージを表示
+function showSaveSuccessMessage() {
+  const successDiv = document.createElement('div');
+  successDiv.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    z-index: 1000;
+    font-size: 14px;
+  `;
+  successDiv.textContent = 'スコアを保存しました！';
+  document.body.appendChild(successDiv);
+  
+  setTimeout(() => {
+    document.body.removeChild(successDiv);
+  }, 3000);
+}
+
+// 保存エラーメッセージを表示
+function showSaveErrorMessage() {
+  const errorDiv = document.createElement('div');
+  errorDiv.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #f44336;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    z-index: 1000;
+    font-size: 14px;
+  `;
+  errorDiv.textContent = 'スコアの保存に失敗しました';
+  document.body.appendChild(errorDiv);
+  
+  setTimeout(() => {
+    document.body.removeChild(errorDiv);
+  }, 3000);
+}
+
+// 結果表示
+async function showResult() {
+  // スコアをFirebaseに保存
+  await saveQuizScore();
+  
+  let resultHtml = `
+    <div style="text-align:center;">
+      <h3>クイズ終了！</h3>
+      <div style="font-size:1.3em;margin:16px 0;">あなたのスコア: <b>${score} / 5</b></div>
+      <div style="font-size:1.1em;margin:16px 0;">正答率: <b>${(score/5*100).toFixed(1)}%</b></div>
+      <button onclick="location.reload()" style="padding:8px 24px;background:#1976d2;color:#fff;border:none;border-radius:6px;cursor:pointer;">もう一度挑戦</button>
+    </div>
+    <hr style="margin:32px 0;">
+    <div>
+      <h4>解答と解説</h4>
+      <ol>
+  `;
+  quizQuestions.forEach((q, i) => {
+    const correctAnswer = q.answer || q.choices?.[0] || "はい";
+    const isCorrect = userAnswers[i] === correctAnswer;
+    resultHtml += `
+      <li style="margin-bottom:12px;">
+        <div><b>Q${i+1}：</b>${q.question}</div>
+        <div>あなたの答え: <span style="color:${isCorrect?'green':'red'};">${userAnswers[i] || '未回答'}</span>　/　正解: <b>${correctAnswer}</b></div>
+        ${q.explanation ? `<div style="margin-top:8px;color:#666;font-size:0.9em;">解説: ${q.explanation}</div>` : ''}
+      </li>
+    `;
+  });
+  resultHtml += "</ol></div>";
+  document.getElementById("quiz-area").innerHTML = resultHtml;
+}
+</script>
+
+</body>
+</html>

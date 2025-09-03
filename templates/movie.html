@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title data-translate="動画視聴アプリ">動画視聴アプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="maintab.css">
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <!-- 翻訳機能 -->
+  <script src="translation.js"></script>
+  
+  <!-- クイズデータ -->
+  <script src="quiz-data.js"></script>
+  
+  <style>
+    /* タブより下のデザインをいい感じに */
+    .movie-section {
+      background: #f8fafc;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px 0 rgba(0,0,0,0.07), 0 1.5px 4px 0 rgba(0,0,0,0.03);
+      margin: 40px auto 0 auto;
+      padding: 36px 32px 32px 32px;
+      max-width: 900px;
+      min-width: 320px;
+      transition: box-shadow 0.2s;
+    }
+    .movie-section h2 {
+      font-size: 2rem;
+      color: #1a365d;
+      margin-bottom: 24px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+    .movie-search-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    #movie-search-input {
+      padding: 10px 16px;
+      border: 1.5px solid #b3c2d6;
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 220px;
+      background: #fff;
+      transition: border 0.2s;
+    }
+    #movie-search-input:focus {
+      border: 1.5px solid #3182ce;
+      outline: none;
+      background: #f0f6ff;
+    }
+    .movie-search-row button {
+      background: linear-gradient(90deg, #3182ce 0%, #63b3ed 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 2px 8px 0 rgba(49,130,206,0.08);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .movie-search-row button:hover {
+      background: linear-gradient(90deg, #2563eb 0%, #4299e1 100%);
+      box-shadow: 0 4px 16px 0 rgba(49,130,206,0.13);
+    }
+    .movie-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    .movie-buttons button {
+      background: #fff;
+      color: #1a365d;
+      border: 2px solid #b3c2d6;
+      border-radius: 10px;
+      padding: 14px 32px;
+      font-size: 1.08rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      box-shadow: 0 2px 8px 0 rgba(49,130,206,0.06);
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s;
+      margin-bottom: 0;
+    }
+    .movie-buttons button.active,
+    .movie-buttons button:focus {
+      background: linear-gradient(90deg, #3182ce 0%, #63b3ed 100%);
+      color: #fff;
+      border: 2px solid #3182ce;
+      box-shadow: 0 4px 16px 0 rgba(49,130,206,0.13);
+    }
+    .movie-buttons button:hover:not(.active) {
+      background: #e6f0fa;
+      color: #2563eb;
+      border: 2px solid #63b3ed;
+    }
+    #info-content {
+      margin-top: 18px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px 0 rgba(49,130,206,0.06);
+      padding: 28px 20px 24px 20px;
+      min-height: 120px;
+      font-size: 1.08rem;
+      color: #1a365d;
+      transition: box-shadow 0.2s;
+      word-break: break-word;
+    }
+    /* サブ動画ボタン */
+    .sub-video-btn {
+      background: #e6f0fa;
+      color: #2563eb;
+      border: 1.5px solid #b3c2d6;
+      border-radius: 8px;
+      padding: 8px 22px;
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 8px 8px 0;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, border 0.18s;
+    }
+    .sub-video-btn.active,
+    .sub-video-btn:focus {
+      background: linear-gradient(90deg, #3182ce 0%, #63b3ed 100%);
+      color: #fff;
+      border: 1.5px solid #3182ce;
+    }
+    .sub-video-btn:hover:not(.active) {
+      background: #dbeafe;
+      color: #2563eb;
+      border: 1.5px solid #63b3ed;
+    }
+    /* 動画プレイヤー */
+    #about-video-player,
+    #test-video-player,
+    #a-video-player,
+    #b-video-player,
+    #c-video-player {
+      margin: 0 auto 18px auto;
+      max-width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 2px 12px 0 rgba(49,130,206,0.10);
+    }
+    video {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 12px;
+      background: #000;
+      outline: none;
+    }
+    /* クイズセクション */
+    #quiz-section, #test-quiz-section, #a-quiz-section, #b-quiz-section, #c-quiz-section {
+      margin-top: 36px;
+      text-align: center;
+    }
+    .quiz-btn {
+      background: linear-gradient(90deg, #38b2ac 0%, #4299e1 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 1.08rem;
+      font-weight: 600;
+      margin-top: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px 0 rgba(56,178,172,0.10);
+      transition: background 0.18s, box-shadow 0.18s;
+    }
+    .quiz-btn:hover {
+      background: linear-gradient(90deg, #319795 0%, #2563eb 100%);
+      box-shadow: 0 4px 16px 0 rgba(56,178,172,0.18);
+    }
+    .quiz-question {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #1a365d;
+      margin-bottom: 18px;
+      margin-top: 10px;
+    }
+    .quiz-choices {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+    .quiz-choice-btn {
+      background: #f0f6ff;
+      color: #2563eb;
+      border: 1.5px solid #b3c2d6;
+      border-radius: 8px;
+      padding: 10px 24px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, border 0.18s;
+    }
+    .quiz-choice-btn.correct {
+      background: #38b2ac;
+      color: #fff;
+      border: 1.5px solid #38b2ac;
+    }
+    .quiz-choice-btn.incorrect {
+      background: #feb2b2;
+      color: #fff;
+      border: 1.5px solid #e53e3e;
+    }
+    .quiz-choice-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .quiz-result {
+      margin-top: 12px;
+      font-size: 1.08rem;
+      font-weight: 600;
+      padding: 12px 0;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .quiz-result.correct {
+      color: #2f855a;
+      background: #e6fffa;
+      border: 1.5px solid #38b2ac;
+    }
+    .quiz-result.incorrect {
+      color: #c53030;
+      background: #fff5f5;
+      border: 1.5px solid #feb2b2;
+    }
+    @media (max-width: 700px) {
+      .movie-section {
+        padding: 18px 6vw 18px 6vw;
+        max-width: 98vw;
+      }
+      .movie-buttons {
+        gap: 10px;
+      }
+      .movie-buttons button {
+        padding: 10px 10vw;
+        font-size: 0.98rem;
+      }
+      #info-content {
+        padding: 16px 6vw 16px 6vw;
+      }
+      .sub-video-btn {
+        padding: 8px 8vw;
+        font-size: 0.98rem;
+      }
+    }
+    @media (max-width: 480px) {
+      .movie-section {
+        padding: 8px 2vw 8px 2vw;
+      }
+      .movie-buttons button,
+      .sub-video-btn {
+        width: 100%;
+        min-width: 0;
+        padding: 10px 0;
+        font-size: 0.95rem;
+      }
+      .movie-buttons {
+        flex-direction: column;
+        gap: 8px;
+      }
+      #info-content {
+        padding: 10px 2vw 10px 2vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>医療情報管理アプリ</h1>
+    </div>
+    <div class="tab-container">
+      <div class="tab-header">
+        
+        <button class="tab-button" onclick="location.href='ai.html'">
+          <span class="tab-icon">💬</span>
+          <span class="tab-text">チャット</span>
+        </button>
+        <button class="tab-button" onclick="location.href='score.html'">
+          <span class="tab-icon">❓</span>
+          <span class="tab-text">Q&A</span>
+        </button>
+        <button class="tab-button active" onclick="location.href='movie.html'">
+          <span class="tab-icon">🎬</span>
+          <span class="tab-text">動画視聴</span>
+        </button>
+        <button class="tab-button" onclick="location.href='profile.html'">
+          <span class="tab-icon">👤</span>
+          <span class="tab-text">プロフィール</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="movie-section">
+      <h2>結核について</h2>
+      <div class="movie-search-row">
+        <input type="text" id="movie-search-input" placeholder="キーワードで検索..." oninput="filterMovieButtons()" />
+        <button onclick="filterMovieButtons()">検索</button>
+      </div>
+      <div class="movie-buttons" id="movie-buttons">
+        <button data-keywords="結核 とは 病気 感染" onclick="showInfo('about', this)">結核とは</button>
+        <button data-keywords="検査 方法 X線 喀痰 ツベルクリン IGRA" onclick="showInfo('test', this)">検査方法</button>
+        <button data-keywords="治療 方法 薬 服用 期間" onclick="showInfo('treatment', this)">治療方法</button>
+        <button data-keywords="感染 対象 免疫 高齢者 乳幼児 糖尿病" onclick="showInfo('target', this)">感染対象</button>
+        <button data-keywords="結核 なったら 受診 治療 咳エチケット マスク 換気" onclick="showInfo('if', this)">結核になったら</button>
+      </div>
+      <div id="info-content"></div>
+    </div>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script>
+    // 動画の表示サイズを統一
+    const VIDEO_WIDTH = 1000;
+    const VIDEO_HEIGHT = 563;
+
+    // Firebaseの設定
+    const firebaseConfig = {
+        apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+        authDomain: "web01-2484d.firebaseapp.com",
+        projectId: "web01-2484d",
+        storageBucket: "web01-2484d.appspot.com",
+        messagingSenderId: "90159472898",
+        appId: "1:90159472898:web:261ec71f9919611011e21b"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    // 動画ボタンの内容（各カテゴリごとに動画や説明を定義）
+    const movieInfos = {
+        about: {
+            title: "結核とは",
+            content: `
+            <div id="about-video-buttons" style="text-align:center; margin-bottom: 20px;">
+                <button class="sub-video-btn" onclick="showAboutVideo(0)">動画1</button>
+                <button class="sub-video-btn" onclick="showAboutVideo(1)">動画2</button>
+                <button class="sub-video-btn" onclick="showAboutVideo(2)">動画3</button>
+            </div>
+            <div id="about-video-player" style="text-align:center;"></div>
+            <div id="quiz-section" style="margin-top:30px; text-align:center;">
+                <div style="margin-bottom:20px;">
+                    
+                </div>
+            </div>
+            `
+        },
+        test: {
+            title: "検査方法",
+            content: `
+            <div id="test-video-buttons" style="text-align:center; margin-bottom: 20px;">
+                <button class="sub-video-btn" onclick="showTestVideo(0)">検査方法1</button>
+                <button class="sub-video-btn" onclick="showTestVideo(1)">検査方法2</button>
+                <button class="sub-video-btn" onclick="showTestVideo(2)">検査方法3</button>
+                <button class="sub-video-btn" onclick="showTestVideo(3)">検査方法4</button>
+            </div>
+            <div id="test-video-player" style="text-align:center;"></div>
+            <div id="test-quiz-section" style="margin-top:30px; text-align:center;">
+                <button id="start-test-quiz-btn" class="quiz-btn">クイズを開始</button>
+                <div id="test-quiz-content" style="display:none;"></div>
+            </div>
+            `
+        },
+        treatment: {
+            title: "治療方法",
+            content: `
+            <div id="a-video-buttons" style="text-align:center; margin-bottom: 20px;">
+                <button class="sub-video-btn" onclick="showAVideo(0)">治療方法1</button>
+                <button class="sub-video-btn" onclick="showAVideo(1)">治療方法2</button>
+                <button class="sub-video-btn" onclick="showAVideo(2)">治療方法3</button>
+                <button class="sub-video-btn" onclick="showAVideo(3)">治療方法4</button>
+            </div>
+            <div id="a-video-player" style="text-align:center;"></div>
+            <div id="a-quiz-section" style="margin-top:30px; text-align:center;">
+                
+                <button id="start-a-quiz-btn" class="quiz-btn">クイズを開始</button>
+                <div id="a-quiz-content" style="display:none;"></div>
+            </div>
+            `
+        },
+        target: {
+            title: "感染対象",
+            content: `
+            <div id="b-video-buttons" style="text-align:center; margin-bottom: 20px;">
+                <button class="sub-video-btn" onclick="showBVideo(0)">感染対象1</button>
+                <button class="sub-video-btn" onclick="showBVideo(1)">感染対象2</button>
+                <button class="sub-video-btn" onclick="showBVideo(2)">感染対象3</button>
+                <button class="sub-video-btn" onclick="showBVideo(3)">感染対象4</button>
+            </div>
+            <div id="b-video-player" style="text-align:center;"></div>
+            <div id="b-quiz-section" style="margin-top:30px; text-align:center;">
+                <button id="start-b-quiz-btn" class="quiz-btn">クイズを開始</button>
+                <div id="b-quiz-content" style="display:none;"></div>
+            </div>
+            ` 
+        },
+        if: {
+            title: "結核になったら",
+            content: `
+            <div id="c-video-buttons" style="text-align:center; margin-bottom: 20px;">
+                <button class="sub-video-btn" onclick="showCVideo(0)">結核になったら1</button>
+                <button class="sub-video-btn" onclick="showCVideo(1)">結核になったら2</button>
+                <button class="sub-video-btn" onclick="showCVideo(2)">結核になったら3</button>
+                <button class="sub-video-btn" onclick="showCVideo(3)">結核になったら4</button>
+            </div>
+            <div id="c-video-player" style="text-align:center;"></div>
+            <div id="c-quiz-section" style="margin-top:30px; text-align:center;">
+                <button id="start-c-quiz-btn" class="quiz-btn">クイズを開始</button>
+                <div id="c-quiz-content" style="display:none;"></div>
+            </div>
+            `
+        }
+    };
+
+    // ボタンのactive状態管理
+    function clearActiveButtons() {
+        const btns = document.querySelectorAll('.movie-buttons button');
+        btns.forEach(btn => btn.classList.remove('active'));
+    }
+
+    // カテゴリボタンを押したときの処理
+    function showInfo(type, btn) {
+        const info = movieInfos[type];
+        if (!info) return;
+        const infoDiv = document.getElementById("info-content");
+        infoDiv.innerHTML = `<strong>${info.title}</strong><br>${info.content}`;
+        infoDiv.style.display = "block";
+        clearActiveButtons();
+        if (btn) btn.classList.add('active');
+    }
+
+    // 検索機能
+    function filterMovieButtons() {
+        const input = document.getElementById('movie-search-input').value.trim().toLowerCase();
+        const buttons = document.querySelectorAll('#movie-buttons button');
+        let anyVisible = false;
+        buttons.forEach(btn => {
+            const keywords = btn.getAttribute('data-keywords').toLowerCase();
+            if (input === "" || keywords.includes(input)) {
+                btn.style.display = "";
+                anyVisible = true;
+            } else {
+                btn.style.display = "none";
+            }
+        });
+        const infoDiv = document.getElementById("info-content");
+        if (!anyVisible && input !== "") {
+            infoDiv.innerHTML = "該当する項目が見つかりませんでした。";
+            infoDiv.style.display = "block";
+            clearActiveButtons();
+        } else if (input === "") {
+            infoDiv.innerHTML = "";
+            infoDiv.style.display = "none";
+            clearActiveButtons();
+        }
+    }
+
+    // サブ動画切り替え用ID
+    const aboutVideoIds = [
+        "./videos/videostuberculosis_about1.mp4",
+        "./videos/videostuberculosis_about2.mp4",
+        "./videos/videostuberculosis_about3.mp4"
+    ];
+    const testVideoIds = [
+        "./videos/videostuberculosis_test1.mp4",
+        "./videos/videostuberculosis_test2.mp4",
+        "./videos/videostuberculosis_test3.mp4",
+        "./videos/videostuberculosis_test4.mp4"
+    ];
+    const aVideoIds = [
+        "./videos/videostuberculosis_a1.mp4",
+        "./videos/videostuberculosis_a2.mp4",
+        "./videos/videostuberculosis_a3.mp4",
+        "./videos/videostuberculosis_a4.mp4"
+    ];
+    const bVideoIds = [
+        "./videos/videostuberculosis_b1.mp4",
+        "./videos/videostuberculosis_b2.mp4",
+        "./videos/videostuberculosis_b3.mp4",
+        "./videos/videostuberculosis_b4.mp4"
+    ];
+    const cVideoIds = [
+        "./videos/videostuberculosis_c1.mp4",
+        "./videos/videostuberculosis_c2.mp4",
+        "./videos/videostuberculosis_c3.mp4",
+        "./videos/videostuberculosis_c4.mp4"
+    ];
+
+    // クイズ問題データは quiz-data.js から読み込み
+    console.log('quizQuestions loaded:', typeof window.quizQuestions, window.quizQuestions);
+
+    let currentQuizIndex = 0;
+    let quizScore = 0;
+    let currentVideoIndex = 0;
+    let currentVideoType = 'about';
+
+    // クイズ結果をFirestoreに保存する関数を定義
+    async function saveQuizScore(category, correct, total) {
+        const user = firebase.auth().currentUser;
+        const db = firebase.firestore();
+        
+        let quizScoreData;
+        
+        if (user) {
+            // ログインユーザーの場合
+            quizScoreData = {
+                userId: user.uid,
+                userEmail: user.email,
+                category: category,
+                correct: correct,
+                total: total,
+            accuracy: (correct / total) * 100,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                userType: 'logged_in'
+            };
+        } else {
+            // ゲストユーザーの場合
+            const guestId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            quizScoreData = {
+                userId: guestId,
+                userEmail: 'guest@example.com',
+                category: category,
+                correct: correct,
+                total: total,
+                accuracy: (correct / total) * 100,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                userType: 'guest'
+            };
+        }
+
+        try {
+            await db.collection('movie_quiz_scores').add(quizScoreData);
+            console.log("クイズ結果が正常に保存されました。", quizScoreData);
+            
+            // 保存成功のメッセージを表示
+            showSaveSuccessMessage(category, correct, total);
+        } catch (error) {
+            console.error("クイズ結果の保存中にエラーが発生しました:", error);
+            // エラーメッセージを表示
+            showSaveErrorMessage();
+        }
+    }
+
+    // 保存成功メッセージを表示
+    function showSaveSuccessMessage(category, correct, total) {
+        const percentage = (correct / total) * 100;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'save-success-message';
+        messageDiv.innerHTML = `
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 5px; margin: 10px 0; text-align: center;">
+                <h4>✓ クイズ結果は終了です</h4>
+                <p><strong>${category}</strong></p>
+                <p>正解数: ${correct}/${total} (${percentage.toFixed(1)}%)</p>
+            </div>
+        `;
+        
+        // 適切なクイズコンテンツエリアにメッセージを追加
+        const quizContent = document.querySelector('#quiz-content, #test-quiz-content, #a-quiz-content, #b-quiz-content, #c-quiz-content');
+        if (quizContent) {
+            quizContent.appendChild(messageDiv);
+        }
+    }
+
+    // 保存エラーメッセージを表示
+    function showSaveErrorMessage() {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'save-error-message';
+        messageDiv.innerHTML = `
+            <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin: 10px 0; text-align: center;">
+                <h4>⚠ クイズ結果の保存に失敗しました</h4>
+                <p>結果はローカルにのみ表示されています</p>
+            </div>
+        `;
+        
+        // 適切なクイズコンテンツエリアにメッセージを追加
+        const quizContent = document.querySelector('#quiz-content, #test-quiz-content, #a-quiz-content, #b-quiz-content, #c-quiz-content');
+        if (quizContent) {
+            quizContent.appendChild(messageDiv);
+        }
+    }
+
+    // クイズ履歴を表示
+    async function viewQuizHistory() {
+        const user = firebase.auth().currentUser;
+        const db = firebase.firestore();
+        
+        try {
+            let query;
+            if (user) {
+                // ログインユーザーの場合、自分の履歴のみ表示
+                query = db.collection('movie_quiz_scores')
+                    .where('userId', '==', user.uid)
+                    .orderBy('timestamp', 'desc')
+                    .limit(10);
+            } else {
+                // ゲストユーザーの場合、最近の履歴を表示
+                query = db.collection('movie_quiz_scores')
+                    .orderBy('timestamp', 'desc')
+                    .limit(10);
+            }
+            
+            const snapshot = await query.get();
+            const historyDiv = document.createElement('div');
+            historyDiv.className = 'quiz-history';
+            
+            if (snapshot.empty) {
+                historyDiv.innerHTML = `
+                    <div style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
+                        <h4>クイズ履歴</h4>
+                        <p>まだクイズ履歴がありません</p>
+                    </div>
+                `;
+            } else {
+                let historyHTML = `
+                    <div style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                        <h4>クイズ履歴 (最新10件)</h4>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                `;
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('ja-JP') : '日時不明';
+                    const userType = data.userType === 'logged_in' ? 'ログインユーザー' : 'ゲスト';
+                    
+                    historyHTML += `
+                        <div style="border-bottom: 1px solid #dee2e6; padding: 10px 0; margin: 5px 0;">
+                            <p><strong>${data.category}</strong></p>
+                            <p>正解数: ${data.correct}/${data.total} (${data.accuracy.toFixed(1)}%)</p>
+                            <p>日時: ${date}</p>
+                            <p>ユーザー: ${userType}</p>
+                        </div>
+                    `;
+                });
+                
+                historyHTML += `
+                        </div>
+                    </div>
+                `;
+                
+                historyDiv.innerHTML = historyHTML;
+            }
+            
+            // 適切なクイズコンテンツエリアに履歴を追加
+            const quizContent = document.querySelector('#quiz-content, #test-quiz-content, #a-quiz-content, #b-quiz-content, #c-quiz-content');
+            if (quizContent) {
+                // 既存の履歴があれば削除
+                const existingHistory = quizContent.querySelector('.quiz-history');
+                if (existingHistory) {
+                    existingHistory.remove();
+                }
+                quizContent.appendChild(historyDiv);
+            }
+            
+        } catch (error) {
+            console.error("クイズ履歴の取得中にエラーが発生しました:", error);
+            const errorDiv = document.createElement('div');
+            errorDiv.innerHTML = `
+                <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center;">
+                    <h4>⚠ クイズ履歴の取得に失敗しました</h4>
+                    <p>エラー: ${error.message}</p>
+                </div>
+            `;
+            
+            const quizContent = document.querySelector('#quiz-content, #test-quiz-content, #a-quiz-content, #b-quiz-content, #c-quiz-content');
+            if (quizContent) {
+                quizContent.appendChild(errorDiv);
+            }
+        }
+    }
+
+    // 「結核とは」サブ動画切り替え用
+    function showAboutVideo(idx) {
+        currentVideoIndex = idx;
+        currentVideoType = 'about';
+        const player = document.getElementById("about-video-player");
+        if (!player) return;
+        player.innerHTML = `
+            <video id="myVideo" controls preload="metadata" width="${VIDEO_WIDTH}" height="${VIDEO_HEIGHT}" style="max-width:100%;">
+            <source src="${aboutVideoIds[idx]}" type="video/mp4">
+            お使いのブラウザは動画の再生に対応していません。
+            </video>
+            <div id="loading-message" style="text-align:center; margin-top:10px; color:#666;">
+            動画を読み込み中...（大きなファイルの場合は時間がかかります）
+            </div>
+        `;
+        const video = document.getElementById('myVideo');
+        video.addEventListener('loadeddata', function() {
+            document.getElementById('loading-message').style.display = 'none';
+        });
+        video.addEventListener('ended', function() {
+            const quizSection = document.getElementById('quiz-section');
+            quizSection.innerHTML = `
+            <div style="text-align:center; margin-bottom:20px;">
+                <h3 style="color: var(--primary-color); font-size: 1.3rem; margin-bottom: 15px;">
+                動画${idx + 1}のクイズに答えましょう！
+                </h3>
+                <p style="color: #666; margin-bottom: 20px;">
+                動画の内容を覚えているか確認してみましょう
+                </p>
+            </div>
+            <div style="text-align:center;">
+                <button id="start-quiz-btn" class="quiz-btn">クイズを開始</button>
+            </div>
+            <div id="quiz-content" style="display:none;"></div>
+            `;
+            quizSection.style.display = 'block';
+            setTimeout(() => {
+                quizSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 500);
+            document.getElementById('start-quiz-btn').addEventListener('click', startQuiz);
+        });
+        const btns = document.querySelectorAll("#about-video-buttons .sub-video-btn");
+        btns.forEach((btn, i) => {
+            if (i === idx) btn.classList.add("active");
+            else btn.classList.remove("active");
+        });
+        document.getElementById('quiz-section').style.display = 'none';
+        document.getElementById('quiz-content').style.display = 'none';
+        currentQuizIndex = 0;
+        quizScore = 0;
+    }
+
+    // 検査方法サブ動画切り替え用
+    function showTestVideo(idx) {
+        currentVideoIndex = idx;
+        currentVideoType = 'test';
+        const player = document.getElementById("test-video-player");
+        player.innerHTML = `
+            <video id="myTestVideo" controls preload="metadata" width="${VIDEO_WIDTH}" height="${VIDEO_HEIGHT}" style="max-width:100%;">
+            <source src="${testVideoIds[idx]}" type="video/mp4">
+            お使いのブラウザは動画の再生に対応していません。
+            </video>
+            <div id="loading-message" style="text-align:center; margin-top:10px; color:#666;">
+            動画を読み込み中...（大きなファイルの場合は時間がかかります）
+            </div>
+        `;
+        const video = document.getElementById('myTestVideo');
+        video.addEventListener('loadeddata', function() {
+            document.getElementById('loading-message').style.display = 'none';
+        });
+        video.addEventListener('ended', function() {
+            const quizSection = document.getElementById('test-quiz-section');
+            quizSection.innerHTML = `
+            <div style="text-align:center; margin-bottom:20px;">
+                <h3 style="color: var(--primary-color); font-size: 1.3rem; margin-bottom: 15px;">
+                検査方法${idx + 1}のクイズに答えましょう！
+                </h3>
+                <p style="color: #666; margin-bottom: 20px;">
+                動画の内容を覚えているか確認してみましょう
+                </p>
+            </div>
+            <div style="text-align:center;">
+                <button id="start-test-quiz-btn" class="quiz-btn">クイズを開始</button>
+            </div>
+            <div id="test-quiz-content" style="display:none;"></div>
+            `;
+            quizSection.style.display = 'block';
+            setTimeout(() => {
+                quizSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 500);
+            document.getElementById('start-test-quiz-btn').addEventListener('click', startTestQuiz);
+        });
+        const btns = document.querySelectorAll("#test-video-buttons .sub-video-btn");
+        btns.forEach((btn, i) => {
+            if (i === idx) btn.classList.add("active");
+            else btn.classList.remove("active");
+        });
+        document.getElementById('test-quiz-section').style.display = 'none';
+        document.getElementById('test-quiz-content').style.display = 'none';
+        currentQuizIndex = 0;
+        quizScore = 0;
+    }
+
+    // 治療方法サブ動画切り替え用
+    function showAVideo(idx) {
+        currentVideoIndex = idx;
+        currentVideoType = 'a';
+        const player = document.getElementById("a-video-player");
+        if (!player) return;
+        player.innerHTML = `
+            <video id="myAVideo" controls preload="metadata" width="${VIDEO_WIDTH}" height="${VIDEO_HEIGHT}" style="max-width:100%;">
+            <source src="${aVideoIds[idx]}" type="video/mp4">
+            お使いのブラウザは動画の再生に対応していません。
+            </video>
+            <div id="loading-message" style="text-align:center; margin-top:10px; color:#666;">
+            動画を読み込み中...
+            </div>
+        `;
+        const video = document.getElementById('myAVideo');
+        video.addEventListener('loadeddata', function() {
+            document.getElementById('loading-message').style.display = 'none';
+        });
+        video.addEventListener('ended', function() {
+            const quizSection = document.getElementById('a-quiz-section');
+            quizSection.innerHTML = `
+            <div style="text-align:center; margin-bottom:20px;">
+                <h3 style="color: var(--primary-color); font-size: 1.3rem; margin-bottom: 15px;">
+                治療方法${idx + 1}のクイズに答えましょう！
+                </h3>
+                <p style="color: #666; margin-bottom: 20px;">
+                動画の内容を覚えているか確認してみましょう
+                </p>
+            </div>
+            <div style="text-align:center;">
+                <button id="start-a-quiz-btn" class="quiz-btn">クイズを開始</button>
+            </div>
+            <div id="a-quiz-content" style="display:none;"></div>
+            `;
+            quizSection.style.display = 'block';
+            setTimeout(() => {
+                quizSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 500);
+            document.getElementById('start-a-quiz-btn').addEventListener('click', startAVideoQuiz);
+        });
+        const btns = document.querySelectorAll("#a-video-buttons .sub-video-btn");
+        btns.forEach((btn, i) => {
+            if (i === idx) btn.classList.add("active");
+            else btn.classList.remove("active");
+        });
+        document.getElementById('a-quiz-section').style.display = 'none';
+        document.getElementById('a-quiz-content').style.display = 'none';
+        currentQuizIndex = 0;
+        quizScore = 0;
+    }
+
+    // 感染対象サブ動画切り替え用
+    function showBVideo(idx) {
+        currentVideoIndex = idx;
+        currentVideoType = 'b';
+        const player = document.getElementById("b-video-player");
+        if (!player) return;
+        player.innerHTML = `
+            <video id="myBVideo" controls preload="metadata" width="${VIDEO_WIDTH}" height="${VIDEO_HEIGHT}" style="max-width:100%;">
+            <source src="${bVideoIds[idx]}" type="video/mp4">
+            お使いのブラウザは動画の再生に対応していません。
+            </video>
+            <div id="loading-message" style="text-align:center; margin-top:10px; color:#666;">
+            動画を読み込み中...
+            </div>
+        `;
+        const video = document.getElementById('myBVideo');
+        video.addEventListener('loadeddata', function() {
+            document.getElementById('loading-message').style.display = 'none';
+        });
+        video.addEventListener('ended', function() {
+            const quizSection = document.getElementById('b-quiz-section');
+            quizSection.innerHTML = `
+            <div style="text-align:center; margin-bottom:20px;">
+                <h3 style="color: var(--primary-color); font-size: 1.3rem; margin-bottom: 15px;">
+                感染対象${idx + 1}のクイズに答えましょう！
+                </h3>
+                <p style="color: #666; margin-bottom: 20px;">
+                動画の内容を覚えているか確認してみましょう
+                </p>
+            </div>
+            <div style="text-align:center;">
+                <button id="start-b-quiz-btn" class="quiz-btn">クイズを開始</button>
+            </div>
+            <div id="b-quiz-content" style="display:none;"></div>
+            `;
+            quizSection.style.display = 'block';
+            setTimeout(() => {
+                quizSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 500);
+            document.getElementById('start-b-quiz-btn').addEventListener('click', startBVideoQuiz);
+        });
+        const btns = document.querySelectorAll("#b-video-buttons .sub-video-btn");
+        btns.forEach((btn, i) => {
+            if (i === idx) btn.classList.add("active");
+            else btn.classList.remove("active");
+        });
+        document.getElementById('b-quiz-section').style.display = 'none';
+        document.getElementById('b-quiz-content').style.display = 'none';
+        currentQuizIndex = 0;
+        quizScore = 0;
+    }
+
+    // 結核になったらサブ動画切り替え用
+    function showCVideo(idx) {
+        currentVideoIndex = idx;
+        currentVideoType = 'c';
+        const player = document.getElementById("c-video-player");
+        if (!player) return;
+        player.innerHTML = `
+            <video id="myCVideo" controls preload="metadata" width="${VIDEO_WIDTH}" height="${VIDEO_HEIGHT}" style="max-width:100%;">
+            <source src="${cVideoIds[idx]}" type="video/mp4">
+            お使いのブラウザは動画の再生に対応していません。
+            </video>
+            <div id="loading-message" style="text-align:center; margin-top:10px; color:#666;">
+            動画を読み込み中...
+            </div>
+        `;
+        const video = document.getElementById('myCVideo');
+        video.addEventListener('loadeddata', function() {
+            document.getElementById('loading-message').style.display = 'none';
+        });
+        video.addEventListener('ended', function() {
+            const quizSection = document.getElementById('c-quiz-section');
+            quizSection.innerHTML = `
+            <div style="text-align:center; margin-bottom:20px;">
+                <h3 style="color: var(--primary-color); font-size: 1.3rem; margin-bottom: 15px;">
+                結核になったら${idx + 1}のクイズに答えましょう！
+                </h3>
+                <p style="color: #666; margin-bottom: 20px;">
+                動画の内容を覚えているか確認してみましょう
+                </p>
+            </div>
+            <div style="text-align:center;">
+                <button id="start-c-quiz-btn" class="quiz-btn">クイズを開始</button>
+            </div>
+            <div id="c-quiz-content" style="display:none;"></div>
+            `;
+            quizSection.style.display = 'block';
+            setTimeout(() => {
+                quizSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 500);
+            document.getElementById('start-c-quiz-btn').addEventListener('click', startCVideoQuiz);
+        });
+        const btns = document.querySelectorAll("#c-video-buttons .sub-video-btn");
+        btns.forEach((btn, i) => {
+            if (i === idx) btn.classList.add("active");
+            else btn.classList.remove("active");
+        });
+        document.getElementById('c-quiz-section').style.display = 'none';
+        document.getElementById('c-quiz-content').style.display = 'none';
+        currentQuizIndex = 0;
+        quizScore = 0;
+    }
+
+    // クイズ開始ボタンのイベントリスナー
+    document.addEventListener('DOMContentLoaded', function() {
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        if (startQuizBtn) {
+            startQuizBtn.addEventListener('click', startQuiz);
+        }
+        const startTestQuizBtn = document.getElementById('start-test-quiz-btn');
+        if (startTestQuizBtn) {
+            startTestQuizBtn.addEventListener('click', startTestQuiz);
+        }
+        const startAVideoQuizBtn = document.getElementById('start-a-quiz-btn');
+        if (startAVideoQuizBtn) {
+            startAVideoQuizBtn.addEventListener('click', startAVideoQuiz);
+        }
+        const startBVideoQuizBtn = document.getElementById('start-b-quiz-btn');
+        if (startBVideoQuizBtn) {
+            startBVideoQuizBtn.addEventListener('click', startBVideoQuiz);
+        }
+        const startCVideoQuizBtn = document.getElementById('start-c-quiz-btn');
+        if (startCVideoQuizBtn) {
+            startCVideoQuizBtn.addEventListener('click', startCVideoQuiz);
+        }
+    });
+
+    // クイズ開始
+    function startQuiz() {
+        currentQuizIndex = 0;
+        quizScore = 0;
+        showQuizQuestion();
+        setTimeout(() => {
+            const quizContent = document.getElementById('quiz-content');
+            quizContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+    function startTestQuiz() {
+        currentQuizIndex = 0;
+        quizScore = 0;
+        showTestQuizQuestion();
+        setTimeout(() => {
+            const quizContent = document.getElementById('test-quiz-content');
+            quizContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+    function startAVideoQuiz() {
+        currentQuizIndex = 0;
+        quizScore = 0;
+        showAVideoQuizQuestion();
+        setTimeout(() => {
+            const quizContent = document.getElementById('a-quiz-content');
+            quizContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+    function startBVideoQuiz() {
+        currentQuizIndex = 0;
+        quizScore = 0;
+        showBVideoQuizQuestion();
+        setTimeout(() => {
+            const quizContent = document.getElementById('b-quiz-content');
+            quizContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+    function startCVideoQuiz() {
+        currentQuizIndex = 0;
+        quizScore = 0;
+        showCVideoQuizQuestion();
+        setTimeout(() => {
+            const quizContent = document.getElementById('c-quiz-content');
+            quizContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+
+    // クイズ問題を表示
+    function showQuizQuestion() {
+        const quizContent = document.getElementById('quiz-content');
+        const quizKey = `about${currentVideoIndex + 1}`;
+        console.log('showQuizQuestion - quizKey:', quizKey, 'quizQuestions:', window.quizQuestions);
+        const questions = window.quizQuestions[quizKey] || [];
+        const maxQuestions = 5; // 最大5問に制限
+        
+        if (currentQuizIndex >= maxQuestions || currentQuizIndex >= questions.length) {
+            const totalQuestions = Math.min(maxQuestions, questions.length);
+            const percentage = (quizScore / totalQuestions) * 100;
+            // クイズ結果を保存
+            saveQuizScore(`結核とは${currentVideoIndex + 1}`, quizScore, totalQuestions);
+            quizContent.innerHTML = `
+            <div class="quiz-result ${percentage >= 70 ? 'correct' : 'incorrect'}">
+                <h3>動画${currentVideoIndex + 1}のクイズ完了！</h3>
+                <div style="margin: 20px 0;">
+                    <p><strong>正解数:</strong> ${quizScore}/${totalQuestions}</p>
+                    <p><strong>正答率:</strong> ${percentage.toFixed(1)}%</p>
+                    <p><strong>評価:</strong> ${percentage >= 90 ? '優秀' : percentage >= 70 ? '良好' : percentage >= 50 ? '普通' : '要努力'}</p>
+                </div>
+                <div style="margin: 20px 0;">
+                    <button onclick="restartQuiz()" class="quiz-btn">もう一度挑戦</button>
+                    <button onclick="viewQuizHistory()" class="quiz-btn" style="margin-left: 10px;">履歴を見る</button>
+                </div>
+            </div>
+            `;
+        } else {
+            const question = questions[currentQuizIndex];
+            quizContent.innerHTML = `
+            <div class="quiz-question">問題 ${currentQuizIndex + 1}/5: ${question.question}</div>
+            <div class="quiz-choices">
+                ${question.choices.map(choice =>
+                `<button class="quiz-choice-btn" onclick="checkQuizAnswer('${choice}')">${choice}</button>`
+            ).join('')}
+            </div>
+            `;
+        }
+        quizContent.style.display = 'block';
+        setTimeout(() => {
+            quizContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+    function showTestQuizQuestion() {
+        const quizContent = document.getElementById('test-quiz-content');
+        const quizKey = `test${currentVideoIndex + 1}`;
+        const questions = window.quizQuestions[quizKey] || [];
+        const maxQuestions = 5; // 最大5問に制限
+        
+        if (currentQuizIndex >= maxQuestions || currentQuizIndex >= questions.length) {
+            const totalQuestions = Math.min(maxQuestions, questions.length);
+            const percentage = (quizScore / totalQuestions) * 100;
+            // クイズ結果を保存
+            saveQuizScore(`検査方法${currentVideoIndex + 1}`, quizScore, totalQuestions);
+            quizContent.innerHTML = `
+            <div class="quiz-result ${percentage >= 70 ? 'correct' : 'incorrect'}">
+                <h3>検査方法${currentVideoIndex + 1}のクイズ完了！</h3>
+                <div style="margin: 20px 0;">
+                    <p><strong>正解数:</strong> ${quizScore}/${totalQuestions}</p>
+                    <p><strong>正答率:</strong> ${percentage.toFixed(1)}%</p>
+                    <p><strong>評価:</strong> ${percentage >= 90 ? '優秀' : percentage >= 70 ? '良好' : percentage >= 50 ? '普通' : '要努力'}</p>
+                </div>
+                <div style="margin: 20px 0;">
+                    <button onclick="restartTestQuiz()" class="quiz-btn">もう一度挑戦</button>
+                    <button onclick="viewQuizHistory()" class="quiz-btn" style="margin-left: 10px;">履歴を見る</button>
+                </div>
+            </div>
+            `;
+        } else {
+            const question = questions[currentQuizIndex];
+            quizContent.innerHTML = `
+            <div class="quiz-question">問題 ${currentQuizIndex + 1}/5: ${question.question}</div>
+            <div class="quiz-choices">
+                ${question.choices.map(choice =>
+                `<button class="quiz-choice-btn" onclick="checkTestQuizAnswer('${choice}')">${choice}</button>`
+            ).join('')}
+            </div>
+            `;
+        }
+        quizContent.style.display = 'block';
+        setTimeout(() => {
+            quizContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+    function showAVideoQuizQuestion() {
+        const quizContent = document.getElementById('a-quiz-content');
+        const quizKey = `a${currentVideoIndex + 1}`;
+        const questions = quizQuestions[quizKey] || [];
+        const maxQuestions = 5; // 最大5問に制限
+        
+        if (currentQuizIndex >= maxQuestions || currentQuizIndex >= questions.length) {
+            const totalQuestions = Math.min(maxQuestions, questions.length);
+            const percentage = (quizScore / totalQuestions) * 100;
+            // クイズ結果を保存
+            saveQuizScore(`治療方法${currentVideoIndex + 1}`, quizScore, totalQuestions);
+            quizContent.innerHTML = `
+            <div class="quiz-result ${percentage >= 70 ? 'correct' : 'incorrect'}">
+                <h3>治療方法${currentVideoIndex + 1}のクイズ完了！</h3>
+                <div style="margin: 20px 0;">
+                    <p><strong>正解数:</strong> ${quizScore}/${totalQuestions}</p>
+                    <p><strong>正答率:</strong> ${percentage.toFixed(1)}%</p>
+                    <p><strong>評価:</strong> ${percentage >= 90 ? '優秀' : percentage >= 70 ? '良好' : percentage >= 50 ? '普通' : '要努力'}</p>
+                </div>
+                <div style="margin: 20px 0;">
+                    <button onclick="restartAVideoQuiz()" class="quiz-btn">もう一度挑戦</button>
+                    <button onclick="viewQuizHistory()" class="quiz-btn" style="margin-left: 10px;">履歴を見る</button>
+                </div>
+            </div>
+            `;
+        } else {
+            const question = questions[currentQuizIndex];
+            quizContent.innerHTML = `
+            <div class="quiz-question">問題 ${currentQuizIndex + 1}/5: ${question.question}</div>
+            <div class="quiz-choices">
+                ${question.choices.map(choice =>
+                `<button class="quiz-choice-btn" onclick="checkAVideoQuizAnswer('${choice}')">${choice}</button>`
+            ).join('')}
+            </div>
+            `;
+        }
+        quizContent.style.display = 'block';
+        setTimeout(() => {
+            quizContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+    function showBVideoQuizQuestion() {
+        const quizContent = document.getElementById('b-quiz-content');
+        const quizKey = `b${currentVideoIndex + 1}`;
+        const questions = quizQuestions[quizKey] || [];
+        const maxQuestions = 5; // 最大5問に制限
+        
+        if (currentQuizIndex >= maxQuestions || currentQuizIndex >= questions.length) {
+            const totalQuestions = Math.min(maxQuestions, questions.length);
+            const percentage = (quizScore / totalQuestions) * 100;
+            // クイズ結果を保存
+            saveQuizScore(`感染対象${currentVideoIndex + 1}`, quizScore, totalQuestions);
+            quizContent.innerHTML = `
+            <div class="quiz-result ${percentage >= 70 ? 'correct' : 'incorrect'}">
+                <h3>感染対象${currentVideoIndex + 1}のクイズ完了！</h3>
+                <div style="margin: 20px 0;">
+                    <p><strong>正解数:</strong> ${quizScore}/${totalQuestions}</p>
+                    <p><strong>正答率:</strong> ${percentage.toFixed(1)}%</p>
+                    <p><strong>評価:</strong> ${percentage >= 90 ? '優秀' : percentage >= 70 ? '良好' : percentage >= 50 ? '普通' : '要努力'}</p>
+                </div>
+                <div style="margin: 20px 0;">
+                    <button onclick="restartBVideoQuiz()" class="quiz-btn">もう一度挑戦</button>
+                    <button onclick="viewQuizHistory()" class="quiz-btn" style="margin-left: 10px;">履歴を見る</button>
+                </div>
+            </div>
+            `;
+        } else {
+            const question = questions[currentQuizIndex];
+            quizContent.innerHTML = `
+            <div class="quiz-question">問題 ${currentQuizIndex + 1}/5: ${question.question}</div>
+            <div class="quiz-choices">
+                ${question.choices.map(choice =>
+                `<button class="quiz-choice-btn" onclick="checkBVideoQuizAnswer('${choice}')">${choice}</button>`
+            ).join('')}
+            </div>
+            `;
+        }
+        quizContent.style.display = 'block';
+        setTimeout(() => {
+            quizContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+    function showCVideoQuizQuestion() {
+        const quizContent = document.getElementById('c-quiz-content');
+        const quizKey = `c${currentVideoIndex + 1}`;
+        const questions = quizQuestions[quizKey] || [];
+        const maxQuestions = 5; // 最大5問に制限
+        
+        if (currentQuizIndex >= maxQuestions || currentQuizIndex >= questions.length) {
+            const totalQuestions = Math.min(maxQuestions, questions.length);
+            const percentage = (quizScore / totalQuestions) * 100;
+            // クイズ結果を保存
+            saveQuizScore(`結核になったら${currentVideoIndex + 1}`, quizScore, totalQuestions);
+            quizContent.innerHTML = `
+            <div class="quiz-result ${percentage >= 70 ? 'correct' : 'incorrect'}">
+                <h3>結核になったら${currentVideoIndex + 1}のクイズ完了！</h3>
+                <div style="margin: 20px 0;">
+                    <p><strong>正解数:</strong> ${quizScore}/${totalQuestions}</p>
+                    <p><strong>正答率:</strong> ${percentage.toFixed(1)}%</p>
+                    <p><strong>評価:</strong> ${percentage >= 90 ? '優秀' : percentage >= 70 ? '良好' : percentage >= 50 ? '普通' : '要努力'}</p>
+                </div>
+                <div style="margin: 20px 0;">
+                    <button onclick="restartCVideoQuiz()" class="quiz-btn">もう一度挑戦</button>
+                    <button onclick="viewQuizHistory()" class="quiz-btn" style="margin-left: 10px;">履歴を見る</button>
+                </div>
+            </div>
+            `;
+        } else {
+            const question = questions[currentQuizIndex];
+            quizContent.innerHTML = `
+            <div class="quiz-question">問題 ${currentQuizIndex + 1}/5: ${question.question}</div>
+            <div class="quiz-choices">
+                ${question.choices.map(choice =>
+                `<button class="quiz-choice-btn" onclick="checkCVideoQuizAnswer('${choice}')">${choice}</button>`
+            ).join('')}
+            </div>
+            `;
+        }
+        quizContent.style.display = 'block';
+        setTimeout(() => {
+            quizContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+
+    // クイズ回答チェック
+    function checkQuizAnswer(selectedAnswer) {
+        const quizKey = `about${currentVideoIndex + 1}`;
+        const questions = quizQuestions[quizKey] || [];
+        const currentQuestion = questions[currentQuizIndex];
+        const buttons = document.querySelectorAll('#quiz-content .quiz-choice-btn');
+        
+        // 正解の選択肢を取得
+        const correctAnswer = currentQuestion.choices[currentQuestion.correct];
+        
+        buttons.forEach(btn => btn.disabled = true);
+        buttons.forEach(btn => {
+            if (btn.textContent === correctAnswer) {
+                btn.classList.add('correct');
+            } else if (btn.textContent === selectedAnswer && selectedAnswer !== correctAnswer) {
+                btn.classList.add('incorrect');
+            }
+        });
+        
+        const resultDiv = document.createElement('div');
+        if (selectedAnswer === correctAnswer) {
+            resultDiv.innerHTML = `
+                <div class="quiz-result correct">
+                    <h4>正解です！</h4>
+                    <p>${currentQuestion.explanation}</p>
+                </div>
+            `;
+            quizScore++;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="quiz-result incorrect">
+                    <h4>不正解です</h4>
+                    <p>正解は「${correctAnswer}」でした。</p>
+                    <p>${currentQuestion.explanation}</p>
+                </div>
+            `;
+        }
+        document.getElementById('quiz-content').appendChild(resultDiv);
+        setTimeout(() => {
+            currentQuizIndex++;
+            showQuizQuestion();
+        }, 3000);
+    }
+    function restartQuiz() {
+        currentQuizIndex = 0;
+        quizScore = 0;
+        showQuizQuestion();
+    }
+    function checkTestQuizAnswer(selectedAnswer) {
+        const quizKey = `test${currentVideoIndex + 1}`;
+        const questions = quizQuestions[quizKey] || [];
+        const currentQuestion = questions[currentQuizIndex];
+        const buttons = document.querySelectorAll('#test-quiz-content .quiz-choice-btn');
+        
+        // 正解の選択肢を取得
+        const correctAnswer = currentQuestion.choices[currentQuestion.correct];
+        
+        buttons.forEach(btn => btn.disabled = true);
+        buttons.forEach(btn => {
+            if (btn.textContent === correctAnswer) {
+                btn.classList.add('correct');
+            } else if (btn.textContent === selectedAnswer && selectedAnswer !== correctAnswer) {
+                btn.classList.add('incorrect');
+            }
+        });
+        
+        const resultDiv = document.createElement('div');
+        if (selectedAnswer === correctAnswer) {
+            resultDiv.innerHTML = `
+                <div class="quiz-result correct">
+                    <h4>正解です！</h4>
+                    <p>${currentQuestion.explanation}</p>
+                </div>
+            `;
+            quizScore++;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="quiz-result incorrect">
+                    <h4>不正解です</h4>
+                    <p>正解は「${correctAnswer}」でした。</p>
+                    <p>${currentQuestion.explanation}</p>
+                </div>
+            `;
+        }
+        document.getElementById('test-quiz-content').appendChild(resultDiv);
+        setTimeout(() => {
+            currentQuizIndex++;
+            showTestQuizQuestion();
+        }, 3000);
+    }
+    function restartTestQuiz() {
+        currentQuizIndex = 0;
+        quizScore = 0;
+        showTestQuizQuestion();
+    }
+    function checkAVideoQuizAnswer(selectedAnswer) {
+        const quizKey = `a${currentVideoIndex + 1}`;
+        const questions = quizQuestions[quizKey] || [];
+        const currentQuestion = questions[currentQuizIndex];
+        const buttons = document.querySelectorAll('#a-quiz-content .quiz-choice-btn');
+        
+        // 正解の選択肢を取得
+        const correctAnswer = currentQuestion.choices[currentQuestion.correct];
+        
+        buttons.forEach(btn => btn.disabled = true);
+        buttons.forEach(btn => {
+            if (btn.textContent === correctAnswer) {
+                btn.classList.add('correct');
+            } else if (btn.textContent === selectedAnswer && selectedAnswer !== correctAnswer) {
+                btn.classList.add('incorrect');
+            }
+        });
+        
+        const resultDiv = document.createElement('div');
+        if (selectedAnswer === correctAnswer) {
+            resultDiv.innerHTML = `
+                <div class="quiz-result correct">
+                    <h4>正解です！</h4>
+                    <p>${currentQuestion.explanation}</p>
+                </div>
+            `;
+            quizScore++;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="quiz-result incorrect">
+                    <h4>不正解です</h4>
+                    <p>正解は「${correctAnswer}」でした。</p>
+                    <p>${currentQuestion.explanation}</p>
+                </div>
+            `;
+        }
+        document.getElementById('a-quiz-content').appendChild(resultDiv);
+        setTimeout(() => {
+            currentQuizIndex++;
+            showAVideoQuizQuestion();
+        }, 3000);
+    }
+    function restartAVideoQuiz() {
+        currentQuizIndex = 0;
+        quizScore = 0;
+        showAVideoQuizQuestion();
+    }
+    function checkBVideoQuizAnswer(selectedAnswer) {
+        const quizKey = `b${currentVideoIndex + 1}`;
+        const questions = quizQuestions[quizKey] || [];
+        const currentQuestion = questions[currentQuizIndex];
+        const buttons = document.querySelectorAll('#b-quiz-content .quiz-choice-btn');
+        
+        // 正解の選択肢を取得
+        const correctAnswer = currentQuestion.choices[currentQuestion.correct];
+        
+        buttons.forEach(btn => btn.disabled = true);
+        buttons.forEach(btn => {
+            if (btn.textContent === correctAnswer) {
+                btn.classList.add('correct');
+            } else if (btn.textContent === selectedAnswer && selectedAnswer !== correctAnswer) {
+                btn.classList.add('incorrect');
+            }
+        });
+        
+        const resultDiv = document.createElement('div');
+        if (selectedAnswer === correctAnswer) {
+            resultDiv.innerHTML = `
+                <div class="quiz-result correct">
+                    <h4>正解です！</h4>
+                    <p>${currentQuestion.explanation}</p>
+                </div>
+            `;
+            quizScore++;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="quiz-result incorrect">
+                    <h4>不正解です</h4>
+                    <p>正解は「${correctAnswer}」でした。</p>
+                    <p>${currentQuestion.explanation}</p>
+                </div>
+            `;
+        }
+        document.getElementById('b-quiz-content').appendChild(resultDiv);
+        setTimeout(() => {
+            currentQuizIndex++;
+            showBVideoQuizQuestion();
+        }, 3000);
+    }
+    function restartBVideoQuiz() {
+        currentQuizIndex = 0;
+        quizScore = 0;
+        showBVideoQuizQuestion();
+    }
+    function checkCVideoQuizAnswer(selectedAnswer) {
+        const quizKey = `c${currentVideoIndex + 1}`;
+        const questions = quizQuestions[quizKey] || [];
+        const currentQuestion = questions[currentQuizIndex];
+        const buttons = document.querySelectorAll('#c-quiz-content .quiz-choice-btn');
+        
+        // 正解の選択肢を取得
+        const correctAnswer = currentQuestion.choices[currentQuestion.correct];
+        
+        buttons.forEach(btn => btn.disabled = true);
+        buttons.forEach(btn => {
+            if (btn.textContent === correctAnswer) {
+                btn.classList.add('correct');
+            } else if (btn.textContent === selectedAnswer && selectedAnswer !== correctAnswer) {
+                btn.classList.add('incorrect');
+            }
+        });
+        
+        const resultDiv = document.createElement('div');
+        if (selectedAnswer === correctAnswer) {
+            resultDiv.innerHTML = `
+                <div class="quiz-result correct">
+                    <h4>正解です！</h4>
+                    <p>${currentQuestion.explanation}</p>
+                </div>
+            `;
+            quizScore++;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="quiz-result incorrect">
+                    <h4>不正解です</h4>
+                    <p>正解は「${correctAnswer}」でした。</p>
+                    <p>${currentQuestion.explanation}</p>
+                </div>
+            `;
+        }
+        document.getElementById('c-quiz-content').appendChild(resultDiv);
+        setTimeout(() => {
+            currentQuizIndex++;
+            showCVideoQuizQuestion();
+        }, 2000);
+    }
+    function restartCVideoQuiz() {
+        currentQuizIndex = 0;
+        quizScore = 0;
+        showCVideoQuizQuestion();
+    }
+
+    // ページロード時の初期動画表示
+    if (window.location.hash === "#about" || document.querySelector('.category-button.active')?.textContent.includes('結核とは')) {
+        setTimeout(() => showAboutVideo(0), 200);
+    }
+    if (window.location.hash === "#test" || document.querySelector('.category-button.active')?.textContent.includes('検査方法')) {
+        setTimeout(() => showTestVideo(0), 200);
+    }
+    if (window.location.hash === "#treatment" || document.querySelector('.movie-buttons button.active[data-keywords*="治療"]')) {
+        setTimeout(() => showAVideo(0), 200);
+    }
+    if (window.location.hash === "#target" || document.querySelector('.movie-buttons button.active[data-keywords*="感染"]')) {
+        setTimeout(() => showBVideo(0), 200);
+    }
+    if (window.location.hash === "#if" || document.querySelector('.movie-buttons button.active[data-keywords*="なったら"]')) {
+        setTimeout(() => showCVideo(0), 200);
+    }
+</script>

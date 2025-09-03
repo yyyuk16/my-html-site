@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="AIチャット">AIチャット</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="maintab.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-translate="医療情報管理アプリ">医療情報管理アプリ</h1> <!-- タイトルを画像に合わせる -->
+            <!-- <p>利用したい機能を選んでください</p> --> <!-- 説明文は削除または変更 -->
+        </div>
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button active" onclick="location.href='ai.html'">
+                    <span class="tab-icon">💬</span>
+                    <span class="tab-text" data-translate="チャット">チャット</span>
+                </button>
+                <button class="tab-button" onclick="location.href='score.html'">
+                    <span class="tab-icon">❓</span>
+                    <span class="tab-text" data-translate="Q&A">Q&A</span>
+                </button>
+                <button class="tab-button" onclick="location.href='movie.html'">
+                    <span class="tab-icon">🎬</span>
+                    <span class="tab-text" data-translate="動画視聴">動画視聴</span>
+                </button>
+                <button class="tab-button" onclick="location.href='profile.html'">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text" data-translate="プロフィール">プロフィール</span>
+                </button>
+            </div>
+        </div>
+
+       
+        
+        <div class="ai-options">
+            <div class="ai-card" onclick="startChat('teacher')">
+                <div class="card-content">
+                    <div class="icon-wrapper">
+                        <span class="ai-icon">👨‍⚕️</span>
+                    </div>
+                    <h3 data-translate="AI先生">AI先生</h3>
+                    <p data-translate="24時間いつでも返答可能です">24時間いつでも返答可能です</p>
+                    <button class="start-chat-btn" data-translate="チャットを始める">チャットを始める</button>
+                </div>
+            </div>
+            
+
+            <div class="ai-card" onclick="startChat('real')">
+                <div class="card-content">
+                    <div class="icon-wrapper">
+                        <span class="ai-icon">💬</span>
+                    </div>
+                    <h3 data-translate="リアルタイム">リアルタイム</h3>
+                    <p data-translate="先生と会話ができます">先生と会話ができます</p>
+                    <button class="start-chat-btn" data-translate="チャットを始める">チャットを始める</button>
+                </div>
+            </div>
+        </div>
+
+        
+        <style>
+            .chat-header {
+                text-align: center;
+                margin-bottom: 40px;
+            }
+
+            .chat-header h1 {
+                font-size: 32px;
+                color: var(--text-color);
+                margin-bottom: 10px;
+            }
+
+            .subtitle {
+                font-size: 18px;
+                color: #666;
+            }
+
+            .ai-options {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 25px;
+                padding: 20px;
+            }
+
+            .ai-card {
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 4px 15px var(--shadow-color);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                cursor: pointer;
+                overflow: hidden;
+            }
+
+            .ai-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 20px var(--shadow-color);
+            }
+
+            .card-content {
+                padding: 25px;
+                text-align: center;
+            }
+
+            .icon-wrapper {
+                width: 80px;
+                height: 80px;
+                margin: 0 auto 20px;
+                background: var(--color-pink-light);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .ai-icon {
+                font-size: 40px;
+            }
+
+            .ai-card h3 {
+                font-size: 24px;
+                color: var(--text-color);
+                margin-bottom: 10px;
+            }
+
+            .ai-card p {
+                color: #666;
+                margin-bottom: 20px;
+                line-height: 1.5;
+            }
+
+            .start-chat-btn {
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 25px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background 0.3s ease;
+            }
+
+            .start-chat-btn:hover {
+                background: var(--secondary-color);
+            }
+        </style>
+
+       
+    </div>
+
+    <script>
+        function startChat(aiType) {
+            if (aiType === 'teacher') {
+                window.location.href = 'teacher.html';
+            } else if (aiType === 'real') {
+                window.location.href = 'real.html';
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'choise.html';
+        }
+    </script>
+</body>
+</html>

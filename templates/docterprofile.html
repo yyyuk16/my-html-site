@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="医師プロフィール">医師プロフィール</title>
+    <link rel="stylesheet" href="d_maintab.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- 翻訳機能 -->
+    <script src="translation.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+           <h1 data-translate="医療管理アプリ">医療管理アプリ</h1>
+        </div>
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button" onclick="location.href='home.html'">
+                    <span class="tab-icon">🏥</span>
+                    <span class="tab-text" data-translate="HOME">HOME</span>
+                </button>
+                <button class="tab-button" onclick="location.href='list.html'">
+                    <span class="tab-icon">👥</span>
+                    <span class="tab-text" data-translate="患者診療記録">患者診療記録</span>
+                </button>
+                <button class="tab-button" onclick="location.href='chat.html'">
+                    <span class="tab-icon">📅</span>
+                    <span class="tab-text" data-translate="チャット">チャット</span>
+                </button>
+                <button class="tab-button active" onclick="location.href='docterprofile.html'">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text" data-translate="プロフィール">プロフィール</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 新デザイン：プロフィールカードを中央・カード型で表示 -->
+        <div class="flex-container" style="justify-content:center; margin-top:40px;">
+            <main class="memo-area" style="max-width:480px; width:100%; background:var(--card-bg,#fff); border-radius:var(--border-radius-lg,32px); box-shadow:0 4px 24px var(--shadow-color-strong,rgba(33,150,243,0.13)); padding:40px 32px 32px 32px; display:flex; flex-direction:column; align-items:center;">
+                <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
+                    <div class="doctor-avatar" style="width:80px; height:80px; font-size:2.5em; margin-bottom:12px;">
+                        <span id="profileInitial"></span>
+                    </div>
+                    <h2 style="color:var(--primary-color,#2196F3); font-size:1.5em; font-weight:700; margin-bottom:8px;" data-translate="医師プロフィール">医師プロフィール</h2>
+                    <div style="color:#888; font-size:1.05em; margin-bottom:24px;" data-translate="ご登録情報の確認">ご登録情報の確認</div>
+                </div>
+                <div style="width:100%;">
+                    <div class="profile-row" style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border-color-light,#E3F2FD);">
+                        <div class="profile-label" style="display:flex; align-items:center; gap:10px; color:var(--secondary-color,#1976D2); font-weight:500;">
+                            <i class="fas fa-user"></i>
+                            <span data-translate="名前">名前</span>
+                        </div>
+                        <span class="profile-value" id="doctorName" style="font-size:1.08em; color:var(--text-color,#1A1A1A);"></span>
+                    </div>
+                    <div class="profile-row" style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border-color-light,#E3F2FD);">
+                        <div class="profile-label" style="display:flex; align-items:center; gap:10px; color:var(--secondary-color,#1976D2); font-weight:500;">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span data-translate="年齢">年齢</span>
+                        </div>
+                        <span class="profile-value" id="doctorAge" style="font-size:1.08em; color:var(--text-color,#1A1A1A);"></span>
+                    </div>
+                    <div class="profile-row" style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border-color-light,#E3F2FD);">
+                        <div class="profile-label" style="display:flex; align-items:center; gap:10px; color:var(--secondary-color,#1976D2); font-weight:500;">
+                            <i class="fas fa-envelope"></i>
+                            <span data-translate="メール">メール</span>
+                        </div>
+                        <span class="profile-value" id="doctorEmail" style="font-size:1.08em; color:var(--text-color,#1A1A1A);"></span>
+                    </div>
+                    <div class="profile-row" style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border-color-light,#E3F2FD);">
+                        <div class="profile-label" style="display:flex; align-items:center; gap:10px; color:var(--secondary-color,#1976D2); font-weight:500;">
+                            <i class="fas fa-stethoscope"></i>
+                            <span data-translate="専門">専門</span>
+                        </div>
+                        <span class="profile-value" id="doctorSpecialty" style="font-size:1.08em; color:var(--text-color,#1A1A1A);"></span>
+                    </div>
+                    <div class="profile-row" style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border-color-light,#E3F2FD);">
+                        <div class="profile-label" style="display:flex; align-items:center; gap:10px; color:var(--secondary-color,#1976D2); font-weight:500;">
+                            <i class="fas fa-hospital"></i>
+                            <span data-translate="病院">病院</span>
+                        </div>
+                        <span class="profile-value" id="doctorHospital" style="font-size:1.08em; color:var(--text-color,#1A1A1A);"></span>
+                    </div>
+                    <div class="profile-row" style="display:flex; align-items:center; justify-content:space-between; padding:14px 0;">
+                        <div class="profile-label" style="display:flex; align-items:center; gap:10px; color:var(--secondary-color,#1976D2); font-weight:500;">
+                            <i class="fas fa-clock"></i>
+                            <span data-translate="勤務年数">勤務年数</span>
+                        </div>
+                        <span class="profile-value" id="doctorExperience" style="font-size:1.08em; color:var(--text-color,#1A1A1A);"></span>
+                    </div>
+                </div>
+                <button id="deleteAccountBtn" class="save-btn" style="margin-top:32px; background:linear-gradient(135deg,#e57373,#1976D2); color:#fff; font-size:1.1em; font-weight:600; border:none; border-radius:8px; padding:14px 36px; box-shadow:0 2px 8px var(--shadow-color,rgba(33,150,243,0.10)); transition:background 0.2s, box-shadow 0.2s, transform 0.15s;">
+                    <i class="fas fa-user-times"></i>
+                    <span data-translate="退会（アカウント削除）">退会（アカウント削除）</span>
+                </button>
+            </main>
+        </div>
+    </div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+            authDomain: "web01-2484d.firebaseapp.com",
+            projectId: "web01-2484d",
+            storageBucket: "web01-2484d.appspot.com",
+            messagingSenderId: "90159472898",
+            appId: "1:90159472898:web:261ec71f9919611011e21b"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // 医師のプロフィール情報を取得
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                const db = firebase.firestore();
+                db.collection('users').doc(user.uid).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const data = doc.data();
+                            // プロフィールイニシャルを設定
+                            const initial = data.name ? data.name.charAt(0).toUpperCase() : '?';
+                            document.getElementById('profileInitial').textContent = initial;
+                            
+                            // 既存のプロフィール情報設定
+                            if (document.getElementById('doctorName')) document.getElementById('doctorName').textContent = data.name || '';
+                            if (document.getElementById('doctorAge')) {
+                                if (data.age !== undefined && data.age !== null && data.age !== "") {
+                                    document.getElementById('doctorAge').textContent = `${data.age}歳`;
+                                } else {
+                                    document.getElementById('doctorAge').textContent = '未登録';
+                                }
+                            }
+                            if (document.getElementById('doctorEmail')) document.getElementById('doctorEmail').textContent = data.email || user.email || '';
+                            if (document.getElementById('doctorSpecialty')) document.getElementById('doctorSpecialty').textContent = data.specialty || '';
+                            if (document.getElementById('doctorHospital')) document.getElementById('doctorHospital').textContent = data.hospital || '';
+                            if (document.getElementById('doctorExperience')) document.getElementById('doctorExperience').textContent = (data.experience !== undefined && data.experience !== null && data.experience !== "") ? `${data.experience}年` : '';
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching user profile:", error);
+                    });
+            }
+        });
+
+        // 退会処理
+        document.getElementById('deleteAccountBtn').onclick = function() {
+            if (!confirm('本当に退会しますか？この操作は元に戻せません。')) return;
+            const user = firebase.auth().currentUser;
+            if (!user) return alert('ログイン情報がありません');
+            const db = firebase.firestore();
+            // Firestoreのユーザーデータ削除
+            db.collection('users').doc(user.uid).delete()
+                .then(() => {
+                    // Authユーザー削除
+                    user.delete().then(() => {
+                        alert('退会が完了しました');
+                        window.location.href = 'index.html';
+                    }).catch((error) => {
+                        if (error.code === 'auth/requires-recent-login') {
+                            const pw = prompt('再認証のためパスワードを入力してください');
+                            if (!pw) return alert('パスワードが必要です');
+                            const cred = firebase.auth.EmailAuthProvider.credential(user.email, pw);
+                            user.reauthenticateWithCredential(cred).then(() => {
+                                user.delete().then(() => {
+                                    alert('退会が完了しました');
+                                    window.location.href = 'index.html';
+                                });
+                            }).catch((e) => {
+                                alert('再認証に失敗しました: ' + e.message);
+                            });
+                        } else {
+                            alert('退会処理中にエラーが発生しました: ' + error.message);
+                        }
+                    });
+                })
+                .catch((error) => {
+                    alert('退会処理中にエラーが発生しました: ' + error.message);
+                });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,555 @@
+<<<<<<< HEAD
+/* 共通レスポンシブデザイン用CSS */
+
+/* 基本設定 */
+* {
+    box-sizing: border-box;
+}
+
+img, svg, video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ナビゲーションバーのレスポンシブ対応 */
+.nav-container {
+    position: relative;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.hamburger-menu {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    padding: 0.5rem;
+    background: none;
+    border: none;
+    z-index: 1000;
+}
+
+.hamburger-menu span {
+    width: 25px;
+    height: 3px;
+    background: #333;
+    margin: 3px 0;
+    transition: 0.3s;
+}
+
+.hamburger-menu.active span:nth-child(1) {
+    transform: rotate(-45deg) translate(-5px, 6px);
+}
+
+.hamburger-menu.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-menu.active span:nth-child(3) {
+    transform: rotate(45deg) translate(-5px, -6px);
+}
+
+/* モバイルメニュー */
+.mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 999;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+.mobile-menu.active {
+    display: flex;
+}
+
+.mobile-menu a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+
+.mobile-menu a:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* コンテナのレスポンシブ対応 */
+.container, .main-container, .content-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* カード・ツール類のレスポンシブ対応 */
+.card, .profile-card, .tool-card, .info-card {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+/* グリッドレイアウトのレスポンシブ対応 */
+.grid-container {
+    display: grid;
+    gap: 1rem;
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* フォーム要素のレスポンシブ対応 */
+input, textarea, select, button {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* テーブルのレスポンシブ対応 */
+.table-container {
+    overflow-x: auto;
+    width: 100%;
+}
+
+table {
+    min-width: 600px;
+    width: 100%;
+}
+
+/* フレックスボックスのレスポンシブ対応 */
+.flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.flex-item {
+    flex: 1;
+    min-width: 300px;
+}
+
+/* メディアクエリ */
+@media (max-width: 1200px) {
+    .container, .main-container, .content-container {
+        max-width: 100%;
+        padding: 0 1rem;
+    }
+    
+    .grid-4 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .grid-3, .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .flex-item {
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* ナビゲーションバーをハンバーガーメニューに変更 */
+    .nav-menu {
+        display: none;
+    }
+    
+    .hamburger-menu {
+        display: flex;
+    }
+    
+    /* グリッドを1列に */
+    .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    /* フレックスアイテムを縦並びに */
+    .flex-container {
+        flex-direction: column;
+    }
+    
+    .flex-item {
+        min-width: 100%;
+    }
+    
+    /* コンテナのパディングを調整 */
+    .container, .main-container, .content-container {
+        padding: 0 0.5rem;
+    }
+    
+    /* カードの余白を調整 */
+    .card, .profile-card, .tool-card, .info-card {
+        margin-bottom: 0.5rem;
+        padding: 1rem;
+    }
+    
+    /* フォーム要素の余白を調整 */
+    input, textarea, select, button {
+        margin-bottom: 0.5rem;
+        padding: 0.75rem;
+    }
+    
+    /* テーブルをスクロール可能に */
+    .table-container {
+        margin: 0 -0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    /* さらに小さい画面での調整 */
+    .container, .main-container, .content-container {
+        padding: 0 0.25rem;
+    }
+    
+    .card, .profile-card, .tool-card, .info-card {
+        padding: 0.75rem;
+    }
+    
+    input, textarea, select, button {
+        padding: 0.5rem;
+        font-size: 16px; /* iOSでのズーム防止 */
+    }
+    
+    /* モバイルメニューの調整 */
+    .mobile-menu a {
+        font-size: 1.25rem;
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+/* ユーティリティクラス */
+.hide-mobile {
+    display: block;
+}
+
+.show-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none;
+    }
+    
+    .show-mobile {
+        display: block;
+    }
+}
+
+/* アニメーション */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+=======
+/* 共通レスポンシブデザイン用CSS */
+
+/* 基本設定 */
+* {
+    box-sizing: border-box;
+}
+
+img, svg, video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ナビゲーションバーのレスポンシブ対応 */
+.nav-container {
+    position: relative;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.hamburger-menu {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    padding: 0.5rem;
+    background: none;
+    border: none;
+    z-index: 1000;
+}
+
+.hamburger-menu span {
+    width: 25px;
+    height: 3px;
+    background: #333;
+    margin: 3px 0;
+    transition: 0.3s;
+}
+
+.hamburger-menu.active span:nth-child(1) {
+    transform: rotate(-45deg) translate(-5px, 6px);
+}
+
+.hamburger-menu.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-menu.active span:nth-child(3) {
+    transform: rotate(45deg) translate(-5px, -6px);
+}
+
+/* モバイルメニュー */
+.mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 999;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+.mobile-menu.active {
+    display: flex;
+}
+
+.mobile-menu a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+
+.mobile-menu a:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* コンテナのレスポンシブ対応 */
+.container, .main-container, .content-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* カード・ツール類のレスポンシブ対応 */
+.card, .profile-card, .tool-card, .info-card {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+/* グリッドレイアウトのレスポンシブ対応 */
+.grid-container {
+    display: grid;
+    gap: 1rem;
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* フォーム要素のレスポンシブ対応 */
+input, textarea, select, button {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* テーブルのレスポンシブ対応 */
+.table-container {
+    overflow-x: auto;
+    width: 100%;
+}
+
+table {
+    min-width: 600px;
+    width: 100%;
+}
+
+/* フレックスボックスのレスポンシブ対応 */
+.flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.flex-item {
+    flex: 1;
+    min-width: 300px;
+}
+
+/* メディアクエリ */
+@media (max-width: 1200px) {
+    .container, .main-container, .content-container {
+        max-width: 100%;
+        padding: 0 1rem;
+    }
+    
+    .grid-4 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .grid-3, .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .flex-item {
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* ナビゲーションバーをハンバーガーメニューに変更 */
+    .nav-menu {
+        display: none;
+    }
+    
+    .hamburger-menu {
+        display: flex;
+    }
+    
+    /* グリッドを1列に */
+    .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    /* フレックスアイテムを縦並びに */
+    .flex-container {
+        flex-direction: column;
+    }
+    
+    .flex-item {
+        min-width: 100%;
+    }
+    
+    /* コンテナのパディングを調整 */
+    .container, .main-container, .content-container {
+        padding: 0 0.5rem;
+    }
+    
+    /* カードの余白を調整 */
+    .card, .profile-card, .tool-card, .info-card {
+        margin-bottom: 0.5rem;
+        padding: 1rem;
+    }
+    
+    /* フォーム要素の余白を調整 */
+    input, textarea, select, button {
+        margin-bottom: 0.5rem;
+        padding: 0.75rem;
+    }
+    
+    /* テーブルをスクロール可能に */
+    .table-container {
+        margin: 0 -0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    /* さらに小さい画面での調整 */
+    .container, .main-container, .content-container {
+        padding: 0 0.25rem;
+    }
+    
+    .card, .profile-card, .tool-card, .info-card {
+        padding: 0.75rem;
+    }
+    
+    input, textarea, select, button {
+        padding: 0.5rem;
+        font-size: 16px; /* iOSでのズーム防止 */
+    }
+    
+    /* モバイルメニューの調整 */
+    .mobile-menu a {
+        font-size: 1.25rem;
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+/* ユーティリティクラス */
+.hide-mobile {
+    display: block;
+}
+
+.show-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none;
+    }
+    
+    .show-mobile {
+        display: block;
+    }
+}
+
+/* アニメーション */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+>>>>>>> 21d985d (first commit)
