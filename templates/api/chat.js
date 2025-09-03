@@ -1,37 +1,32 @@
-// templates/api/chat.js  （Node/Serverless・CORS付き・非ストリーミング）
+// templates/api/chat.js
 module.exports = async (req, res) => {
   // --- CORS ---
-  res.setHeader('Access-Control-Allow-Origin', '*'); // 必要なら自分のドメインに限定
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(204).end();
 
-  if (req.method === 'GET') {
-    return res.status(200).json({ ok: true, message: 'OpenAI endpoint ready' });
-  }
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
   }
 
   try {
-    // --- 入力 ---
+    // --- ユーザーからの入力を取得 ---
     let body = req.body;
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch {} }
     const userMessage = body?.message ?? '';
-    const systemPrompt =
-      body?.system ??
-      'You are a helpful assistant. Reply in Japanese if the user writes Japanese.';
 
-    // --- 環境変数 ---
     const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) return res.status(500).json({ ok: false, error: 'OPENAI_API_KEY is missing' });
+    if (!apiKey) {
+      return res.status(500).json({ ok: false, error: 'OPENAI_API_KEY is missing' });
+    }
 
-    // --- OpenAI Chat Completions ---
+    // --- OpenAI Chat API 呼び出し ---
     const payload = {
-      model: 'gpt-4o-mini',               // コスパ良。必要なら 'gpt-4o' に
+      model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
+        { role: 'system', content: 'あなたは優しい先生です。学生にわかりやすく日本語で答えてください。' },
+        { role: 'user', content: userMessage }
       ],
       temperature: 0.7,
     };
@@ -53,7 +48,7 @@ module.exports = async (req, res) => {
     const data = await r.json();
     const reply = data?.choices?.[0]?.message?.content ?? '';
 
-    return res.status(200).json({ ok: true, model: payload.model, reply });
+    return res.status(200).json({ ok: true, reply });
   } catch (e) {
     return res.status(500).json({ ok: false, error: String(e) });
   }
