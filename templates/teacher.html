@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI先生チャット</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{background:linear-gradient(135deg,#E8F5E9 0%,#C8E6C9 100%);}</style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+  <div class="bg-white w-full max-w-2xl h-[90vh] rounded-[22px] shadow-lg border border-[#E8F5E9] flex flex-col">
+    <div class="text-white p-4 rounded-t-[22px]" style="background:linear-gradient(135deg,#A5D6A7 0%,#2E7D32 100%);">
+      <h1 class="text-lg font-bold">👨‍⚕️ AI先生チャット</h1>
+    </div>
+    <div id="chatContainer" class="flex-grow p-4 overflow-y-auto space-y-3 bg-white/95"></div>
+    <div class="p-4 rounded-b-[22px] flex space-x-2" style="background:linear-gradient(120deg,#E8F5E9 0%,#A5D6A7 100%);">
+      <input id="userInput" class="flex-grow p-2 border border-[#C8E6C9] rounded-[10px] outline-none" placeholder="健康について何でもお聞きください...">
+      <button id="sendButton" class="text-white px-4 py-2 rounded-[10px] font-semibold shadow-md" style="background:linear-gradient(135deg,#A5D6A7 0%,#2E7D32 100%);">送信</button>
+    </div>
+  </div>
+
+  <script>
+    const OPENAI_ENDPOINT = "/api/chat"; // ← 同一ドメインのVercel関数を叩く
+
+    const chatContainer = document.getElementById("chatContainer");
+    const userInput = document.getElementById("userInput");
+    const sendButton = document.getElementById("sendButton");
+
+    function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+    function appendMessage(who, text){
+      const w=document.createElement("div"); w.classList.add("flex");
+      if(who==="あなた"){ w.classList.add("justify-end"); w.innerHTML=`<div class="text-white p-3 rounded-[16px] max-w-[80%]" style="background:linear-gradient(135deg,#A5D6A7 0%,#2E7D32 100%)">${escapeHtml(text)}</div>`; }
+      else { w.innerHTML=`<div class="bg-white p-3 rounded-[16px] max-w-[80%] border border-[#E8F5E9]">
+        <div class="flex items-center space-x-2 mb-2"><span class="text-2xl">👨‍⚕️</span><span class="font-semibold text-[#43A047]">AI先生</span></div>
+        <p class="text-[#1A1A1A] whitespace-pre-wrap">${escapeHtml(text)}</p></div>`; }
+      chatContainer.appendChild(w); chatContainer.scrollTop=chatContainer.scrollHeight;
+    }
+    function loading(){ const id="loading-"+Date.now(); const w=document.createElement("div"); w.id=id; w.classList.add("flex");
+      w.innerHTML=`<div class="bg-white p-3 rounded-[16px] max-w-[80%] border border-[#E8F5E9]">
+        <div class="flex items-center space-x-2 mb-2"><span class="text-2xl">👨‍⚕️</span><span class="font-semibold text-[#43A047]">AI先生</span></div>
+        <div class="flex items-center space-x-2"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-[#43A047]"></div><span class="text-[#666]">考え中...</span></div></div>`;
+      chatContainer.appendChild(w); chatContainer.scrollTop=chatContainer.scrollHeight; return id; }
+    function stopLoading(id){ const el=document.getElementById(id); if(el) el.remove(); }
+
+    async function send(){
+      const msg=(userInput.value||"").trim(); if(!msg) return;
+      appendMessage("あなた", msg); userInput.value=""; const id=loading();
+      try{
+        const r=await fetch(OPENAI_ENDPOINT,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ message: msg }) });
+        let data=null; try{ data=await r.json(); }catch{}
+        stopLoading(id);
+        if(!r.ok){ const err=(data&&(data.error?.message||data.error))||`通信エラー (${r.status})`; appendMessage("AI先生",`申し訳ありません。${err} が発生しました。`); return; }
+        appendMessage("AI先生", data?.reply ?? "うまく応答できませんでした。");
+      }catch(e){ stopLoading(id); appendMessage("AI先生","通信に問題が発生しました。時間をおいて再度お試しください。"); }
+    }
+    window.addEventListener("DOMContentLoaded",()=>{ appendMessage("AI先生","こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。"); userInput.addEventListener("keypress",e=>{if(e.key==="Enter")send()}); document.getElementById("sendButton").addEventListener("click",send); userInput.focus(); });
+  </script>
+</body></html>
