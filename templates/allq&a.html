@@ -302,8 +302,7 @@
       retryBtn.style.marginRight = "10px";
       retryBtn.style.backgroundColor = "#4caf50";
       retryBtn.addEventListener("click", () => {
-        // クイズをリセットして再開始
-        score = 0;
+        // スコアをリセットせずに最初から再開始
         currentIndex = 0;
         renderQuestion();
       });
@@ -313,12 +312,8 @@
       endBtn.textContent = "終了";
       endBtn.style.backgroundColor = "#f44336";
       endBtn.addEventListener("click", () => {
-        // 初期状態に戻す
-        document.getElementById("authSection").style.display = "block";
-        document.getElementById("startBtn").style.display = "block";
-        document.getElementById("quiz").innerHTML = "";
-        score = 0;
-        currentIndex = 0;
+        // score.htmlに戻る
+        window.location.href = "score.html";
       });
       
       buttonContainer.appendChild(retryBtn);
