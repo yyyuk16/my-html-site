@@ -29,13 +29,16 @@
   <script>
     // 🔑 Firebase 設定（自分の値に置き換えてください）
     const firebaseConfig = {
-      apiKey: "あなたのAPIキー",
-      authDomain: "あなたのプロジェクト.firebaseapp.com",
-      projectId: "あなたのプロジェクトID",
-      storageBucket: "あなたのプロジェクトID.appspot.com",
-      messagingSenderId: "XXXXXXX",
-      appId: "XXXXXXXX"
-    };
+  apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+  authDomain: "web01-2484d.firebaseapp.com",
+  databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+  projectId: "web01-2484d",
+  storageBucket: "web01-2484d.firebasestorage.app",
+  messagingSenderId: "90159472898",
+  appId: "1:90159472898:web:261ec71f9919611011e21b",
+  measurementId: "G-9TGR07ZSY9"
+};
+
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
