@@ -16,24 +16,24 @@
 
   <style>
     :root {
-      --color-pink-light: #FFE4E1;
-      --color-pink-medium: #FFB6C1;
-      --color-pink-dark: #FF69B4;
-      --color-pink-accent: #FFC0CB;
-      --primary-color: var(--color-pink-medium);
-      --secondary-color: var(--color-pink-dark);
-      --accent-color: var(--color-pink-accent);
-      --background-color: var(--color-pink-light);
+      --color-green-light: #e8f5e9;
+      --color-green-medium: #81c784;
+      --color-green-dark: #388e3c;
+      --color-green-accent: #a5d6a7;
+      --primary-color: var(--color-green-medium);
+      --secondary-color: var(--color-green-dark);
+      --accent-color: var(--color-green-accent);
+      --background-color: var(--color-green-light);
       --text-color: #1A1A1A;
-      --shadow-color: rgba(0,0,0,0.08);
-      --card-bg: rgba(255, 255, 255, 0.95);
+      --shadow-color: rgba(56, 142, 60, 0.10);
+      --card-bg: rgba(255, 255, 255, 0.96);
     }
 
     body {
       font-family: 'Noto Sans JP', sans-serif;
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink-accent));
+      background: linear-gradient(135deg, var(--color-green-light), var(--color-green-accent));
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -47,7 +47,7 @@
       background: var(--card-bg);
       padding: 2rem;
       border-radius: 1rem;
-      box-shadow: 0 4px 6px var(--shadow-color);
+      box-shadow: 0 4px 12px var(--shadow-color);
       width: 90%;
       max-width: 500px;
       margin: 2rem auto;
@@ -55,8 +55,9 @@
 
     h1 {
       text-align: center;
-      color: var(--text-color);
+      color: var(--secondary-color);
       margin-bottom: 1.5rem;
+      text-shadow: 0 2px 8px #a5d6a7;
     }
 
     .form-group {
@@ -67,25 +68,37 @@
       display: block;
       margin-bottom: 0.5rem;
       font-weight: 500;
+      color: var(--secondary-color);
     }
 
     input, select {
       width: 100%;
       padding: 0.8rem;
-      border: 1px solid #ddd;
+      border: 1.5px solid var(--accent-color);
       border-radius: 0.5rem;
       font-size: 1rem;
       box-sizing: border-box;
+      background: #f7fbf7;
+      transition: border 0.2s, box-shadow 0.2s;
+      outline: none;
+      color: var(--text-color);
+      margin-top: 0.1rem;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px #a5d6a7;
+      background: #fff;
     }
 
     select {
-      background-color: white;
+      background-color: #fff;
       cursor: pointer;
     }
 
     button {
       background-color: var(--primary-color);
-      color: white;
+      color: #fff;
       border: none;
       padding: 1rem 2rem;
       border-radius: 0.5rem;
@@ -93,23 +106,33 @@
       cursor: pointer;
       width: 100%;
       margin-top: 1rem;
-      transition: background-color 0.3s;
+      transition: background-color 0.3s, box-shadow 0.2s, transform 0.15s;
+      box-shadow: 0 2px 8px var(--shadow-color);
+      font-weight: 600;
+      letter-spacing: 0.03em;
     }
 
     button:hover {
       background-color: var(--secondary-color);
+      box-shadow: 0 4px 16px rgba(56, 142, 60, 0.18);
+      transform: translateY(-2px) scale(1.02);
     }
 
     .back-link {
       display: block;
       margin-top: 1rem;
-      color: var(--text-color);
+      color: var(--secondary-color);
       text-decoration: none;
       text-align: center;
+      font-weight: 500;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+      transition: color 0.2s;
     }
 
     .back-link:hover {
       text-decoration: underline;
+      color: var(--primary-color);
     }
 
     @media (max-width: 480px) {

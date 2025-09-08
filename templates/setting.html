@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="設定">設定</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="maintab.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body>
+    <!-- 💚 ヘッダー -->
+    <header class="top-bar">
+      <div class="header-inner">
+        <strong class="site-title">結核治療サイト</strong>
+        <ul class="tab-menu">
+          <li><a href="ai.html">💬 チャット</a></li>
+          <li><a href="score.html">❓ Q&A</a></li>
+          <li><a href="movie.html">🎥 動画視聴</a></li>
+          <li><a href="setting.html" class="active">👤 設定</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <main class="container" style="max-width: 700px; margin: 0 auto; padding-top: 3rem; padding-bottom: 3rem;">
+      <div class="setting-header" style="margin-bottom: 2.5rem; text-align:center;">
+        <h1 style="font-size:2.2rem; color:#2E7D32; font-weight:700; margin-bottom:0.5rem;">設定</h1>
+        <p class="subtitle" style="font-size:1.1rem; color:#4CAF50;">アカウント情報や使い方、お問い合わせはこちら</p>
+      </div>
+      <div class="setting-sections">
+
+        <!-- アカウント -->
+        <section class="setting-card">
+          <button class="setting-btn" style="width: 100%; padding: 1.2rem 0; font-size: 1.1rem; font-weight: 600;" onclick="window.location.href='profile.html'">アカウント</button>
+        </section>
+
+        <!-- 使い方 -->
+        <section class="setting-card">
+          <h2 class="setting-title">使い方</h2>
+          <ul class="setting-list">
+            <li>・「AI先生」では24時間いつでも健康相談ができます。</li>
+            <li>・「リアルタイム」では医療スタッフと直接チャットが可能です。</li>
+            <li>・Q&Aや動画視聴もご活用ください。</li>
+          </ul>
+        </section>
+
+        <!-- お問い合わせ -->
+        <section class="setting-card">
+          <h2 class="setting-title">お問い合わせ</h2>
+          <ul class="setting-list">
+            <li>ご質問やご要望がある場合は、下記メールアドレスまでご連絡ください。</li>
+            <li><a href="mailto:info@tb-support.jp" style="color:#2E7D32;">info@tb-support.jp</a></li>
+          </ul>
+        </section>
+
+      </div>
+    </main>
+
+    <style>
+      body {
+        background: linear-gradient(120deg, #E3F2ED 0%, #A5D6B5 100%);
+        min-height: 100vh;
+      }
+      .setting-header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      .setting-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 2.2rem;
+      }
+      .setting-card {
+        background: #fff;
+        border-radius: 1.2rem;
+        box-shadow: 0 4px 18px 0 rgba(46,125,50,0.10);
+        padding: 2rem 1.5rem;
+      }
+      .setting-title {
+        font-size: 1.3rem;
+        color: #2E7D32;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        letter-spacing: 0.02em;
+      }
+      .setting-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        color: #444;
+        font-size: 1.05rem;
+      }
+      .setting-list li {
+        margin-bottom: 0.8rem;
+      }
+      .setting-btn {
+        background: linear-gradient(90deg, #A5D6B5 0%, #2E7D32 100%);
+        color: #fff;
+        border: none;
+        padding: 0.6rem 1.6rem;
+        border-radius: 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 2px 12px 0 rgba(46,125,50,0.10);
+        transition: background 0.2s, box-shadow 0.2s;
+        letter-spacing: 0.01em;
+      }
+      .setting-btn[disabled] {
+        opacity: 0.7;
+        cursor: default;
+      }
+      .setting-btn:hover:not([disabled]) {
+        background: linear-gradient(90deg, #2E7D32 0%, #A5D6B5 100%);
+        box-shadow: 0 4px 18px 0 rgba(46,125,50,0.18);
+      }
+      @media (max-width: 700px) {
+        .setting-sections {
+          gap: 1.2rem;
+        }
+        .setting-card {
+          padding: 1.2rem 0.7rem;
+        }
+      }
+    </style>
+
+    <script>
+      // Firebase認証からユーザー情報を取得（ダミー表示）
+      document.addEventListener('DOMContentLoaded', function() {
+        // 実際はfirebase.auth().onAuthStateChangedなどで取得
+        // ここでは例としてダミー値
+        document.getElementById('userName').textContent = "ゲスト";
+        document.getElementById('userEmail').textContent = "未登録";
+      });
+
+      function logout() {
+        // 実際はfirebase.auth().signOut()など
+        alert('ログアウトしました（デモ）');
+        // location.reload();
+      }
+    </script>
+
+    <!-- フッター -->
+    <footer class="footer container">
+      <small>
+        <a href="#">利用規約</a>
+        <a href="#">プライバシーポリシー</a><br>
+        &copy; スマート医療ポータル
+      </small>
+    </footer>
+</body>
+</html>

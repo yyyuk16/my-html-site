@@ -16,30 +16,40 @@
   <script src="firebase-translations.js"></script>
 
   <style>
+    /* 背景を緑基調＋写真に統一 */
+    body {
+      background: 
+        linear-gradient(rgba(46,125,50,0.18), rgba(46,125,50,0.32)),
+        url('./phote/S__8994818.jpg') center/cover no-repeat,
+        var(--background-color, #E3F2ED);
+      background-attachment: fixed;
+      background-size: cover;
+      background-position: center;
+    }
+    
     :root {
-      --color-pink-light: #FFE4E1;
-      --color-pink-medium: #FFB6C1;
-      --color-pink-dark: #FF69B4;
-      --color-pink-accent: #FFC0CB;
-      --primary-color: var(--color-pink-medium);
-      --secondary-color: var(--color-pink-dark);
-      --accent-color: var(--color-pink-accent);
-      --background-color: var(--color-pink-light);
+      --color-green-light: #E3F2ED;
+      --color-green-medium: #A5D6B5;
+      --color-green-dark: #2E7D32;
+      --color-green-accent: #81C784;
+      --primary-color: var(--color-green-medium);
+      --secondary-color: var(--color-green-dark);
+      --accent-color: var(--color-green-accent);
+      --background-color: var(--color-green-light);
       --text-color: #1A1A1A;
-      --shadow-color: rgba(0,0,0,0.10);
+      --shadow-color: rgba(46,125,50,0.10);
       --card-bg: rgba(255, 255, 255, 0.98);
-      --input-bg: #fff7fa;
-      --input-border: #ffb6c1;
-      --input-focus: #ff69b4;
-      --button-gradient: linear-gradient(90deg, #ffb6c1 0%, #ff69b4 100%);
-      --button-shadow: 0 2px 12px 0 rgba(255,182,193,0.18);
+      --input-bg: #f7faf8;
+      --input-border: #A5D6B5;
+      --input-focus: #2E7D32;
+      --button-gradient: linear-gradient(90deg, #A5D6B5 0%, #2E7D32 100%);
+      --button-shadow: 0 2px 12px 0 rgba(46,125,50,0.13);
     }
 
     body {
       font-family: 'Noto Sans JP', 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
       margin: 0;
       padding: 0;
-      background: linear-gradient(120deg, var(--color-pink-light) 0%, var(--color-pink-accent) 100%);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -61,8 +71,9 @@
       text-align: center;
       position: relative;
       overflow: hidden;
-      border: 1.5px solid #ffe4ec;
+      border: 1.5px solid #C8E6C9;
       animation: fadeIn 1s;
+      backdrop-filter: blur(2px);
     }
 
     @keyframes fadeIn {
@@ -76,7 +87,7 @@
       font-size: 2rem;
       font-weight: 700;
       letter-spacing: 0.04em;
-      text-shadow: 0 2px 8px #ffe4ec;
+      text-shadow: 0 2px 8px #C8E6C9;
     }
 
     .form-group {
@@ -108,7 +119,7 @@
 
     input:focus {
       border-color: var(--input-focus);
-      box-shadow: 0 0 0 3px #ffe4ec;
+      box-shadow: 0 0 0 3px #C8E6C9;
       background: #fff;
     }
 
@@ -132,8 +143,8 @@
     }
 
     button:hover:not(:disabled), .signup-button:hover {
-      background: linear-gradient(90deg, #ff69b4 0%, #ffb6c1 100%);
-      box-shadow: 0 4px 18px 0 rgba(255,182,193,0.25);
+      background: linear-gradient(90deg, #2E7D32 0%, #A5D6B5 100%);
+      box-shadow: 0 4px 18px 0 rgba(46,125,50,0.18);
       transform: translateY(-2px) scale(1.02);
     }
     
@@ -150,17 +161,17 @@
 
     .signup-button {
       margin-top: 1.5rem;
-      background: linear-gradient(90deg, #ffe4ec 0%, #ffb6c1 100%);
+      background: linear-gradient(90deg, #E3F2ED 0%, #A5D6B5 100%);
       color: var(--secondary-color);
-      border: 1.5px solid #ffb6c1;
+      border: 1.5px solid #A5D6B5;
       font-weight: 700;
       box-shadow: none;
       transition: background 0.25s, color 0.25s, border 0.25s;
     }
     .signup-button:hover {
-      background: linear-gradient(90deg, #ffb6c1 0%, #ffe4ec 100%);
+      background: linear-gradient(90deg, #A5D6B5 0%, #E3F2ED 100%);
       color: #fff;
-      border: 1.5px solid #ff69b4;
+      border: 1.5px solid #2E7D32;
     }
 
     .back-link {
@@ -176,7 +187,7 @@
 
     .back-link:hover {
       text-decoration: underline;
-      color: var(--color-pink-dark);
+      color: var(--color-green-dark);
     }
 
     /* 言語選択コンポーネントのスタイル */
@@ -189,14 +200,14 @@
       backdrop-filter: blur(10px);
       border-radius: 14px;
       padding: 13px 18px;
-      box-shadow: 0 4px 24px rgba(255, 182, 193, 0.18);
-      border: 1.5px solid #ffe4ec;
+      box-shadow: 0 4px 24px rgba(46, 125, 50, 0.13);
+      border: 1.5px solid #C8E6C9;
       transition: all 0.3s cubic-bezier(.4,2,.6,1);
     }
 
     .language-selector:hover {
       transform: translateY(-2px) scale(1.03);
-      box-shadow: 0 8px 32px rgba(255, 182, 193, 0.22);
+      box-shadow: 0 8px 32px rgba(46, 125, 50, 0.18);
     }
 
     .language-selector-container {
@@ -226,7 +237,7 @@
 
     .language-select {
       padding: 7px 14px;
-      border: 2px solid #ffb6c1;
+      border: 2px solid #A5D6B5;
       border-radius: 9px;
       background: #fff;
       font-size: 15px;
@@ -240,21 +251,21 @@
 
     .language-select:focus {
       border-color: var(--secondary-color);
-      box-shadow: 0 0 0 3px #ffe4ec;
+      box-shadow: 0 0 0 3px #C8E6C9;
     }
 
     .language-select:hover {
       border-color: var(--secondary-color);
-      background: #fff7fa;
+      background: #f7faf8;
     }
 
-    /* スクロールバーもピンク系で */
+    /* スクロールバーも緑系で */
     ::-webkit-scrollbar {
       width: 8px;
-      background: #ffe4ec;
+      background: #C8E6C9;
     }
     ::-webkit-scrollbar-thumb {
-      background: #ffb6c1;
+      background: #A5D6B5;
       border-radius: 8px;
     }
 

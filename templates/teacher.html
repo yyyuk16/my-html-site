@@ -1,20 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AI先生チャット</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>body{background:linear-gradient(135deg,#E8F5E9 0%,#C8E6C9 100%);}</style>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="chat.css">
+  
+  <style>
+    /* 背景を統一 */
+    body {
+        background: 
+            linear-gradient(rgba(67,160,71,0.15), rgba(67,160,71,0.25)),
+            url('./phote/S__8994818.jpg') center/cover no-repeat,
+            var(--background-color, #f7fafd);
+        background-attachment: fixed;
+    }
+  </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
-  <div class="bg-white w-full max-w-2xl h-[90vh] rounded-[22px] shadow-lg border border-[#E8F5E9] flex flex-col">
-    <div class="text-white p-4 rounded-t-[22px]" style="background:linear-gradient(135deg,#A5D6A7 0%,#2E7D32 100%);">
-      <h1 class="text-lg font-bold">👨‍⚕️ AI先生チャット</h1>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2>👨‍⚕️ AI先生チャット</h2>
     </div>
-    <div id="chatContainer" class="flex-grow p-4 overflow-y-auto space-y-3 bg-white/95"></div>
-    <div class="p-4 rounded-b-[22px] flex space-x-2" style="background:linear-gradient(120deg,#E8F5E9 0%,#A5D6A7 100%);">
-      <input id="userInput" class="flex-grow p-2 border border-[#C8E6C9] rounded-[10px] outline-none" placeholder="健康について何でもお聞きください...">
-      <button id="sendButton" class="text-white px-4 py-2 rounded-[10px] font-semibold shadow-md" style="background:linear-gradient(135deg,#A5D6A7 0%,#2E7D32 100%);">送信</button>
+
+    <div id="chatContainer" class="chat-messages"></div>
+
+    <div class="input-container">
+      <input type="text" id="userInput" placeholder="健康について何でもお聞きください..." autocomplete="off" />
+      <button id="sendButton">送信</button>
+      <button onclick="history.back()" class="back-btn">← 戻る</button>
     </div>
   </div>
 
@@ -26,20 +41,57 @@
     const sendButton = document.getElementById("sendButton");
 
     function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+    
     function appendMessage(who, text){
-      const w=document.createElement("div"); w.classList.add("flex");
-      if(who==="あなた"){ w.classList.add("justify-end"); w.innerHTML=`<div class="text-white p-3 rounded-[16px] max-w-[80%]" style="background:linear-gradient(135deg,#A5D6A7 0%,#2E7D32 100%)">${escapeHtml(text)}</div>`; }
-      else { w.innerHTML=`<div class="bg-white p-3 rounded-[16px] max-w-[80%] border border-[#E8F5E9]">
-        <div class="flex items-center space-x-2 mb-2"><span class="text-2xl">👨‍⚕️</span><span class="font-semibold text-[#43A047]">AI先生</span></div>
-        <p class="text-[#1A1A1A] whitespace-pre-wrap">${escapeHtml(text)}</p></div>`; }
-      chatContainer.appendChild(w); chatContainer.scrollTop=chatContainer.scrollHeight;
+      const messageDiv = document.createElement("div");
+      messageDiv.className = "message";
+      
+      if(who === "あなた"){
+        messageDiv.className += " user-message";
+        messageDiv.innerHTML = `<div class="message-content">${escapeHtml(text)}</div>`;
+      } else {
+        messageDiv.className += " ai-message";
+        messageDiv.innerHTML = `
+          <div class="message-content">
+            <div class="ai-header">
+              <span class="ai-icon">👨‍⚕️</span>
+              <span class="ai-name">AI先生</span>
+            </div>
+            <div class="ai-text">${escapeHtml(text)}</div>
+          </div>
+        `;
+      }
+      
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
     }
-    function loading(){ const id="loading-"+Date.now(); const w=document.createElement("div"); w.id=id; w.classList.add("flex");
-      w.innerHTML=`<div class="bg-white p-3 rounded-[16px] max-w-[80%] border border-[#E8F5E9]">
-        <div class="flex items-center space-x-2 mb-2"><span class="text-2xl">👨‍⚕️</span><span class="font-semibold text-[#43A047]">AI先生</span></div>
-        <div class="flex items-center space-x-2"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-[#43A047]"></div><span class="text-[#666]">考え中...</span></div></div>`;
-      chatContainer.appendChild(w); chatContainer.scrollTop=chatContainer.scrollHeight; return id; }
-    function stopLoading(id){ const el=document.getElementById(id); if(el) el.remove(); }
+    
+    function loading(){ 
+      const id = "loading-" + Date.now(); 
+      const messageDiv = document.createElement("div"); 
+      messageDiv.id = id; 
+      messageDiv.className = "message ai-message";
+      messageDiv.innerHTML = `
+        <div class="message-content">
+          <div class="ai-header">
+            <span class="ai-icon">👨‍⚕️</span>
+            <span class="ai-name">AI先生</span>
+          </div>
+          <div class="loading-indicator">
+            <div class="spinner"></div>
+            <span>考え中...</span>
+          </div>
+        </div>
+      `;
+      chatContainer.appendChild(messageDiv); 
+      chatContainer.scrollTop = chatContainer.scrollHeight; 
+      return id; 
+    }
+    
+    function stopLoading(id){ 
+      const el = document.getElementById(id); 
+      if(el) el.remove(); 
+    }
 
     async function send(){
       const msg=(userInput.value||"").trim(); if(!msg) return;
@@ -52,6 +104,13 @@
         appendMessage("AI先生", data?.reply ?? "うまく応答できませんでした。");
       }catch(e){ stopLoading(id); appendMessage("AI先生","通信に問題が発生しました。時間をおいて再度お試しください。"); }
     }
-    window.addEventListener("DOMContentLoaded",()=>{ appendMessage("AI先生","こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。"); userInput.addEventListener("keypress",e=>{if(e.key==="Enter")send()}); document.getElementById("sendButton").addEventListener("click",send); userInput.focus(); });
+    window.addEventListener("DOMContentLoaded", () => {
+      appendMessage("AI先生", "こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。");
+      userInput.addEventListener("keypress", e => {
+        if(e.key === "Enter") send();
+      });
+      document.getElementById("sendButton").addEventListener("click", send);
+      userInput.focus();
+    });
   </script>
 </body></html>

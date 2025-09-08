@@ -12,8 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <!-- 翻訳機能 -->
-    <script src="translation.js"></script>
+ 
 </head>
 <body>
   <div class="container">
@@ -52,6 +51,7 @@
     <div style="text-align:center;margin:32px 0;">
       <button id="startQuizBtn" style="font-size:1.2em;padding:12px 32px;border-radius:8px;background:#1976d2;color:#fff;border:none;cursor:pointer;">クイズを始める</button>
     </div>
+    <!-- APIキーUIは不要（Vercelの /api/chat を使用） -->
   </div>
 </div>
 
@@ -73,69 +73,40 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
-const HF_API_KEY = "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"; // Hugging FaceのAPIトークン
-const HF_API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium";
+// Vercelの同一ドメイン関数 /api/chat を使用（teacher.html と同様）
+const OPENAI_ENDPOINT = "/api/quiz";
 
 async function fetchQuizQuestions() {
-  const prompt = `
-あなたは医療分野のクイズ作成AIです。結核に関する4択クイズを日本語で5問ランダムに作成してください。
-各問題は以下の形式で有効なJSON配列として出力してください：
-
+  try {
+    const userPrompt = `結核患者向けの正しい知識を確認する4択クイズを日本語で5問作成してください。
+難易度はやさしめ。症状・感染予防・受診目安・治療・服薬アドヒアランスなどをバランスよく含めてください。
+以下の厳密なJSON配列のみで出力してください（余計な説明は禁止）。
 [
   {
-    "question": "問題文",
-    "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
-    "answer": "正解の選択肢",
-    "explanation": "解説文"
+    "question": "質問文（35〜80文字）",
+    "choices": ["選択肢A","選択肢B","選択肢C","選択肢D"],
+    "answer": "正解の選択肢（choicesの中の文字列をそのまま）",
+    "explanation": "患者向けの簡潔な解説（80文字以内）"
   }
-]
-  `;
+]`;
 
-  try {
-    const res = await fetch(HF_API_URL, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${HF_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        inputs: prompt,
-        parameters: {
-          max_new_tokens: 1200,   // 出力が途中で切れないように長め
-          temperature: 0.7,       // ランダム性（小さめにすると真面目な回答になりやすい）
-        }
-      })
+    const r = await fetch(OPENAI_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userPrompt })
     });
-
-    if (!res.ok) {
-      throw new Error(`APIエラー: ${res.status} - ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    console.log("APIレスポンス:", data);
-
-    // Hugging Face の返答からテキストを抽出
-    let text = "";
-    if (Array.isArray(data) && data[0]?.generated_text) {
-      text = data[0].generated_text;
-    } else if (data.generated_text) {
-      text = data.generated_text;
-    }
-
-    // JSON部分だけを抽出
-    const jsonStart = text.indexOf("[");
-    const jsonEnd = text.lastIndexOf("]");
-    if (jsonStart !== -1 && jsonEnd !== -1) {
-      text = text.substring(jsonStart, jsonEnd + 1);
-    }
-
-    // パース
+    let data = null;
+    try { data = await r.json(); } catch {}
+    if (!r.ok) throw new Error((data && (data.error?.message || data.error)) || `HTTP ${r.status}`);
+    let text = data?.reply || '';
+    const s = text.indexOf('[');
+    const e = text.lastIndexOf(']');
+    if (s !== -1 && e !== -1) text = text.substring(s, e + 1);
     const questions = JSON.parse(text);
-    console.log("パースされたクイズ:", questions);
+    if (!Array.isArray(questions) || questions.length < 5) throw new Error('不正なJSON');
     return questions;
   } catch (e) {
-    console.error("クイズ取得エラー:", e);
-    alert("クイズの取得に失敗しました。フォールバックを使用します。\nエラー: " + e.message);
+    console.error('Vercel経由取得エラー:', e);
     return [];
   }
 }
@@ -186,11 +157,11 @@ firebase.auth().onAuthStateChanged(user => {
 // クイズ開始
 document.getElementById("startQuizBtn").onclick = async function() {
   document.getElementById("quiz-area").innerHTML = "<div style='text-align:center;margin:32px;'>クイズを準備中...</div>";
-  
-  // APIを無効化してフォールバッククイズを直接使用
-  console.log("フォールバッククイズを使用します");
-  quizQuestions = fallbackQuestions;
-  
+  let questions = await fetchQuizQuestions();
+  if (!questions.length) {
+    questions = fallbackQuestions;
+  }
+  quizQuestions = questions;
   if (quizQuestions.length >= 5) {
     currentQuestion = 0;
     score = 0;
@@ -202,6 +173,12 @@ document.getElementById("startQuizBtn").onclick = async function() {
 };
 
 // 問題表示
+// グローバル（未定義の場合の保険）
+var quizQuestions = window.quizQuestions || [];
+var currentQuestion = window.currentQuestion || 0;
+var score = window.score || 0;
+var userAnswers = window.userAnswers || [];
+
 function showQuestion() {
   const q = quizQuestions[currentQuestion];
   let html = `

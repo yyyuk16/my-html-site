@@ -285,31 +285,20 @@
   </style>
 </head>
 <body>
+  <!-- 💚 ヘッダー -->
+  <header class="top-bar">
+    <div class="header-inner">
+      <strong class="site-title">結核治療サイト</strong>
+      <ul class="tab-menu">
+        <li><a href="ai.html">💬 チャット</a></li>
+        <li><a href="score.html">❓ Q&A</a></li>
+        <li><a href="movie.html" class="active">🎥 動画視聴</a></li>
+        <li><a href="setting.html">👤 設定</a></li>
+      </ul>
+    </div>
+  </header>
+
   <div class="container">
-    <div class="header">
-      <h1>医療情報管理アプリ</h1>
-    </div>
-    <div class="tab-container">
-      <div class="tab-header">
-        
-        <button class="tab-button" onclick="location.href='ai.html'">
-          <span class="tab-icon">💬</span>
-          <span class="tab-text">チャット</span>
-        </button>
-        <button class="tab-button" onclick="location.href='score.html'">
-          <span class="tab-icon">❓</span>
-          <span class="tab-text">Q&A</span>
-        </button>
-        <button class="tab-button active" onclick="location.href='movie.html'">
-          <span class="tab-icon">🎬</span>
-          <span class="tab-text">動画視聴</span>
-        </button>
-        <button class="tab-button" onclick="location.href='profile.html'">
-          <span class="tab-icon">👤</span>
-          <span class="tab-text">プロフィール</span>
-        </button>
-      </div>
-    </div>
 
     <div class="movie-section">
       <h2>結核について</h2>
@@ -1524,3 +1513,14 @@
         setTimeout(() => showCVideo(0), 200);
     }
 </script>
+
+  <!-- フッター -->
+  <footer class="footer container">
+    <small>
+      <a href="#">利用規約</a>
+      <a href="#">プライバシーポリシー</a><br>
+      &copy; スマート医療ポータル
+    </small>
+  </footer>
+</body>
+</html>

@@ -28,12 +28,24 @@ async function sendMessage() {
       body: JSON.stringify({ message: text }),
     });
 
-    const data = await res.json();
-    if (data.ok) {
-      addMessage("ai", "👨‍🏫 AI先生: " + data.reply);
-    } else {
-      addMessage("ai", "⚠️ エラー: " + (data.error || "不明なエラー"));
+    if (!res.ok) {
+      const detailText = await res.text().catch(() => "");
+      addMessage("ai", `⚠️ エラー(${res.status}): ${detailText || "サーバーからエラー応答"}`);
+      return;
     }
+
+    const data = await res.json().catch(() => ({}));
+    const reply = data?.reply ?? "";
+    if (reply) {
+      addMessage("ai", "👨‍🏫 AI先生: " + reply);
+      return;
+    }
+    // 互換性: 一部バックエンドが {ok:true, reply:"..."} 以外の形でも落ちないように
+    if (data?.ok && data?.reply) {
+      addMessage("ai", "👨‍🏫 AI先生: " + data.reply);
+      return;
+    }
+    addMessage("ai", "⚠️ エラー: " + (data?.error || data?.detail || "不明なエラー"));
   } catch (err) {
     addMessage("ai", "⚠️ 通信エラー: " + err.message);
   }
