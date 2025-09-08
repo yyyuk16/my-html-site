@@ -448,12 +448,14 @@
   <script>
     // Firebaseの設定
     const firebaseConfig = {
-        apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+        apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
         authDomain: "web01-2484d.firebaseapp.com",
+        databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
         projectId: "web01-2484d",
-        storageBucket: "web01-2484d.appspot.com",
+        storageBucket: "web01-2484d.firebasestorage.app",
         messagingSenderId: "90159472898",
-        appId: "1:90159472898:web:261ec71f9919611011e21b"
+        appId: "1:90159472898:web:261ec71f9919611011e21b",
+        measurementId: "G-9TGR07ZSY9"
     };
     firebase.initializeApp(firebaseConfig);
 
@@ -495,13 +497,22 @@
         const scores = [];
         snapshot.forEach(doc => {
           const data = doc.data();
-          scores.push({
-            ...data,
+          // allq&a.htmlで保存されるデータ構造に合わせて変換
+          const score = {
             id: doc.id,
-            quizType: 'ai'
-          });
+            quizType: 'ai',
+            score: data.score || 0,
+            total: data.total || 10,
+            correct: data.score || 0,
+            accuracy: data.total ? ((data.score / data.total) * 100).toFixed(1) : 0,
+            timestamp: data.createdAt || data.timestamp,
+            userName: data.userName || '匿名',
+            userEmail: data.userEmail || '',
+            category: '結核クイズ'
+          };
+          scores.push(score);
         });
-        // クライアント側でソート
+        // クライアント側でソート（createdAtで降順）
         scores.sort((a, b) => {
           const ta = a.timestamp && typeof a.timestamp.toDate === "function" 
             ? a.timestamp.toDate() 
@@ -594,13 +605,18 @@
         return ta - tb;
       });
       const labels = sortedScores.map(score => {
-        let d = score.timestamp && typeof score.timestamp.toDate === "function"
-          ? score.timestamp.toDate()
-          : new Date(score.timestamp);
+        let d;
+        if (score.timestamp && typeof score.timestamp.toDate === "function") {
+          d = score.timestamp.toDate();
+        } else if (score.timestamp) {
+          d = new Date(score.timestamp);
+        } else {
+          d = new Date(); // フォールバック
+        }
         return d.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
       });
       const accuracyData = sortedScores.map(score => parseFloat(score.accuracy) || 0);
-      const correctData = sortedScores.map(score => score.correct || 0);
+      const correctData = sortedScores.map(score => score.correct || score.score || 0);
 
       movieScoreChart = new Chart(ctx, {
         type: 'line',
@@ -832,9 +848,14 @@
       if (!scores || scores.length === 0) return;
       // 学習継続日数を計算
       const uniqueDates = [...new Set(scores.map(score => {
-        const date = score.timestamp && typeof score.timestamp.toDate === "function" 
-          ? score.timestamp.toDate() 
-          : new Date(score.timestamp);
+        let date;
+        if (score.timestamp && typeof score.timestamp.toDate === "function") {
+          date = score.timestamp.toDate();
+        } else if (score.timestamp) {
+          date = new Date(score.timestamp);
+        } else {
+          date = new Date(); // フォールバック
+        }
         return date.toDateString();
       }))];
       const learningDays = uniqueDates.length;
@@ -919,8 +940,10 @@
         let dateObj;
         if (score.timestamp && typeof score.timestamp.toDate === 'function') {
           dateObj = score.timestamp.toDate();
-        } else {
+        } else if (score.timestamp) {
           dateObj = new Date(score.timestamp);
+        } else {
+          dateObj = new Date(); // フォールバック
         }
         const formattedDate = dateObj.toLocaleString('ja-JP');
         const rank = getRank(parseFloat(score.accuracy) || 0);
