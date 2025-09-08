@@ -93,12 +93,18 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    // 🔑 あなたの Firebase 設定をここに
+    // 🔑 Firebase 設定（storageBucket 修正版）
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
+      apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+      authDomain: "web01-2484d.firebaseapp.com",
+      databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.appspot.com",   // ← 修正済み
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b",
+      measurementId: "G-9TGR07ZSY9"
     };
+
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
@@ -106,137 +112,136 @@
   </script>
 
   <script>
-  let currentIndex = 0;
-  let score = 0;
-  let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let questions = [];
 
-  async function fetchQuizQuestions() {
-    try {
-      const res = await fetch("/api/quiz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          topic: "結核の患者教育",
-          count: 10,
-          difficulty: "easy",
-          language: "ja"
-        }),
-      });
-
-      let data;
+    async function fetchQuizQuestions() {
       try {
-        data = await res.json();
-      } catch (e) {
-        const text = await res.text();
-        console.error("非JSONレス:", text);
-        alert("サーバーエラー: " + text);
-        return null;
-      }
-
-      console.log("クイズデータ:", data);
-      return data.questions;
-    } catch (err) {
-      console.error("fetchQuizQuestions エラー:", err);
-      alert("サーバー通信でエラーが発生しました");
-      return null;
-    }
-  }
-
-  function renderQuestion() {
-    const container = document.getElementById("quiz");
-    container.innerHTML = "";
-
-    if (currentIndex >= questions.length) {
-      container.innerHTML = `<h2>クイズ終了！</h2>
-        <p>あなたのスコア: <strong>${score} / ${questions.length}</strong></p>
-        <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-          <button id="retryBtn">もう一度挑戦する</button>
-          <button id="finishBtn" style="background:#9e9e9e;">おわりにする</button>
-        </div>`;
-
-      // ✅ Firestoreにスコア保存
-      db.collection("ai_quiz_scores").add({
-        score: score,
-        total: questions.length,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        console.log("スコア保存成功");
-      }).catch(err => {
-        console.error("スコア保存失敗:", err);
-      });
-
-      // ボタンの動作
-      const retryBtn = document.getElementById("retryBtn");
-      const finishBtn = document.getElementById("finishBtn");
-      if (retryBtn) {
-        retryBtn.addEventListener("click", async () => {
-          score = 0;
-          currentIndex = 0;
-          questions = await fetchQuizQuestions();
-          if (questions) renderQuestion();
+        const res = await fetch("/api/quiz", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic: "結核の患者教育",
+            count: 10,
+            difficulty: "easy",
+            language: "ja"
+          }),
         });
-      }
-      if (finishBtn) {
-        finishBtn.addEventListener("click", () => {
-          // HOME相当のページに戻す（必要に応じて変更）
-          window.location.href = "choise.html";
-        });
-      }
 
-      return;
-    }
-
-    const q = questions[currentIndex];
-    const qDiv = document.createElement("div");
-
-    qDiv.innerHTML = `
-      <div class="question">Q${currentIndex + 1}: ${q.question}</div>
-      <div class="choices">
-        ${q.choices.map(c => `<button>${c}</button>`).join("")}
-      </div>
-      <div class="explanation">
-        <strong>解説:</strong> ${q.explanation}
-      </div>
-    `;
-
-    qDiv.querySelectorAll(".choices button").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const expl = qDiv.querySelector(".explanation");
-        expl.style.display = "block";
-
-        if (btn.textContent === q.answer) {
-          btn.classList.add("correct");
-          score++;
-        } else {
-          btn.classList.add("wrong");
+        let data;
+        try {
+          data = await res.json();
+        } catch (e) {
+          const text = await res.text();
+          console.error("非JSONレス:", text);
+          alert("サーバーエラー: " + text);
+          return null;
         }
 
-        // ✅ 次へボタンを表示
-        const nextBtn = document.createElement("button");
-        nextBtn.textContent = currentIndex + 1 === questions.length ? "結果を見る" : "次へ";
-        nextBtn.addEventListener("click", () => {
-          currentIndex++;
-          renderQuestion();
-        });
-        qDiv.appendChild(nextBtn);
+        console.log("クイズデータ:", data);
+        return data.questions;
+      } catch (err) {
+        console.error("fetchQuizQuestions エラー:", err);
+        alert("サーバー通信でエラーが発生しました");
+        return null;
+      }
+    }
 
-        // 一度回答したら他の選択肢は無効化
-        qDiv.querySelectorAll(".choices button").forEach(b => b.disabled = true);
+    function renderQuestion() {
+      const container = document.getElementById("quiz");
+      container.innerHTML = "";
+
+      if (currentIndex >= questions.length) {
+        container.innerHTML = `<h2>クイズ終了！</h2>
+          <p>あなたのスコア: <strong>${score} / ${questions.length}</strong></p>
+          <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <button id="retryBtn">もう一度挑戦する</button>
+            <button id="finishBtn" style="background:#9e9e9e;">おわりにする</button>
+          </div>`;
+
+        // ✅ Firestoreにスコア保存
+        db.collection("ai_quiz_scores").add({
+          score: score,
+          total: questions.length,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+          console.log("スコア保存成功");
+        }).catch(err => {
+          console.error("スコア保存失敗:", err);
+        });
+
+        // ボタンの動作
+        const retryBtn = document.getElementById("retryBtn");
+        const finishBtn = document.getElementById("finishBtn");
+        if (retryBtn) {
+          retryBtn.addEventListener("click", async () => {
+            score = 0;
+            currentIndex = 0;
+            questions = await fetchQuizQuestions();
+            if (questions) renderQuestion();
+          });
+        }
+        if (finishBtn) {
+          finishBtn.addEventListener("click", () => {
+            window.location.href = "score.html";
+          });
+        }
+
+        return;
+      }
+
+      const q = questions[currentIndex];
+      const qDiv = document.createElement("div");
+
+      qDiv.innerHTML = `
+        <div class="question">Q${currentIndex + 1}: ${q.question}</div>
+        <div class="choices">
+          ${q.choices.map(c => `<button>${c}</button>`).join("")}
+        </div>
+        <div class="explanation">
+          <strong>解説:</strong> ${q.explanation}
+        </div>
+      `;
+
+      qDiv.querySelectorAll(".choices button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const expl = qDiv.querySelector(".explanation");
+          expl.style.display = "block";
+
+          if (btn.textContent === q.answer) {
+            btn.classList.add("correct");
+            score++;
+          } else {
+            btn.classList.add("wrong");
+          }
+
+          // ✅ 次へボタンを表示
+          const nextBtn = document.createElement("button");
+          nextBtn.textContent = currentIndex + 1 === questions.length ? "結果を見る" : "次へ";
+          nextBtn.addEventListener("click", () => {
+            currentIndex++;
+            renderQuestion();
+          });
+          qDiv.appendChild(nextBtn);
+
+          // 一度回答したら他の選択肢は無効化
+          qDiv.querySelectorAll(".choices button").forEach(b => b.disabled = true);
+        });
+      });
+
+      container.appendChild(qDiv);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const startBtn = document.getElementById("startBtn");
+      startBtn.addEventListener("click", async () => {
+        score = 0;
+        currentIndex = 0;
+        questions = await fetchQuizQuestions();
+        if (questions) renderQuestion();
       });
     });
-
-    container.appendChild(qDiv);
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const startBtn = document.getElementById("startBtn");
-    startBtn.addEventListener("click", async () => {
-      score = 0;
-      currentIndex = 0;
-      questions = await fetchQuizQuestions();
-      if (questions) renderQuestion();
-    });
-  });
   </script>
 </body>
 </html>
