@@ -360,8 +360,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <!-- 翻訳機能 -->
-    <script src="translation.js"></script>
+    
+    <!-- 多言語対応 -->
+    <script src="multilang.js"></script>
 </head>
 <body>
   <!-- 💚 ヘッダー -->
@@ -383,7 +384,7 @@
 
     <div class="stats-container">
       <div class="stats-card">
-        <h2 data-translate="クイズ成績推移">📊 クイズ成績推移</h2>
+        <h2 data-translate="quiz_progress">📊 クイズ成績推移</h2>
         <div class="chart-container">
           <canvas id="movieScoreChart"></canvas>
         </div>
@@ -392,21 +393,21 @@
 
     <!-- クイズ開始ボタン -->
     <div style="text-align: center; margin: 30px 0;">
-      <button onclick="location.href='allq&a.html'" class="quiz-btn">
+      <button onclick="location.href='allq&a.html'" class="quiz-btn" data-translate="start_quiz">
         🎯 クイズを開始する
       </button>
-      <p style="margin-top: 15px; color: #888; font-size: 0.95em;">
+      <p style="margin-top: 15px; color: #888; font-size: 0.95em;" data-translate="start_learning">
         新しいクイズに挑戦して、成績を更新しましょう！
       </p>
     </div>
 
     <!-- 学習進捗セクション -->
     <div class="progress-section">
-      <h2 data-translate="学習進捗">学習進捗</h2>
+      <h2 data-translate="learning_progress">学習進捗</h2>
       <div class="progress-grid">
         <div class="progress-card">
           <div class="progress-icon">📚</div>
-          <h3>学習継続日数</h3>
+          <h3 data-translate="learning_days">学習継続日数</h3>
           <div class="progress-value" id="learning-days">0日</div>
           <div class="progress-bar">
             <div class="progress-fill" id="learning-days-bar"></div>
@@ -414,7 +415,7 @@
         </div>
         <div class="progress-card">
           <div class="progress-icon">🎯</div>
-          <h3>目標達成率</h3>
+          <h3 data-translate="goal_achievement">目標達成率</h3>
           <div class="progress-value" id="goal-achievement">0%</div>
           <div class="progress-bar">
             <div class="progress-fill" id="goal-achievement-bar"></div>
@@ -422,7 +423,7 @@
         </div>
         <div class="progress-card">
           <div class="progress-icon">🔥</div>
-          <h3>連続正解</h3>
+          <h3 data-translate="streak">連続正解</h3>
           <div class="progress-value" id="streak">0問</div>
           <div class="progress-bar">
             <div class="progress-fill" id="streak-bar"></div>
@@ -430,7 +431,7 @@
         </div>
         <div class="progress-card">
           <div class="progress-icon">⭐</div>
-          <h3>レベル</h3>
+          <h3 data-translate="level">レベル</h3>
           <div class="progress-value" id="level">初心者</div>
           <div class="progress-bar">
             <div class="progress-fill" id="level-bar"></div>
@@ -441,7 +442,7 @@
 
     <!-- スコア表示エリア -->
     <div class="scores-section">
-      <h2 data-translate="クイズ履歴">クイズ履歴</h2>
+      <h2 data-translate="quiz_history">クイズ履歴</h2>
       <div id="scores-container"></div>
     </div>
   </div>

@@ -12,8 +12,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   
-  <!-- 翻訳機能 -->
-  <script src="translation.js"></script>
+  <!-- 多言語対応 -->
+  <script src="multilang.js"></script>
   
   <!-- クイズデータ -->
   <script src="quiz-data.js"></script>
@@ -301,17 +301,17 @@
   <div class="container">
 
     <div class="movie-section">
-      <h2>結核について</h2>
+      <h2 data-translate="about_tuberculosis">結核について</h2>
       <div class="movie-search-row">
-        <input type="text" id="movie-search-input" placeholder="キーワードで検索..." oninput="filterMovieButtons()" />
-        <button onclick="filterMovieButtons()">検索</button>
+        <input type="text" id="movie-search-input" placeholder="キーワードで検索..." oninput="filterMovieButtons()" data-translate="search_keyword" />
+        <button onclick="filterMovieButtons()" data-translate="search">検索</button>
       </div>
       <div class="movie-buttons" id="movie-buttons">
-        <button data-keywords="結核 とは 病気 感染" onclick="showInfo('about', this)">結核とは</button>
-        <button data-keywords="検査 方法 X線 喀痰 ツベルクリン IGRA" onclick="showInfo('test', this)">検査方法</button>
-        <button data-keywords="治療 方法 薬 服用 期間" onclick="showInfo('treatment', this)">治療方法</button>
-        <button data-keywords="感染 対象 免疫 高齢者 乳幼児 糖尿病" onclick="showInfo('target', this)">感染対象</button>
-        <button data-keywords="結核 なったら 受診 治療 咳エチケット マスク 換気" onclick="showInfo('if', this)">結核になったら</button>
+        <button data-keywords="結核 とは 病気 感染" onclick="showInfo('about', this)" data-translate="what_is_tb">結核とは</button>
+        <button data-keywords="検査 方法 X線 喀痰 ツベルクリン IGRA" onclick="showInfo('test', this)" data-translate="test_method">検査方法</button>
+        <button data-keywords="治療 方法 薬 服用 期間" onclick="showInfo('treatment', this)" data-translate="treatment_method">治療方法</button>
+        <button data-keywords="感染 対象 免疫 高齢者 乳幼児 糖尿病" onclick="showInfo('target', this)" data-translate="infection_target">感染対象</button>
+        <button data-keywords="結核 なったら 受診 治療 咳エチケット マスク 換気" onclick="showInfo('if', this)" data-translate="if_tb">結核になったら</button>
       </div>
       <div id="info-content"></div>
     </div>

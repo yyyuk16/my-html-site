@@ -11,6 +11,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- 多言語対応 -->
+    <script src="multilang.js"></script>
 </head>
 <body>
     <!-- 💚 ヘッダー -->
@@ -28,31 +31,31 @@
 
     <main class="container" style="max-width: 700px; margin: 0 auto; padding-top: 3rem; padding-bottom: 3rem;">
       <div class="setting-header" style="margin-bottom: 2.5rem; text-align:center;">
-        <h1 style="font-size:2.2rem; color:#2E7D32; font-weight:700; margin-bottom:0.5rem;">設定</h1>
+        <h1 style="font-size:2.2rem; color:#2E7D32; font-weight:700; margin-bottom:0.5rem;" data-translate="settings">設定</h1>
         <p class="subtitle" style="font-size:1.1rem; color:#4CAF50;">アカウント情報や使い方、お問い合わせはこちら</p>
       </div>
       <div class="setting-sections">
 
         <!-- アカウント -->
         <section class="setting-card">
-          <button class="setting-btn" style="width: 100%; padding: 1.2rem 0; font-size: 1.1rem; font-weight: 600;" onclick="window.location.href='profile.html'">アカウント</button>
+          <button class="setting-btn" style="width: 100%; padding: 1.2rem 0; font-size: 1.1rem; font-weight: 600;" onclick="window.location.href='profile.html'" data-translate="account_info">アカウント</button>
         </section>
 
         <!-- 使い方 -->
         <section class="setting-card">
-          <h2 class="setting-title">使い方</h2>
+          <h2 class="setting-title" data-translate="how_to_use">使い方</h2>
           <ul class="setting-list">
-            <li>・「AI先生」では24時間いつでも健康相談ができます。</li>
-            <li>・「リアルタイム」では医療スタッフと直接チャットが可能です。</li>
-            <li>・Q&Aや動画視聴もご活用ください。</li>
+            <li data-translate="ai_teacher_24h">・「AI先生」では24時間いつでも健康相談ができます。</li>
+            <li data-translate="realtime_chat_desc">・「リアルタイム」では医療スタッフと直接チャットが可能です。</li>
+            <li data-translate="use_qa_video">・Q&Aや動画視聴もご活用ください。</li>
           </ul>
         </section>
 
         <!-- お問い合わせ -->
         <section class="setting-card">
-          <h2 class="setting-title">お問い合わせ</h2>
+          <h2 class="setting-title" data-translate="contact">お問い合わせ</h2>
           <ul class="setting-list">
-            <li>ご質問やご要望がある場合は、下記メールアドレスまでご連絡ください。</li>
+            <li data-translate="contact_desc">ご質問やご要望がある場合は、下記メールアドレスまでご連絡ください。</li>
             <li><a href="mailto:info@tb-support.jp" style="color:#2E7D32;">info@tb-support.jp</a></li>
           </ul>
         </section>

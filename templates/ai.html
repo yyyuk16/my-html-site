@@ -7,10 +7,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="maintab.css">
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <!-- 多言語対応 -->
+  <script src="multilang.js"></script>
 </head>
 <body>
     <!-- 💚 ヘッダー -->
@@ -28,7 +31,7 @@
 
     <main class="container" style="max-width: 900px; margin: 0 auto; padding-top: 3rem; padding-bottom: 3rem;">
       <div class="chat-header" style="margin-bottom: 2.5rem;">
-        <h1 style="font-size:2.2rem; color:#2E7D32; font-weight:700; margin-bottom:0.5rem;">AIチャット選択</h1>
+        <h1 style="font-size:2.2rem; color:#2E7D32; font-weight:700; margin-bottom:0.5rem;" data-translate="title">AIチャット選択</h1>
         <p class="subtitle" style="font-size:1.1rem; color:#4CAF50;">AI先生またはリアルタイムチャットを選んでください</p>
       </div>
       <div class="ai-options">
@@ -37,9 +40,9 @@
             <div class="icon-wrapper ai-teacher-bg">
               <span class="ai-icon">👨‍⚕️</span>
             </div>
-            <h3 data-translate="AI先生">AI先生</h3>
-            <p data-translate="24時間いつでも返答可能です">24時間いつでも返答可能です</p>
-            <button class="start-chat-btn" data-translate="チャットを始める">チャットを始める</button>
+            <h3 data-translate="ai_teacher">AI先生</h3>
+            <p data-translate="ai_teacher_desc">24時間いつでも返答可能です</p>
+            <button class="start-chat-btn" data-translate="start_chat">チャットを始める</button>
           </div>
         </div>
         <div class="ai-card" onclick="startChat('real')">
@@ -47,9 +50,9 @@
             <div class="icon-wrapper ai-real-bg">
               <span class="ai-icon">💬</span>
             </div>
-            <h3 data-translate="リアルタイム">リアルタイム</h3>
-            <p data-translate="先生と会話ができます">先生と会話ができます</p>
-            <button class="start-chat-btn" data-translate="チャットを始める">チャットを始める</button>
+            <h3 data-translate="realtime">リアルタイム</h3>
+            <p data-translate="realtime_desc">先生と会話ができます</p>
+            <button class="start-chat-btn" data-translate="start_chat">チャットを始める</button>
           </div>
         </div>
       </div>
