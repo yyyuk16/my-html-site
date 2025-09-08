@@ -1,42 +1,30 @@
 // templates/api/quiz.js
-// Node ランタイム / CommonJS 版（プロジェクト相性◎）
 const OpenAI = require("openai");
 
 // Vercel 環境変数から読み込み
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-/**
- * 期待する body:
- * {
- *   "topic": "結核の患者教育",
- *   "count": 5,               // 問題数（1-10）
- *   "difficulty": "easy",     // "easy" | "normal" | "hard"
- *   "language": "ja"          // "ja" | "en" など
- * }
- *
- * レスポンス:
- * { "questions": [ {question, choices[], answer, explanation}, ... ] }
- */
 module.exports = async (req, res) => {
-  // CORSが必要なら以下を有効化（同一ドメインなら不要）
-  // res.setHeader("Access-Control-Allow-Origin", "*");
-  // res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  // res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  // if (req.method === "OPTIONS") return res.status(200).end();
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    // JSON body を安全にパース
+    let body = {};
+    try {
+      body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    } catch {
+      body = {};
+    }
+
     const {
       topic = "結核の患者向け基礎知識",
       count = 5,
       difficulty = "easy",
       language = "ja",
-    } = req.body || {};
+    } = body;
 
-    // サニタイズ
     const n = Math.min(Math.max(parseInt(count, 10) || 5, 1), 10);
 
     const system = `
@@ -64,7 +52,7 @@ module.exports = async (req, res) => {
     `.trim();
 
     const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o-mini", // 必要なら "gpt-4o-mini-2024-07-18"
       temperature: 0.6,
       messages: [
         { role: "system", content: system },
@@ -73,7 +61,6 @@ module.exports = async (req, res) => {
     });
 
     let content = completion.choices?.[0]?.message?.content || "";
-    // 回答の前後に余計な文が入った場合に配列だけ抜き出す
     const s = content.indexOf("[");
     const e = content.lastIndexOf("]");
     if (s !== -1 && e !== -1) content = content.slice(s, e + 1);
@@ -82,11 +69,9 @@ module.exports = async (req, res) => {
     try {
       questions = JSON.parse(content);
     } catch (err) {
-      // JSONとして正しくない場合はエラー
-      throw new Error("Model returned non-JSON output");
+      throw new Error("Model returned non-JSON output: " + content);
     }
 
-    // 最低限のバリデーション＋整形
     const normalized = (Array.isArray(questions) ? questions : [])
       .slice(0, n)
       .map((q) => {
@@ -102,7 +87,6 @@ module.exports = async (req, res) => {
         };
       });
 
-    // 最低1問ないときはエラー
     if (!normalized.length) {
       throw new Error("No valid questions");
     }
