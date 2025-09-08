@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="クイズ結果">クイズ結果</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="maintab.css">
+    <style>
+      body {
+        background: #fff !important;
+        min-height: 100vh;
+        font-family: 'Noto Sans JP', 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+        color: #222;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 40px auto 0 auto;
+        padding: 0 16px 40px 16px;
+      }
+
+      .stats-container {
+        margin-bottom: 32px;
+      }
+      .stats-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 4px 24px rgba(60, 72, 88, 0.08);
+        padding: 32px 24px 24px 24px;
+        border: 1px solid #e3e8ee;
+      }
+      .stats-card h2 {
+        text-align: center;
+        font-size: 1.5em;
+        font-weight: 600;
+        color: #4f4f4f;
+        margin-bottom: 24px;
+        letter-spacing: 0.05em;
+      }
+      .chart-container {
+        background: #f7fafd;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(60, 72, 88, 0.06);
+        border: 1px solid #e3e8ee;
+        margin: 16px 0;
+        min-height: 340px;
+      }
+      .stats-summary {
+        margin-top: 18px;
+      }
+      .stats-summary > div {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+      }
+      .stats-summary .stat-box {
+        background: #f8fafc;
+        border-radius: 10px;
+        border: 1px solid #e3e8ee;
+        padding: 18px 10px;
+        text-align: center;
+      }
+      .stats-summary .stat-title {
+        color: #6c63ff;
+        font-size: 1em;
+        margin-bottom: 6px;
+        font-weight: 500;
+      }
+      .stats-summary .stat-value {
+        font-size: 1.7em;
+        font-weight: bold;
+        color: #222;
+      }
+
+      .quiz-btn {
+        background: linear-gradient(90deg, #6c63ff 0%, #48c6ef 100%);
+        color: #fff;
+        border: none;
+        padding: 15px 36px;
+        font-size: 1.15em;
+        border-radius: 28px;
+        cursor: pointer;
+        box-shadow: 0 2px 12px rgba(76, 110, 245, 0.13);
+        font-weight: bold;
+        transition: all 0.2s;
+      }
+      .quiz-btn:hover {
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: 0 6px 24px rgba(76, 110, 245, 0.18);
+        background: linear-gradient(90deg, #48c6ef 0%, #6c63ff 100%);
+      }
+
+      /* Progress Section */
+      .progress-section {
+        margin: 40px 0;
+        padding: 28px 18px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 4px 24px rgba(60, 72, 88, 0.08);
+        color: #333;
+        border: 1px solid #e3e8ee;
+      }
+      .progress-section h2 {
+        text-align: center;
+        margin-bottom: 24px;
+        font-size: 1.3em;
+        font-weight: 600;
+        color: #4f4f4f;
+        letter-spacing: 0.04em;
+      }
+      .progress-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 18px;
+        margin-top: 10px;
+      }
+      .progress-card {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 18px 10px;
+        text-align: center;
+        border: 1px solid #e3e8ee;
+        transition: box-shadow 0.2s, transform 0.2s;
+      }
+      .progress-card:hover {
+        box-shadow: 0 6px 18px rgba(76, 110, 245, 0.10);
+        transform: translateY(-2px) scale(1.02);
+      }
+      .progress-icon {
+        font-size: 2.2em;
+        margin-bottom: 10px;
+        display: block;
+      }
+      .progress-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 1em;
+        font-weight: 500;
+        color: #6c63ff;
+        opacity: 0.95;
+      }
+      .progress-value {
+        font-size: 1.7em;
+        font-weight: bold;
+        margin-bottom: 12px;
+        color: #222;
+      }
+      .progress-bar {
+        width: 100%;
+        height: 7px;
+        background: #e3e8ee;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6c63ff, #48c6ef);
+        border-radius: 4px;
+        transition: width 1s cubic-bezier(.4,2,.6,1), background-color 0.5s;
+        width: 0%;
+      }
+
+      /* Scores Section */
+      .scores-section {
+        margin: 40px 0;
+        padding: 28px 18px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 4px 24px rgba(60, 72, 88, 0.08);
+        border: 1px solid #e3e8ee;
+      }
+      .scores-section h2 {
+        text-align: center;
+        margin-bottom: 24px;
+        color: #4f4f4f;
+        font-size: 1.3em;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+
+      /* Score Card */
+      .score-card {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 18px 10px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 10px rgba(60, 72, 88, 0.06);
+        border: 1px solid #e3e8ee;
+        transition: box-shadow 0.2s, transform 0.2s;
+        position: relative;
+        overflow: hidden;
+      }
+      .score-card:hover {
+        box-shadow: 0 6px 18px rgba(76, 110, 245, 0.10);
+        transform: translateY(-2px) scale(1.02);
+      }
+      .score-card.best-score {
+        border: 2px solid #ffd700;
+        background: linear-gradient(135deg, #fffbe7 0%, #f8fafc 100%);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.13);
+      }
+      .score-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e3e8ee;
+      }
+      .score-card-date {
+        display: flex;
+        align-items: center;
+        color: #888;
+        font-size: 0.95em;
+      }
+      .date-icon {
+        margin-right: 7px;
+        font-size: 1.1em;
+      }
+      .score-card-rank {
+        display: flex;
+        gap: 8px;
+      }
+      .rank-badge {
+        padding: 5px 10px;
+        border-radius: 16px;
+        font-size: 0.85em;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #e3e8ee;
+        color: #6c63ff;
+      }
+      .rank-s { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #b8860b; }
+      .rank-a { background: linear-gradient(135deg, #c0c0c0, #e5e5e5); color: #666; }
+      .rank-b { background: linear-gradient(135deg, #cd7f32, #daa520); color: #8b4513; }
+      .rank-c { background: linear-gradient(135deg, #ff6b6b, #ff8e8e); color: #c41e3a; }
+      .rank-d { background: linear-gradient(135deg, #6c757d, #868e96); color: #495057; }
+      .score-card-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        align-items: center;
+      }
+      .score-card-main {
+        text-align: center;
+      }
+      .score-accuracy, .score-correct {
+        margin-bottom: 12px;
+      }
+      .accuracy-label, .correct-label {
+        display: block;
+        font-size: 0.9em;
+        color: #888;
+        margin-bottom: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .accuracy-value {
+        display: block;
+        font-size: 2em;
+        font-weight: bold;
+        color: #6c63ff;
+      }
+      .correct-value {
+        display: block;
+        font-size: 1.3em;
+        font-weight: bold;
+        color: #48c6ef;
+      }
+      .score-card-details {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 0;
+        background: #fff;
+        border-radius: 6px;
+      }
+      .detail-icon {
+        font-size: 1.1em;
+      }
+      .detail-label {
+        font-weight: 500;
+        color: #888;
+        min-width: 70px;
+      }
+      .detail-value {
+        font-weight: 600;
+        color: #333;
+      }
+      .best-score-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: linear-gradient(135deg, #ffd700, #ffed4e);
+        color: #b8860b;
+        padding: 7px 13px;
+        border-radius: 16px;
+        font-size: 0.85em;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.13);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+      .no-scores-message {
+        text-align: center;
+        padding: 50px 10px;
+        color: #888;
+      }
+      .no-scores-icon {
+        font-size: 3em;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+      .no-scores-message h3 {
+        margin: 0 0 10px 0;
+        color: #4f4f4f;
+        font-size: 1.2em;
+        font-weight: 500;
+      }
+      .no-scores-message p {
+        margin: 0;
+        font-size: 1em;
+        line-height: 1.6;
+      }
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 4px 24px 4px;
+        }
+        .progress-grid, .stats-summary > div {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+        .score-card-body {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .score-card-header {
+          flex-direction: column;
+          gap: 8px;
+          align-items: flex-start;
+        }
+        .progress-section, .scores-section, .stats-card {
+          padding: 14px 4px;
+          margin: 16px 0;
+        }
+      }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- 多言語対応 -->
+    <script src="multilang.js"></script>
+</head>
+<body>
+  <!-- 💚 ヘッダー -->
+  <header class="top-bar">
+    <div class="header-inner">
+      <strong class="site-title">結核治療サイト</strong>
+      <ul class="tab-menu">
+        <li><a href="ai.html">💬 チャット</a></li>
+        <li><a href="score.html" class="active">❓ Q&A</a></li>
+        <li><a href="movie.html">🎥 動画視聴</a></li>
+        <li><a href="setting.html">👤 設定</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- クイズのスコア表示とランク表示の画面 -->
+    <!-- クイズのスコアとランクをfirebaseのmovie_quiz_scoresから反映する画面 -->
+
+    <div class="stats-container">
+      <div class="stats-card">
+        <h2 data-translate="quiz_progress">📊 クイズ成績推移</h2>
+        <div class="chart-container">
+          <canvas id="movieScoreChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- クイズ開始ボタン -->
+    <div style="text-align: center; margin: 30px 0;">
+      <button onclick="location.href='allq&a.html'" class="quiz-btn" data-translate="start_quiz">
+        🎯 クイズを開始する
+      </button>
+      <p style="margin-top: 15px; color: #888; font-size: 0.95em;" data-translate="start_learning">
+        新しいクイズに挑戦して、成績を更新しましょう！
+      </p>
+    </div>
+
+    <!-- 学習進捗セクション -->
+    <div class="progress-section">
+      <h2 data-translate="learning_progress">学習進捗</h2>
+      <div class="progress-grid">
+        <div class="progress-card">
+          <div class="progress-icon">📚</div>
+          <h3 data-translate="learning_days">学習継続日数</h3>
+          <div class="progress-value" id="learning-days">0日</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="learning-days-bar"></div>
+          </div>
+        </div>
+        <div class="progress-card">
+          <div class="progress-icon">🎯</div>
+          <h3 data-translate="goal_achievement">目標達成率</h3>
+          <div class="progress-value" id="goal-achievement">0%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="goal-achievement-bar"></div>
+          </div>
+        </div>
+        <div class="progress-card">
+          <div class="progress-icon">🔥</div>
+          <h3 data-translate="streak">連続正解</h3>
+          <div class="progress-value" id="streak">0問</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="streak-bar"></div>
+          </div>
+        </div>
+        <div class="progress-card">
+          <div class="progress-icon">⭐</div>
+          <h3 data-translate="level">レベル</h3>
+          <div class="progress-value" id="level">初心者</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="level-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- スコア表示エリア -->
+    <div class="scores-section">
+      <h2 data-translate="quiz_history">クイズ履歴</h2>
+      <div id="scores-container"></div>
+    </div>
+  </div>
+  <script>
+    // Firebaseの設定
+    const firebaseConfig = {
+        apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+        authDomain: "web01-2484d.firebaseapp.com",
+        databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+        projectId: "web01-2484d",
+        storageBucket: "web01-2484d.firebasestorage.app",
+        messagingSenderId: "90159472898",
+        appId: "1:90159472898:web:261ec71f9919611011e21b",
+        measurementId: "G-9TGR07ZSY9"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    let movieScoreChart = null;
+
+    // 動画クイズスコアを取得
+    async function loadMovieScores(userId) {
+      try {
+        const db = firebase.firestore();
+        const snapshot = await db.collection('movie_quiz_scores')
+          .where('userId', '==', userId)
+          .orderBy('timestamp', 'desc')
+          .get();
+        
+        const scores = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          scores.push({
+            ...data,
+            id: doc.id,
+            quizType: 'movie'
+          });
+        });
+        
+        return scores;
+      } catch (e) {
+        console.error("動画クイズスコアの取得に失敗:", e);
+        return [];
+      }
+    }
+
+    // AIクイズスコアを取得
+    async function loadAIQuizScores(userId) {
+      try {
+        const db = firebase.firestore();
+        const snapshot = await db.collection('ai_quiz_scores')
+          .where('userId', '==', userId)
+          .get();
+        const scores = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          // allq&a.htmlで保存されるデータ構造に合わせて変換
+          const score = {
+            id: doc.id,
+            quizType: 'ai',
+            score: data.score || 0,
+            total: data.total || 10,
+            correct: data.score || 0,
+            accuracy: data.total ? ((data.score / data.total) * 100).toFixed(1) : 0,
+            timestamp: data.createdAt || data.timestamp,
+            userName: data.userName || '匿名',
+            userEmail: data.userEmail || '',
+            category: '結核クイズ'
+          };
+          scores.push(score);
+        });
+        // クライアント側でソート（createdAtで降順）
+        scores.sort((a, b) => {
+          const ta = a.timestamp && typeof a.timestamp.toDate === "function" 
+            ? a.timestamp.toDate() 
+            : new Date(a.timestamp);
+          const tb = b.timestamp && typeof b.timestamp.toDate === "function" 
+            ? b.timestamp.toDate() 
+            : new Date(b.timestamp);
+          return tb - ta; // 降順
+        });
+        return scores;
+      } catch (e) {
+        console.error("AIクイズスコアの取得に失敗:", e);
+        return [];
+      }
+    }
+
+    // AIクイズスコアのみを取得し、グラフとカードに反映
+    async function loadAIQuizScoresOnly(userId) {
+      try {
+        const aiScores = await loadAIQuizScores(userId);
+        if (aiScores.length === 0) {
+          updateMovieScoreChart([]);
+          renderMovieScores([]);
+          return;
+        }
+        updateMovieScoreChart(aiScores);
+        renderMovieScores(aiScores);
+        updateStatistics(aiScores);
+      } catch (e) {
+        const scoresContainer = document.getElementById('scores-container');
+        if (scoresContainer) {
+          scoresContainer.innerHTML = `
+            <div style="text-align: center; padding: 20px; color: #888;">
+              <p>AIクイズの結果を読み込めませんでした。</p>
+              <p>エラー: ${e.message}</p>
+              <p>しばらく待ってから再読み込みしてください。</p>
+            </div>
+          `;
+        }
+        updateMovieScoreChart([]);
+        renderMovieScores([]);
+      }
+    }
+
+    // 正答率からランクを判定（個別クイズのランク表示用）
+    function getRank(accuracy) {
+      if (accuracy === null || accuracy === undefined) return { label: 'N/A', class: 'rank-d' };
+      if (accuracy >= 90) return { label: 'S', class: 'rank-s' };
+      if (accuracy >= 80) return { label: 'A', class: 'rank-a' };
+      if (accuracy >= 60) return { label: 'B', class: 'rank-b' };
+      if (accuracy >= 40) return { label: 'C', class: 'rank-c' };
+      return { label: 'D', class: 'rank-d' };
+    }
+
+    // クイズ成績推移グラフ
+    function updateMovieScoreChart(scores) {
+      const ctx = document.getElementById('movieScoreChart').getContext('2d');
+      if (movieScoreChart) movieScoreChart.destroy();
+      if (!scores || scores.length === 0) {
+        movieScoreChart = new Chart(ctx, {
+          type: 'line',
+          data: { 
+            labels: [], 
+            datasets: [
+              { label: '正答率', data: [] },
+              { label: '正解数', data: [] }
+            ] 
+          },
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: {
+              title: {
+                display: true,
+                text: 'クイズ成績推移'
+              }
+            }
+          }
+        });
+        return;
+      }
+      // 日付順にソート
+      const sortedScores = scores.slice().sort((a, b) => {
+        const ta = a.timestamp && typeof a.timestamp.toDate === "function" 
+          ? a.timestamp.toDate() 
+          : new Date(a.timestamp);
+        const tb = b.timestamp && typeof b.timestamp.toDate === "function" 
+          ? b.timestamp.toDate() 
+          : new Date(b.timestamp);
+        return ta - tb;
+      });
+      const labels = sortedScores.map(score => {
+        let d;
+        if (score.timestamp && typeof score.timestamp.toDate === "function") {
+          d = score.timestamp.toDate();
+        } else if (score.timestamp) {
+          d = new Date(score.timestamp);
+        } else {
+          d = new Date(); // フォールバック
+        }
+        return d.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+      });
+      const accuracyData = sortedScores.map(score => parseFloat(score.accuracy) || 0);
+      const correctData = sortedScores.map(score => score.correct || score.score || 0);
+
+      movieScoreChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '正答率 (%)',
+              data: accuracyData,
+              borderColor: '#6c63ff',
+              backgroundColor: 'rgba(76, 99, 255, 0.10)',
+              borderWidth: 3,
+              tension: 0.4,
+              fill: true,
+              yAxisID: 'y',
+              pointBackgroundColor: '#6c63ff',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointHoverBorderWidth: 2
+            },
+            {
+              label: '正解数',
+              data: correctData,
+              borderColor: '#48c6ef',
+              backgroundColor: 'rgba(72, 198, 239, 0.10)',
+              borderWidth: 3,
+              tension: 0.4,
+              fill: false,
+              yAxisID: 'y1',
+              pointBackgroundColor: '#48c6ef',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointHoverBorderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: '📈 クイズ成績推移',
+              font: {
+                size: 18,
+                weight: 'bold',
+                family: "'Noto Sans JP', sans-serif"
+              },
+              color: '#4f4f4f',
+              padding: {
+                top: 6,
+                bottom: 12
+              }
+            },
+            legend: {
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 12,
+                font: {
+                  size: 13,
+                  family: "'Noto Sans JP', sans-serif"
+                },
+                color: '#4f4f4f'
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255,255,255,0.97)',
+              titleColor: '#4f4f4f',
+              bodyColor: '#222',
+              borderColor: '#e3e8ee',
+              borderWidth: 1,
+              cornerRadius: 7,
+              displayColors: true,
+              callbacks: {
+                label: function(context) {
+                  if (context.dataset.label === '正答率 (%)') {
+                    return `📊 正答率: ${context.parsed.y}%`;
+                  } else {
+                    return `🎯 正解数: ${context.parsed.y}問`;
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: '📅 日付',
+                font: {
+                  size: 13,
+                  weight: 'bold'
+                },
+                color: '#4f4f4f'
+              },
+              grid: {
+                color: 'rgba(227,232,238,0.5)',
+                lineWidth: 1
+              },
+              ticks: {
+                color: '#888',
+                font: {
+                  size: 12
+                }
+              }
+            },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: '📊 正答率 (%)',
+                font: {
+                  size: 13,
+                  weight: 'bold'
+                },
+                color: '#4f4f4f'
+              },
+              grid: {
+                color: 'rgba(227,232,238,0.5)',
+                lineWidth: 1
+              },
+              ticks: {
+                color: '#888',
+                font: {
+                  size: 12
+                },
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: '🎯 正解数',
+                font: {
+                  size: 13,
+                  weight: 'bold'
+                },
+                color: '#4f4f4f'
+              },
+              grid: {
+                drawOnChartArea: false,
+                color: 'rgba(227,232,238,0.5)',
+                lineWidth: 1
+              },
+              ticks: {
+                color: '#888',
+                font: {
+                  size: 12
+                }
+              }
+            }
+          },
+          elements: {
+            line: {
+              borderWidth: 3
+            }
+          },
+          animation: {
+            duration: 1500,
+            easing: 'easeInOutQuart'
+          }
+        }
+      });
+    }
+
+    // 統計情報を更新
+    function updateStatistics(scores) {
+      if (!scores || scores.length === 0) return;
+      const totalQuizzes = scores.length;
+      const totalCorrect = scores.reduce((sum, score) => sum + (score.correct || 0), 0);
+      const totalQuestions = scores.reduce((sum, score) => sum + (score.total || 0), 0);
+      const averageAccuracy = scores.reduce((sum, score) => sum + (parseFloat(score.accuracy) || 0), 0) / totalQuizzes;
+      // 統計カードを更新
+      const statsContainer = document.querySelector('.stats-container');
+      if (statsContainer) {
+        const existingStats = statsContainer.querySelector('.stats-summary');
+        if (existingStats) {
+          existingStats.remove();
+        }
+        const statsSummary = document.createElement('div');
+        statsSummary.className = 'stats-summary';
+        statsSummary.innerHTML = `
+          <div>
+            <div class="stat-box">
+              <div class="stat-title">総クイズ数</div>
+              <div class="stat-value">${totalQuizzes}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-title">総正解数</div>
+              <div class="stat-value">${totalCorrect}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-title">総問題数</div>
+              <div class="stat-value">${totalQuestions}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-title">平均正答率</div>
+              <div class="stat-value">${averageAccuracy.toFixed(1)}%</div>
+            </div>
+          </div>
+        `;
+        statsContainer.appendChild(statsSummary);
+      }
+      // 学習進捗を更新
+      updateLearningProgress(scores);
+    }
+
+    // 学習進捗を更新
+    function updateLearningProgress(scores) {
+      if (!scores || scores.length === 0) return;
+      // 学習継続日数を計算
+      const uniqueDates = [...new Set(scores.map(score => {
+        let date;
+        if (score.timestamp && typeof score.timestamp.toDate === "function") {
+          date = score.timestamp.toDate();
+        } else if (score.timestamp) {
+          date = new Date(score.timestamp);
+        } else {
+          date = new Date(); // フォールバック
+        }
+        return date.toDateString();
+      }))];
+      const learningDays = uniqueDates.length;
+      // 目標達成率を計算（80%以上を目標とする）
+      const highAccuracyQuizzes = scores.filter(score => (parseFloat(score.accuracy) || 0) >= 80);
+      const goalAchievement = Math.round((highAccuracyQuizzes.length / scores.length) * 100);
+      // 連続正解数を計算
+      let currentStreak = 0;
+      let maxStreak = 0;
+      for (let i = scores.length - 1; i >= 0; i--) {
+        if ((parseFloat(scores[i].accuracy) || 0) >= 60) {
+          currentStreak++;
+          maxStreak = Math.max(maxStreak, currentStreak);
+        } else {
+          currentStreak = 0;
+        }
+      }
+      // レベルを計算
+      let level = "初心者";
+      let levelProgress = 0;
+      const avgAccuracy = scores.reduce((sum, score) => sum + (parseFloat(score.accuracy) || 0), 0) / scores.length;
+      if (scores.length >= 10 && avgAccuracy >= 80) {
+        level = "エキスパート";
+        levelProgress = 100;
+      } else if (scores.length >= 5 && avgAccuracy >= 60) {
+        level = "中級者";
+        levelProgress = Math.min(100, (scores.length / 10) * 100);
+      } else {
+        level = "初心者";
+        levelProgress = Math.min(100, (scores.length / 5) * 100);
+      }
+      // 進捗バーを更新
+      updateProgressBar('learning-days', learningDays, 30, '日');
+      updateProgressBar('goal-achievement', goalAchievement, 100, '%');
+      updateProgressBar('streak', maxStreak, 20, '問');
+      updateProgressBar('level', levelProgress, 100, '%');
+      // レベル表示を更新
+      document.getElementById('level').textContent = level;
+    }
+
+    // 進捗バーを更新
+    function updateProgressBar(elementId, current, max, unit) {
+      const element = document.getElementById(elementId);
+      const bar = document.getElementById(elementId + '-bar');
+      if (element && bar) {
+        element.textContent = current + unit;
+        const percentage = Math.min(100, (current / max) * 100);
+        bar.style.width = percentage + '%';
+        // 色を動的に変更
+        if (percentage >= 80) {
+          bar.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
+        } else if (percentage >= 60) {
+          bar.style.background = 'linear-gradient(90deg, #FF9800, #FFD54F)';
+        } else {
+          bar.style.background = 'linear-gradient(90deg, #F44336, #FF8A65)';
+        }
+      }
+    }
+
+    // クイズスコアカード描画
+    function renderMovieScores(scores) {
+      const scoresContainer = document.getElementById('scores-container');
+      if (!scoresContainer) return;
+      if (!scores || scores.length === 0) {
+        scoresContainer.innerHTML = `
+          <div class="no-scores-message">
+            <div class="no-scores-icon">📚</div>
+            <h3>まだクイズの結果がありません</h3>
+            <p>新しいクイズに挑戦して、学習を始めましょう！</p>
+          </div>
+        `;
+        return;
+      }
+      scoresContainer.innerHTML = '';
+      // ベストスコアを探す
+      const bestScore = scores.reduce((best, current) =>
+        (parseFloat(current.accuracy) || 0) > (parseFloat(best.accuracy) || 0) ? current : best
+      );
+      scores.forEach((score) => {
+        const scoreCard = document.createElement('div');
+        scoreCard.className = 'score-card';
+        let dateObj;
+        if (score.timestamp && typeof score.timestamp.toDate === 'function') {
+          dateObj = score.timestamp.toDate();
+        } else if (score.timestamp) {
+          dateObj = new Date(score.timestamp);
+        } else {
+          dateObj = new Date(); // フォールバック
+        }
+        const formattedDate = dateObj.toLocaleString('ja-JP');
+        const rank = getRank(parseFloat(score.accuracy) || 0);
+        if (score === bestScore) {
+          scoreCard.classList.add('best-score');
+        }
+        scoreCard.innerHTML = `
+          <div class="score-card-header">
+            <div class="score-card-date">
+              <span class="date-icon">📅</span>
+              ${formattedDate}
+            </div>
+            <div class="score-card-rank">
+              <span class="rank-badge ${rank.class}">${rank.label}ランク</span>
+            </div>
+          </div>
+          <div class="score-card-body">
+            <div class="score-card-main">
+              <div class="score-accuracy">
+                <span class="accuracy-label">正答率</span>
+                <span class="accuracy-value">${(parseFloat(score.accuracy) || 0).toFixed(1)}%</span>
+              </div>
+              <div class="score-correct">
+                <span class="correct-label">正解数</span>
+                <span class="correct-value">${score.correct || 0} / ${score.total || 0}</span>
+              </div>
+            </div>
+            <div class="score-card-details">
+              <div class="detail-item">
+                <span class="detail-icon">🎯</span>
+                <span class="detail-label">カテゴリ:</span>
+                <span class="detail-value">${score.category || '不明'}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-icon">🤖</span>
+                <span class="detail-label">クイズ種別:</span>
+                <span class="detail-value">AIクイズ</span>
+              </div>
+            </div>
+          </div>
+          ${score === bestScore ? '<div class="best-score-badge">🏆 ベストスコア</div>' : ''}
+        `;
+        scoresContainer.appendChild(scoreCard);
+      });
+    }
+
+    // ページ読み込み時に認証状態を確認し、スコアを反映（自動リダイレクトを無効化）
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        loadAIQuizScoresOnly(user.uid);
+      } else {
+        // 未ログイン状態のメッセージを表示
+        const scoresContainer = document.getElementById('scores-container');
+        if (scoresContainer) {
+          scoresContainer.innerHTML = `
+            <div class="no-scores-message">
+              <div class="no-scores-icon">🔒</div>
+              <h3>ログインが必要です</h3>
+              <p>クイズの結果を表示するには、ログインしてください。</p>
+              <button onclick="location.href='index.html'" class="quiz-btn" style="margin-top: 15px; font-size:1em;">ログインする</button>
+            </div>
+          `;
+        }
+      }
+    });
+  </script>
+
+  <!-- フッター -->
+  <footer class="footer container">
+    <small>
+      <a href="#">利用規約</a>
+      <a href="#">プライバシーポリシー</a><br>
+      &copy; スマート医療ポータル
+    </small>
+  </footer>
+</body>
+</html>

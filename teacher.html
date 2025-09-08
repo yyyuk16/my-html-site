@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI先生チャット</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="chat.css">
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <!-- 多言語対応 -->
+  <script src="multilang.js"></script>
+  
+  <style>
+    /* 背景を統一 */
+    body {
+        background: 
+            linear-gradient(rgba(67,160,71,0.15), rgba(67,160,71,0.25)),
+            url('./phote/S__8994818.jpg') center/cover no-repeat,
+            var(--background-color, #f7fafd);
+        background-attachment: fixed;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2 data-translate="ai_chat">👨‍⚕️ AI先生チャット</h2>
+    </div>
+
+    <div id="chatContainer" class="chat-messages"></div>
+
+    <div class="input-container">
+      <input type="text" id="userInput" placeholder="健康について何でもお聞きください..." autocomplete="off" data-translate="health_consultation" />
+      <button id="sendButton" data-translate="send">送信</button>
+      <button onclick="history.back()" class="back-btn" data-translate="back">← 戻る</button>
+    </div>
+  </div>
+
+  <script>
+    const OPENAI_ENDPOINT = "/api/chat"; // ← 同一ドメインのVercel関数を叩く
+
+    const chatContainer = document.getElementById("chatContainer");
+    const userInput = document.getElementById("userInput");
+    const sendButton = document.getElementById("sendButton");
+
+    function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+    
+    function appendMessage(who, text){
+      const messageDiv = document.createElement("div");
+      messageDiv.className = "message";
+      
+      if(who === "あなた"){
+        messageDiv.className += " user-message";
+        messageDiv.innerHTML = `<div class="message-content">${escapeHtml(text)}</div>`;
+      } else {
+        messageDiv.className += " ai-message";
+        messageDiv.innerHTML = `
+          <div class="message-content">
+            <div class="ai-header">
+              <span class="ai-icon">👨‍⚕️</span>
+              <span class="ai-name">AI先生</span>
+            </div>
+            <div class="ai-text">${escapeHtml(text)}</div>
+          </div>
+        `;
+      }
+      
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+    function loading(){ 
+      const id = "loading-" + Date.now(); 
+      const messageDiv = document.createElement("div"); 
+      messageDiv.id = id; 
+      messageDiv.className = "message ai-message";
+      messageDiv.innerHTML = `
+        <div class="message-content">
+          <div class="ai-header">
+            <span class="ai-icon">👨‍⚕️</span>
+            <span class="ai-name">AI先生</span>
+          </div>
+          <div class="loading-indicator">
+            <div class="spinner"></div>
+            <span>考え中...</span>
+          </div>
+        </div>
+      `;
+      chatContainer.appendChild(messageDiv); 
+      chatContainer.scrollTop = chatContainer.scrollHeight; 
+      return id; 
+    }
+    
+    function stopLoading(id){ 
+      const el = document.getElementById(id); 
+      if(el) el.remove(); 
+    }
+
+    async function send(){
+      const msg=(userInput.value||"").trim(); if(!msg) return;
+      appendMessage("あなた", msg); userInput.value=""; const id=loading();
+      try{
+        const r=await fetch(OPENAI_ENDPOINT,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ message: msg }) });
+        let data=null; try{ data=await r.json(); }catch{}
+        stopLoading(id);
+        if(!r.ok){ const err=(data&&(data.error?.message||data.error))||`通信エラー (${r.status})`; appendMessage("AI先生",`申し訳ありません。${err} が発生しました。`); return; }
+        appendMessage("AI先生", data?.reply ?? "うまく応答できませんでした。");
+      }catch(e){ stopLoading(id); appendMessage("AI先生","通信に問題が発生しました。時間をおいて再度お試しください。"); }
+    }
+    window.addEventListener("DOMContentLoaded", () => {
+      appendMessage("AI先生", "こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。");
+      userInput.addEventListener("keypress", e => {
+        if(e.key === "Enter") send();
+      });
+      document.getElementById("sendButton").addEventListener("click", send);
+      userInput.focus();
+    });
+  </script>
+</body></html>
