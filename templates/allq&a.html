@@ -2,90 +2,24 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>AIクイズ（10問ランダム）</title>
+  <title>AIクイズ（10問固定）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body {
-      font-family: "Noto Sans JP", sans-serif;
-      background: linear-gradient(135deg, #f9f9f9, #e3f2fd);
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
-    .quiz-container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      max-width: 480px;
-      width: 90%;
-      margin: 30px auto;
-      text-align: center;
-    }
-    h1 {
-      color: #1976d2;
-      font-size: 1.4rem;
-      margin-bottom: 15px;
-    }
-    button {
-      display: inline-block;
-      padding: 12px 18px;
-      margin-top: 15px;
-      background: #1976d2;
-      color: #fff;
-      font-size: 1rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: #1565c0;
-    }
-    .question {
-      font-weight: bold;
-      margin-bottom: 12px;
-      color: #333;
-    }
-    .choices button {
-      display: block;
-      margin: 6px 0;
-      padding: 12px;
-      width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background: #f5f5f5;
-      cursor: pointer;
-      font-size: 0.95rem;
-      transition: all 0.2s;
-    }
-    .choices button:hover {
-      background: #e0e0e0;
-    }
-    .choices button.correct {
-      background: #c8f7c5 !important;
-      border-color: #4caf50;
-    }
-    .choices button.wrong {
-      background: #f7c5c5 !important;
-      border-color: #e53935;
-    }
-    .explanation {
-      margin-top: 10px;
-      font-size: 0.9em;
-      color: #555;
-      display: none;
-    }
+    body { font-family: "Noto Sans JP", sans-serif; background: #f9f9f9; margin: 0; padding: 0; }
+    .quiz-container { max-width: 600px; margin: 20px auto; padding: 20px; background: #fff;
+      border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    h1 { color: #1976d2; font-size: 1.5rem; text-align: center; }
+    button { padding: 10px 16px; border: none; border-radius: 8px; background: #1976d2; color: #fff;
+      cursor: pointer; margin-top: 10px; }
+    .choices button { display: block; width: 100%; margin: 6px 0; background: #eee; color: #333; }
+    .choices button.correct { background: #c8f7c5; border: 1px solid #4caf50; }
+    .choices button.wrong { background: #f7c5c5; border: 1px solid #e53935; }
   </style>
 </head>
 <body>
   <div class="quiz-container">
-    <h1>AIクイズ（10問ランダム）</h1>
-    <button id="startBtn">クイズを始める</button>
+    <h1>結核クイズ（10問）</h1>
+    <button id="startBtn">クイズ開始</button>
     <div id="quiz"></div>
   </div>
 
@@ -93,154 +27,136 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    // 🔑 Firebase 設定（storageBucket 修正版）
+    // 🔑 Firebase 設定（自分の値に置き換えてください）
     const firebaseConfig = {
-      apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
-      authDomain: "web01-2484d.firebaseapp.com",
-      databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
-      projectId: "web01-2484d",
-      storageBucket: "web01-2484d.appspot.com",   // ← 修正済み
-      messagingSenderId: "90159472898",
-      appId: "1:90159472898:web:261ec71f9919611011e21b",
-      measurementId: "G-9TGR07ZSY9"
+      apiKey: "あなたのAPIキー",
+      authDomain: "あなたのプロジェクト.firebaseapp.com",
+      projectId: "あなたのプロジェクトID",
+      storageBucket: "あなたのプロジェクトID.appspot.com",
+      messagingSenderId: "XXXXXXX",
+      appId: "XXXXXXXX"
     };
-
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-  </script>
 
-  <script>
+    // ✅ 静的なクイズデータ（10問）
+    const allQuestions = [
+      {
+        question: "結核は主にどの臓器に感染しますか？",
+        choices: ["心臓", "肺", "肝臓", "腎臓"],
+        answer: "肺",
+        explanation: "結核菌は主に肺に感染しますが、全身にも広がることがあります。"
+      },
+      {
+        question: "結核の原因菌はどれですか？",
+        choices: ["インフルエンザウイルス", "マイコバクテリウム・チュベルクローシス", "大腸菌", "黄色ブドウ球菌"],
+        answer: "マイコバクテリウム・チュベルクローシス",
+        explanation: "結核は結核菌（Mycobacterium tuberculosis）が原因です。"
+      },
+      {
+        question: "結核の主な感染経路は？",
+        choices: ["食べ物", "飛沫感染", "接触感染", "血液感染"],
+        answer: "飛沫感染",
+        explanation: "咳やくしゃみによる飛沫を吸い込むことで感染します。"
+      },
+      {
+        question: "結核の診断に使われる検査は？",
+        choices: ["胸部X線検査", "心電図", "腹部エコー", "尿検査"],
+        answer: "胸部X線検査",
+        explanation: "結核の疑いがある場合はまず胸部X線で肺の影を確認します。"
+      },
+      {
+        question: "結核の治療で重要なのは？",
+        choices: ["抗生物質を1週間だけ飲む", "長期間の抗結核薬服用", "ビタミンC摂取", "安静のみ"],
+        answer: "長期間の抗結核薬服用",
+        explanation: "6か月以上の服薬継続が必要です。"
+      },
+      {
+        question: "結核治療を中断するとどうなりますか？",
+        choices: ["すぐ治る", "薬剤耐性結核が生じる", "副作用が減る", "特に変化はない"],
+        answer: "薬剤耐性結核が生じる",
+        explanation: "治療中断は耐性菌を生み、難治性につながります。"
+      },
+      {
+        question: "日本で結核の患者数はどのくらいですか？",
+        choices: ["年間 約1万人", "年間 約100人", "年間 約50万人", "年間 約1人"],
+        answer: "年間 約1万人",
+        explanation: "日本では年間1万人前後の新規患者が報告されています。"
+      },
+      {
+        question: "結核の初期症状に当てはまらないものは？",
+        choices: ["咳", "発熱", "体重減少", "目のかゆみ"],
+        answer: "目のかゆみ",
+        explanation: "咳・発熱・体重減少は典型的な症状ですが目のかゆみは関係ありません。"
+      },
+      {
+        question: "結核の感染予防に有効なワクチンは？",
+        choices: ["インフルエンザワクチン", "BCGワクチン", "MMRワクチン", "水痘ワクチン"],
+        answer: "BCGワクチン",
+        explanation: "乳児に接種されるBCGワクチンは重症結核予防に有効です。"
+      },
+      {
+        question: "結核の治療で最も重要なことは？",
+        choices: ["運動制限", "十分な水分摂取", "服薬の継続", "栄養補助食品の摂取"],
+        answer: "服薬の継続",
+        explanation: "途中でやめずにしっかり飲み続けることが重要です。"
+      }
+    ];
+
     let currentIndex = 0;
     let score = 0;
-    let questions = [];
-
-    async function fetchQuizQuestions() {
-      try {
-        const res = await fetch("/api/quiz", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            topic: "結核の患者教育",
-            count: 10,
-            difficulty: "easy",
-            language: "ja"
-          }),
-        });
-
-        let data;
-        try {
-          data = await res.json();
-        } catch (e) {
-          const text = await res.text();
-          console.error("非JSONレス:", text);
-          alert("サーバーエラー: " + text);
-          return null;
-        }
-
-        console.log("クイズデータ:", data);
-        return data.questions;
-      } catch (err) {
-        console.error("fetchQuizQuestions エラー:", err);
-        alert("サーバー通信でエラーが発生しました");
-        return null;
-      }
-    }
 
     function renderQuestion() {
       const container = document.getElementById("quiz");
       container.innerHTML = "";
 
-      if (currentIndex >= questions.length) {
-        container.innerHTML = `<h2>クイズ終了！</h2>
-          <p>あなたのスコア: <strong>${score} / ${questions.length}</strong></p>
-          <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-            <button id="retryBtn">もう一度挑戦する</button>
-            <button id="finishBtn" style="background:#9e9e9e;">おわりにする</button>
-          </div>`;
+      if (currentIndex >= allQuestions.length) {
+        container.innerHTML = `<h2>終了！</h2>
+          <p>スコア: ${score} / ${allQuestions.length}</p>`;
 
-        // ✅ Firestoreにスコア保存
+        // ✅ Firestore にスコア保存
         db.collection("ai_quiz_scores").add({
           score: score,
-          total: questions.length,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-          console.log("スコア保存成功");
-        }).catch(err => {
-          console.error("スコア保存失敗:", err);
-        });
-
-        // ボタンの動作
-        const retryBtn = document.getElementById("retryBtn");
-        const finishBtn = document.getElementById("finishBtn");
-        if (retryBtn) {
-          retryBtn.addEventListener("click", async () => {
-            score = 0;
-            currentIndex = 0;
-            questions = await fetchQuizQuestions();
-            if (questions) renderQuestion();
-          });
-        }
-        if (finishBtn) {
-          finishBtn.addEventListener("click", () => {
-            window.location.href = "score.html";
-          });
-        }
-
+          total: allQuestions.length,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => console.log("保存OK"))
+          .catch(err => console.error("保存失敗", err));
         return;
       }
 
-      const q = questions[currentIndex];
-      const qDiv = document.createElement("div");
-
-      qDiv.innerHTML = `
-        <div class="question">Q${currentIndex + 1}: ${q.question}</div>
+      const q = allQuestions[currentIndex];
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <p><b>Q${currentIndex + 1}: ${q.question}</b></p>
         <div class="choices">
           ${q.choices.map(c => `<button>${c}</button>`).join("")}
         </div>
-        <div class="explanation">
-          <strong>解説:</strong> ${q.explanation}
-        </div>
+        <p style="display:none;" class="exp">解説: ${q.explanation}</p>
       `;
 
-      qDiv.querySelectorAll(".choices button").forEach(btn => {
+      div.querySelectorAll(".choices button").forEach(btn => {
         btn.addEventListener("click", () => {
-          const expl = qDiv.querySelector(".explanation");
-          expl.style.display = "block";
-
+          const exp = div.querySelector(".exp");
+          exp.style.display = "block";
           if (btn.textContent === q.answer) {
-            btn.classList.add("correct");
-            score++;
+            btn.classList.add("correct"); score++;
           } else {
             btn.classList.add("wrong");
           }
-
-          // ✅ 次へボタンを表示
           const nextBtn = document.createElement("button");
-          nextBtn.textContent = currentIndex + 1 === questions.length ? "結果を見る" : "次へ";
-          nextBtn.addEventListener("click", () => {
-            currentIndex++;
-            renderQuestion();
-          });
-          qDiv.appendChild(nextBtn);
-
-          // 一度回答したら他の選択肢は無効化
-          qDiv.querySelectorAll(".choices button").forEach(b => b.disabled = true);
+          nextBtn.textContent = currentIndex + 1 === allQuestions.length ? "結果を見る" : "次へ";
+          nextBtn.addEventListener("click", () => { currentIndex++; renderQuestion(); });
+          div.appendChild(nextBtn);
+          div.querySelectorAll(".choices button").forEach(b => b.disabled = true);
         });
       });
 
-      container.appendChild(qDiv);
+      container.appendChild(div);
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const startBtn = document.getElementById("startBtn");
-      startBtn.addEventListener("click", async () => {
-        score = 0;
-        currentIndex = 0;
-        questions = await fetchQuizQuestions();
-        if (questions) renderQuestion();
-      });
+    document.getElementById("startBtn").addEventListener("click", () => {
+      score = 0; currentIndex = 0;
+      renderQuestion();
     });
   </script>
 </body>
