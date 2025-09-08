@@ -2,49 +2,97 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>AIクイズ（5問ランダム）</title>
+  <title>AIクイズ（10問ランダム）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      font-family: sans-serif;
-      background: #f9f9f9;
-      padding: 20px;
+      font-family: "Noto Sans JP", sans-serif;
+      background: linear-gradient(135deg, #f9f9f9, #e3f2fd);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
     }
     .quiz-container {
       background: #fff;
       padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      max-width: 480px;
+      width: 90%;
+      margin: 30px auto;
+    }
+    h1 {
+      text-align: center;
+      color: #1976d2;
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+    }
+    #startBtn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      background: #1976d2;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
       border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      max-width: 600px;
-      margin: auto;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #startBtn:hover {
+      background: #1565c0;
+    }
+    .question-block {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      background: #fafafa;
     }
     .question {
       font-weight: bold;
       margin-bottom: 10px;
+      color: #333;
     }
     .choices button {
       display: block;
-      margin: 5px 0;
-      padding: 10px;
+      margin: 6px 0;
+      padding: 12px;
       width: 100%;
       border: 1px solid #ccc;
-      border-radius: 5px;
-      background: #f0f0f0;
+      border-radius: 8px;
+      background: #f5f5f5;
       cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s;
     }
     .choices button:hover {
       background: #e0e0e0;
+    }
+    .choices button.correct {
+      background: #c8f7c5 !important;
+      border-color: #4caf50;
+    }
+    .choices button.wrong {
+      background: #f7c5c5 !important;
+      border-color: #e53935;
     }
     .explanation {
       margin-top: 10px;
       font-size: 0.9em;
       color: #555;
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="quiz-container">
-    <h1>AIクイズ（5問ランダム）</h1>
+    <h1>AIクイズ（10問ランダム）</h1>
     <button id="startBtn">クイズを始める</button>
     <div id="quiz"></div>
   </div>
@@ -57,20 +105,22 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           topic: "結核の患者教育",
-          count: 5,
+          count: 10,   // ✅ 問題数を10に変更
           difficulty: "easy",
           language: "ja"
         }),
       });
 
-      if (!res.ok) {
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
         const text = await res.text();
-        console.error("APIエラー応答:", text);
-        alert("クイズ生成に失敗しました: " + text);
+        console.error("非JSONレス:", text);
+        alert("サーバーエラー: " + text);
         return null;
       }
 
-      const data = await res.json();
       console.log("クイズデータ:", data);
       return data.questions;
     } catch (err) {
@@ -98,20 +148,20 @@
         <div class="choices">
           ${q.choices.map(c => `<button>${c}</button>`).join("")}
         </div>
-        <div class="explanation" style="display:none;">
+        <div class="explanation">
           <strong>解説:</strong> ${q.explanation}
         </div>
       `;
 
-      // ボタンにクリック処理
       qDiv.querySelectorAll(".choices button").forEach(btn => {
         btn.addEventListener("click", () => {
           const expl = qDiv.querySelector(".explanation");
           expl.style.display = "block";
+
           if (btn.textContent === q.answer) {
-            btn.style.backgroundColor = "#c8f7c5"; // 正解 → 緑
+            btn.classList.add("correct");
           } else {
-            btn.style.backgroundColor = "#f7c5c5"; // 不正解 → 赤
+            btn.classList.add("wrong");
           }
         });
       });
