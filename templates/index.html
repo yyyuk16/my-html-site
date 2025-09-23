@@ -13,14 +13,13 @@
   
   <!-- 多言語対応スクリプト -->
   <script src="translation.js"></script>
-  <script src="firebase-translations.js"></script>
 
   <style>
-    /* 背景を緑基調＋写真に統一 */
+    /* 背景を緑基調＋写真 */
     body {
       background: 
         linear-gradient(rgba(46,125,50,0.18), rgba(46,125,50,0.32)),
-        url('./phote/S__8994818.jpg') center/cover no-repeat,
+        url('./photo/S__8994818.jpg') center/cover no-repeat,
         var(--background-color, #E3F2ED);
       background-attachment: fixed;
       background-size: cover;
@@ -69,8 +68,6 @@
       width: 95%;
       max-width: 410px;
       text-align: center;
-      position: relative;
-      overflow: hidden;
       border: 1.5px solid #C8E6C9;
       animation: fadeIn 1s;
       backdrop-filter: blur(2px);
@@ -100,7 +97,6 @@
       margin-bottom: 0.5rem;
       font-weight: 600;
       color: var(--secondary-color);
-      letter-spacing: 0.02em;
     }
 
     input {
@@ -110,10 +106,7 @@
       border-radius: 0.7rem;
       font-size: 1.05rem;
       background: var(--input-bg);
-      box-sizing: border-box;
-      transition: border 0.2s, box-shadow 0.2s;
       outline: none;
-      color: var(--text-color);
       margin-top: 0.1rem;
     }
 
@@ -135,28 +128,11 @@
       width: 100%;
       margin-top: 1.1rem;
       box-shadow: var(--button-shadow);
-      transition: background 0.25s, box-shadow 0.25s, transform 0.15s;
-      letter-spacing: 0.03em;
-      outline: none;
-      position: relative;
-      z-index: 1;
     }
 
     button:hover:not(:disabled), .signup-button:hover {
       background: linear-gradient(90deg, #2E7D32 0%, #A5D6B5 100%);
-      box-shadow: 0 4px 18px 0 rgba(46,125,50,0.18);
       transform: translateY(-2px) scale(1.02);
-    }
-    
-    button:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    button:disabled:hover {
-      transform: none;
-      box-shadow: var(--button-shadow);
     }
 
     .signup-button {
@@ -164,14 +140,6 @@
       background: linear-gradient(90deg, #E3F2ED 0%, #A5D6B5 100%);
       color: var(--secondary-color);
       border: 1.5px solid #A5D6B5;
-      font-weight: 700;
-      box-shadow: none;
-      transition: background 0.25s, color 0.25s, border 0.25s;
-    }
-    .signup-button:hover {
-      background: linear-gradient(90deg, #A5D6B5 0%, #E3F2ED 100%);
-      color: #fff;
-      border: 1.5px solid #2E7D32;
     }
 
     .back-link {
@@ -180,159 +148,28 @@
       color: var(--secondary-color);
       text-decoration: none;
       font-weight: 500;
-      font-size: 1rem;
-      letter-spacing: 0.01em;
-      transition: color 0.2s;
     }
 
-    .back-link:hover {
-      text-decoration: underline;
-      color: var(--color-green-dark);
-    }
-
-    /* 言語選択コンポーネントのスタイル */
+    /* 言語選択 */
     .language-selector {
       position: fixed;
       top: 24px;
       right: 24px;
-      z-index: 1000;
       background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(10px);
       border-radius: 14px;
       padding: 13px 18px;
       box-shadow: 0 4px 24px rgba(46, 125, 50, 0.13);
-      border: 1.5px solid #C8E6C9;
-      transition: all 0.3s cubic-bezier(.4,2,.6,1);
-    }
-
-    .language-selector:hover {
-      transform: translateY(-2px) scale(1.03);
-      box-shadow: 0 8px 32px rgba(46, 125, 50, 0.18);
-    }
-
-    .language-selector-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .language-label {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--secondary-color);
-      cursor: pointer;
-      letter-spacing: 0.01em;
-    }
-
-    .language-icon {
-      font-size: 18px;
-    }
-
-    .language-text {
-      white-space: nowrap;
-    }
-
-    .language-select {
-      padding: 7px 14px;
-      border: 2px solid #A5D6B5;
-      border-radius: 9px;
-      background: #fff;
-      font-size: 15px;
-      color: var(--secondary-color);
-      cursor: pointer;
-      transition: all 0.3s;
-      min-width: 120px;
-      font-weight: 500;
-      outline: none;
-    }
-
-    .language-select:focus {
-      border-color: var(--secondary-color);
-      box-shadow: 0 0 0 3px #C8E6C9;
-    }
-
-    .language-select:hover {
-      border-color: var(--secondary-color);
-      background: #f7faf8;
-    }
-
-    /* スクロールバーも緑系で */
-    ::-webkit-scrollbar {
-      width: 8px;
-      background: #C8E6C9;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #A5D6B5;
-      border-radius: 8px;
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        padding: 1.5rem 0.7rem 1.2rem 0.7rem;
-        max-width: 98vw;
-      }
-      .language-selector {
-        top: 10px;
-        right: 10px;
-        padding: 8px 12px;
-      }
-      .language-label {
-        font-size: 13px;
-      }
-      .language-select {
-        font-size: 13px;
-        min-width: 90px;
-        padding: 4px 8px;
-      }
-      h1 {
-        font-size: 1.4rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .container {
-        border-radius: 0.7rem;
-        padding: 1.1rem 0.3rem 1rem 0.3rem;
-      }
-      .language-selector {
-        position: relative;
-        top: auto;
-        right: auto;
-        margin: 10px auto;
-        width: fit-content;
-        border-radius: 10px;
-        padding: 7px 8px;
-      }
-      .language-label {
-        font-size: 12px;
-      }
-      .language-select {
-        font-size: 12px;
-        min-width: 70px;
-        padding: 3px 6px;
-      }
-      .language-text {
-        display: none;
-      }
     }
   </style>
 </head>
 <body>
   <!-- 言語選択ボタン -->
-  <div class="language-selector" id="languageSelector">
-    <div class="language-selector-container">
-      <span class="language-label">
-        <span class="language-icon">🌐</span>
-        <span class="language-text" data-i18n="language">言語</span>
-      </span>
-      <button type="button" class="language-select" data-lang="ja" id="langBtnJa">日本語</button>
-      <button type="button" class="language-select" data-lang="en" id="langBtnEn">English</button>
-      <button type="button" class="language-select" data-lang="zh" id="langBtnZh">中文</button>
-    </div>
+  <div class="language-selector">
+    <button type="button" class="language-select" data-lang="ja">日本語</button>
+    <button type="button" class="language-select" data-lang="en">English</button>
+    <button type="button" class="language-select" data-lang="zh">中文</button>
   </div>
+
   <div class="container">
     <h1 data-i18n="patient-login">患者ログイン</h1>
     <form id="patientLoginForm">
@@ -354,173 +191,49 @@
   </div>
 
   <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Firebase設定
     const firebaseConfig = {
       apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
       authDomain: "web01-2484d.firebaseapp.com",
       databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
       projectId: "web01-2484d",
-      storageBucket: "web01-2484d.firebasestorage.app",
+      storageBucket: "web01-2484d.appspot.com",
       messagingSenderId: "90159472898",
       appId: "1:90159472898:web:261ec71f9919611011e21b",
       measurementId: "G-9TGR07ZSY9"
     };
-
     firebase.initializeApp(firebaseConfig);
 
-    // ログイン状態の確認（自動リダイレクトを無効化）
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (user) {
-        console.log('既にログイン済み:', user.email);
-        // 自動リダイレクトを無効化 - ユーザーが手動でログインするまで待機
-        // window.location.href = 'ai.html';
-      }
-    });
-
-    // ログインフォームの処理
+    // ログインフォーム処理
     document.getElementById('patientLoginForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
-      
-      // ログインボタンを無効化し、ローディング状態を表示
+
       const loginButton = document.getElementById('loginButton');
       const loginButtonText = document.getElementById('loginButtonText');
       const loginButtonLoading = document.getElementById('loginButtonLoading');
-      
+
       loginButton.disabled = true;
       loginButtonText.style.display = 'none';
       loginButtonLoading.style.display = 'inline';
 
       firebase.auth().signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
-          const user = userCredential.user;
-          console.log('ログイン成功:', user.email);
-          
-          // 成功メッセージを表示
-          const successMessage = window.translationManager ? 
-            window.translationManager.getText('login-success', 'ログインに成功しました！') : 
-            'ログインに成功しました！';
-          
-          // 少し待ってからリダイレクト
-          setTimeout(() => {
-            window.location.href = 'ai.html';
-          }, 1000);
+          console.log("ログイン成功:", userCredential.user.email);
+          alert("ログインに成功しました！");
+          window.location.href = "ai.html";
         })
         .catch((error) => {
-          console.error('ログインエラー:', error);
-          
-          // エラーメッセージを表示
-          let errorMessage = 'ログインに失敗しました: ';
-          
-          switch (error.code) {
-            case 'auth/user-not-found':
-              errorMessage += window.translationManager ? window.translationManager.getText('user-not-found', 'ユーザーが見つかりません。メールアドレスを確認してください。') : 'ユーザーが見つかりません。メールアドレスを確認してください。';
-              break;
-            case 'auth/wrong-password':
-              errorMessage += window.translationManager ? window.translationManager.getText('wrong-password', 'パスワードが間違っています。') : 'パスワードが間違っています。';
-              break;
-            case 'auth/invalid-email':
-              errorMessage += window.translationManager ? window.translationManager.getText('invalid-email', 'メールアドレスの形式が正しくありません。') : 'メールアドレスの形式が正しくありません。';
-              break;
-            case 'auth/too-many-requests':
-              errorMessage += window.translationManager ? window.translationManager.getText('too-many-requests', 'ログイン試行回数が多すぎます。しばらく待ってから再試行してください。') : 'ログイン試行回数が多すぎます。しばらく待ってから再試行してください。';
-              break;
-            default:
-              errorMessage += error.message;
-          }
-          
-          alert(errorMessage);
-          
-          // ログインボタンを元に戻す
+          console.error("ログインエラー:", error);
+          alert("ログインに失敗しました: " + error.message);
           loginButton.disabled = false;
           loginButtonText.style.display = 'inline';
           loginButtonLoading.style.display = 'none';
         });
     });
-
-    // --- 言語切り替え機能 ---
-    // サンプルの多言語辞書（本番は translation.js などで管理）
-    const translations = {
-      ja: {
-        "patient-login": "患者ログイン",
-        "email": "メールアドレス",
-        "password": "パスワード",
-        "login": "ログイン",
-        "logging-in": "ログイン中...",
-        "signup": "新規登録はこちら",
-        "doctor-login-link": "← 医者の方はこちら",
-        "language": "言語",
-        "login-success": "ログインに成功しました！",
-        "user-not-found": "ユーザーが見つかりません。メールアドレスを確認してください。",
-        "wrong-password": "パスワードが間違っています。",
-        "invalid-email": "メールアドレスの形式が正しくありません。",
-        "too-many-requests": "ログイン試行回数が多すぎます。しばらく待ってから再試行してください。"
-      },
-      en: {
-        "patient-login": "Patient Login",
-        "email": "Email Address",
-        "password": "Password",
-        "login": "Login",
-        "logging-in": "Logging in...",
-        "signup": "Sign Up Here",
-        "doctor-login-link": "← For Doctors",
-        "language": "Language",
-        "login-success": "Login successful!",
-        "user-not-found": "User not found. Please check your email address.",
-        "wrong-password": "Incorrect password.",
-        "invalid-email": "Invalid email format.",
-        "too-many-requests": "Too many login attempts. Please try again later."
-      },
-      zh: {
-        "patient-login": "患者登录",
-        "email": "电子邮件地址",
-        "password": "密码",
-        "login": "登录",
-        "logging-in": "登录中...",
-        "signup": "新用户注册",
-        "doctor-login-link": "← 医生入口",
-        "language": "语言",
-        "login-success": "登录成功！",
-        "user-not-found": "未找到用户。请检查您的电子邮件地址。",
-        "wrong-password": "密码错误。",
-        "invalid-email": "电子邮件格式不正确。",
-        "too-many-requests": "尝试登录次数过多。请稍后再试。"
-      }
-    };
-
-    // 簡易なi18n関数
-    function setLanguage(lang) {
-      // window.translationManagerがあればそちらも切り替え
-      if (window.translationManager && typeof window.translationManager.setLanguage === "function") {
-        window.translationManager.setLanguage(lang);
-      }
-      // すべてのdata-i18n属性を持つ要素を更新
-      document.querySelectorAll('[data-i18n]').forEach(function(el) {
-        const key = el.getAttribute('data-i18n');
-        if (translations[lang] && translations[lang][key]) {
-          // 子要素を持つコンテナ（例: ログインボタン）は上書きしない
-          if (el.children && el.children.length > 0) return;
-          el.textContent = translations[lang][key];
-        }
-      });
-      // <html lang="...">も更新
-      document.documentElement.lang = lang;
-    }
-
-    // 言語ボタンにイベントを付与
-    document.getElementById('langBtnJa').addEventListener('click', function() {
-      setLanguage('ja');
-    });
-    document.getElementById('langBtnEn').addEventListener('click', function() {
-      setLanguage('en');
-    });
-    document.getElementById('langBtnZh').addEventListener('click', function() {
-      setLanguage('zh');
-    });
-
-    // ページ初期表示時に日本語
-    setLanguage('ja');
+  });
   </script>
 </body>
 </html>
