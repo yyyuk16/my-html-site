@@ -344,7 +344,7 @@
         <label for="password" data-i18n="password">パスワード</label>
         <input type="password" id="password" required>
       </div>
-      <button type="submit" id="loginButton" data-i18n="login">
+      <button type="submit" id="loginButton">
         <span id="loginButtonText" data-i18n="login">ログイン</span>
         <span id="loginButtonLoading" style="display: none;" data-i18n="logging-in">ログイン中...</span>
       </button>
@@ -499,6 +499,8 @@
       document.querySelectorAll('[data-i18n]').forEach(function(el) {
         const key = el.getAttribute('data-i18n');
         if (translations[lang] && translations[lang][key]) {
+          // 子要素を持つコンテナ（例: ログインボタン）は上書きしない
+          if (el.children && el.children.length > 0) return;
           el.textContent = translations[lang][key];
         }
       });
