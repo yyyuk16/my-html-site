@@ -65,7 +65,7 @@
 
     <style>
       body {
-        background: linear-gradient(120deg, #E3F2ED 0%, #A5D6B5 100%);
+        background: #fff;
         min-height: 100vh;
       }
       .setting-header {
@@ -138,6 +138,10 @@
         // ここでは例としてダミー値
         document.getElementById('userName').textContent = "ゲスト";
         document.getElementById('userEmail').textContent = "未登録";
+        // 言語に基づく翻訳を適用
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try { window.multiLang.updateUI(); } catch (_) {}
+        }
       });
 
       function logout() {

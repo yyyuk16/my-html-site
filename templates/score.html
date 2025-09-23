@@ -995,6 +995,9 @@
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         loadAIQuizScoresOnly(user.uid);
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try { window.multiLang.updateUI(); } catch (_) {}
+        }
       } else {
         // 未ログイン状態のメッセージを表示
         const scoresContainer = document.getElementById('scores-container');
@@ -1007,6 +1010,9 @@
               <button onclick="location.href='index.html'" class="quiz-btn" style="margin-top: 15px; font-size:1em;">ログインする</button>
             </div>
           `;
+        }
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try { window.multiLang.updateUI(); } catch (_) {}
         }
       }
     });

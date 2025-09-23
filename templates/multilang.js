@@ -6,6 +6,8 @@ class MultiLanguage {
     this.currentUser = null;
     this.db = null;
     this.auth = null;
+    // 右下の言語選択ボタンは表示しない
+    this.showLanguageButtons = false;
   }
 
   // Firebase初期化
@@ -30,7 +32,8 @@ class MultiLanguage {
   // 言語ファイルを読み込み
   async loadLanguage(language) {
     try {
-      const response = await fetch(`/lang/${language}.json`);
+      // 相対パスで読み込む（ルート配下でない環境でも動作させる）
+      const response = await fetch(`lang/${language}.json`);
       if (!response.ok) {
         throw new Error(`Failed to load language file: ${language}`);
       }
@@ -181,8 +184,10 @@ class MultiLanguage {
         await this.switchLanguage('ja');
       }
       
-      // 言語切り替えボタンを作成
-      this.createLanguageButtons();
+      // 言語切り替えボタンは非表示（必要なら this.showLanguageButtons = true に）
+      if (this.showLanguageButtons) {
+        this.createLanguageButtons();
+      }
     });
   }
 }

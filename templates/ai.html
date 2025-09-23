@@ -1,186 +1,159 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-translate="AIチャット">AIチャット</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="maintab.css">
-    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-translate="ai_chat">AIチャット</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="maintab.css">
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  
+
   <!-- 多言語対応 -->
   <script src="multilang.js"></script>
 </head>
 <body>
-    <!-- 💚 ヘッダー -->
-    <header class="top-bar">
-      <div class="header-inner">
-        <strong class="site-title">結核治療サイト</strong>
-        <ul class="tab-menu">
-          <li><a href="ai.html" class="active">💬 チャット</a></li>
-          <li><a href="score.html">❓ Q&A</a></li>
-          <li><a href="movie.html">🎥 動画視聴</a></li>
-          <li><a href="setting.html">👤 設定</a></li>
-        </ul>
-      </div>
-    </header>
+  <!-- 💚 ヘッダー -->
+  <header class="top-bar">
+    <div class="header-inner">
+      <strong class="site-title">結核治療サイト</strong>
+      <ul class="tab-menu">
+        <li><a href="ai.html" class="active">💬 チャット</a></li>
+        <li><a href="score.html">❓ Q&A</a></li>
+        <li><a href="movie.html">🎥 動画視聴</a></li>
+        <li><a href="setting.html">👤 設定</a></li>
+      </ul>
+    </div>
+  </header>
 
-    <main class="container" style="max-width: 900px; margin: 0 auto; padding-top: 3rem; padding-bottom: 3rem;">
-      <div class="chat-header" style="margin-bottom: 2.5rem;">
-        <h1 style="font-size:2.2rem; color:#2E7D32; font-weight:700; margin-bottom:0.5rem;" data-translate="title">AIチャット選択</h1>
-        <p class="subtitle" style="font-size:1.1rem; color:#4CAF50;">AI先生またはリアルタイムチャットを選んでください</p>
-      </div>
-      <div class="ai-options">
-        <div class="ai-card" onclick="startChat('teacher')">
-          <div class="card-content">
-            <div class="icon-wrapper ai-teacher-bg">
-              <span class="ai-icon">👨‍⚕️</span>
-            </div>
-            <h3 data-translate="ai_teacher">AI先生</h3>
-            <p data-translate="ai_teacher_desc">24時間いつでも返答可能です</p>
-            <button class="start-chat-btn" data-translate="start_chat">チャットを始める</button>
-          </div>
-        </div>
-        <div class="ai-card" onclick="startChat('real')">
-          <div class="card-content">
-            <div class="icon-wrapper ai-real-bg">
-              <span class="ai-icon">💬</span>
-            </div>
-            <h3 data-translate="realtime">リアルタイム</h3>
-            <p data-translate="realtime_desc">先生と会話ができます</p>
-            <button class="start-chat-btn" data-translate="start_chat">チャットを始める</button>
-          </div>
-        </div>
-      </div>
-    </main>
+  <!-- メイン -->
+  <main class="container" style="max-width: 1000px; margin: 0 auto; padding: 3rem 1rem;">
+    <div class="section-title">
+      <img src="phote/被写体４.png"  style="width:1.5em;vertical-align:middle;margin-right:0.3em;">
+      <span data-translate="ai_chat">AI先生チャット</span>
+    </div>
+    <p class="section-subtitle" data-translate="ai_teacher_24h">「AI先生」では24時間いつでも健康相談ができます。</p>
 
-    <style>
-      body {
-        background: linear-gradient(120deg, #E3F2ED 0%, #A5D6B5 100%);
-        min-height: 100vh;
-      }
-      .chat-header {
-        text-align: center;
-        margin-bottom: 40px;
-      }
-      .ai-options {
-        display: flex;
-        gap: 2.5rem;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-      .ai-card {
-        background: #fff;
-        border-radius: 1.5rem;
-        box-shadow: 0 6px 24px 0 rgba(46,125,50,0.10);
-        transition: transform 0.25s, box-shadow 0.25s;
-        cursor: pointer;
-        width: 320px;
-        min-width: 260px;
-        max-width: 100%;
-        margin-bottom: 1rem;
-        border: 2px solid #E3F2ED;
-        position: relative;
-        overflow: hidden;
-      }
-      .ai-card:hover {
-        transform: translateY(-8px) scale(1.03);
-        box-shadow: 0 12px 32px 0 rgba(46,125,50,0.18);
-        border-color: #81C784;
-      }
-      .card-content {
-        padding: 2.2rem 1.5rem 2rem 1.5rem;
-        text-align: center;
-        display: flex;
+    <div class="cards">
+      <!-- 左のカード -->
+      <div class="card green" onclick="startChat('teacher')">
+        <h3 data-translate="ai_teacher">AI先生</h3>
+        <p data-translate="ai_teacher_24h">「AI先生」では24時間いつでも健康相談ができます。</p>
+        <button class="start-chat-btn"><span data-translate="start_chat">チャットを始める</span></button>
+      </div>
+
+      <!-- 右のカード -->
+      <div class="card blue" onclick="startChat('real')">
+        <h3 data-translate="realtime_chat">リアルタイムチャット（患者用）</h3>
+        <p data-translate="realtime_chat_desc">「リアルタイム」では医療スタッフと直接チャットが可能です。</p>
+        <button class="start-chat-btn"><span data-translate="start_chat">チャットを始める</span></button>
+      </div>
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer class="footer container">
+    <small>
+      <a href="#">利用規約</a>
+      <a href="#">プライバシーポリシー</a><br>
+      &copy; スマート医療ポータル
+    </small>
+  </footer>
+
+  <style>
+    body {
+      background: #fff;
+      min-height: 100vh;
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+    }
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+    .section-subtitle {
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      color: #555;
+    }
+    .cards {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .card {
+      flex: 1;
+      min-width: 280px;
+      max-width: 450px;
+      border-radius: 18px;
+      padding: 24px;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .card.green {
+      background: #8bc34a;
+    }
+    .card.blue {
+      background: #0288d1;
+    }
+    .card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    .card p {
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .start-chat-btn {
+      display: inline-block;
+      background: #fff;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: inherit;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .card.green .start-chat-btn { color: #388e3c; }
+    .card.blue .start-chat-btn { color: #1565c0; }
+    .start-chat-btn:hover {
+      background: #f0f0f0;
+      transform: scale(1.05);
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    @media (max-width: 768px) {
+      .cards {
         flex-direction: column;
-        align-items: center;
       }
-      .icon-wrapper {
-        width: 90px;
-        height: 90px;
-        margin-bottom: 1.2rem;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        box-shadow: 0 2px 12px 0 rgba(46,125,50,0.10);
-      }
-      .ai-teacher-bg {
-        background: linear-gradient(135deg, #A5D6B5 60%, #E3F2ED 100%);
-      }
-      .ai-real-bg {
-        background: linear-gradient(135deg, #81C784 60%, #E3F2ED 100%);
-      }
-      .ai-icon {
-        font-size: 2.8rem;
-      }
-      .ai-card h3 {
-        font-size: 1.4rem;
-        color: #2E7D32;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        letter-spacing: 0.02em;
-      }
-      .ai-card p {
-        color: #555;
-        margin-bottom: 1.2rem;
-        font-size: 1.05rem;
-        line-height: 1.6;
-      }
-      .start-chat-btn {
-        background: linear-gradient(90deg, #A5D6B5 0%, #2E7D32 100%);
-        color: #fff;
-        border: none;
-        padding: 0.8rem 2.2rem;
-        border-radius: 2rem;
-        font-size: 1.08rem;
-        font-weight: 500;
-        cursor: pointer;
-        box-shadow: 0 2px 12px 0 rgba(46,125,50,0.10);
-        transition: background 0.2s, box-shadow 0.2s;
-        letter-spacing: 0.01em;
-      }
-      .start-chat-btn:hover {
-        background: linear-gradient(90deg, #2E7D32 0%, #A5D6B5 100%);
-        box-shadow: 0 4px 18px 0 rgba(46,125,50,0.18);
-      }
-      @media (max-width: 700px) {
-        .ai-options {
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-        .ai-card {
-          width: 100%;
-          min-width: 0;
-        }
-      }
-    </style>
+    }
+  </style>
 
-    <script>
-      function startChat(aiType) {
-        if (aiType === 'teacher') {
-          window.location.href = 'teacher.html';
-        } else if (aiType === 'real') {
-          window.location.href = 'real.html';
-        }
+  <script>
+    function startChat(type) {
+      if (type === 'teacher') {
+        window.location.href = 'teacher.html';
+      } else if (type === 'real') {
+        window.location.href = 'real.html';
       }
-      function goBack() {
-        window.location.href = 'choise.html';
+    }
+    // 初期レンダ後に翻訳を適用
+    document.addEventListener('DOMContentLoaded', function(){
+      if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+        try { window.multiLang.updateUI(); } catch (_) {}
       }
-    </script>
-
-    <!-- フッター -->
-    <footer class="footer container">
-      <small>
-        <a href="#">利用規約</a>
-        <a href="#">プライバシーポリシー</a><br>
-        &copy; スマート医療ポータル
-      </small>
-    </footer>
+    });
+  </script>
 </body>
 </html>
