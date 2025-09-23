@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>患者ログイン</title>
+  <title data-i18n="patient-login">患者ログイン</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   
@@ -321,6 +321,18 @@
   </style>
 </head>
 <body>
+  <!-- 言語選択ボタン -->
+  <div class="language-selector" id="languageSelector">
+    <div class="language-selector-container">
+      <span class="language-label">
+        <span class="language-icon">🌐</span>
+        <span class="language-text" data-i18n="language">言語</span>
+      </span>
+      <button type="button" class="language-select" data-lang="ja" id="langBtnJa">日本語</button>
+      <button type="button" class="language-select" data-lang="en" id="langBtnEn">English</button>
+      <button type="button" class="language-select" data-lang="zh" id="langBtnZh">中文</button>
+    </div>
+  </div>
   <div class="container">
     <h1 data-i18n="patient-login">患者ログイン</h1>
     <form id="patientLoginForm">
@@ -333,9 +345,9 @@
         <input type="password" id="password" required>
       </div>
       <button type="submit" id="loginButton" data-i18n="login">
-      <span id="loginButtonText">ログイン</span>
-      <span id="loginButtonLoading" style="display: none;">ログイン中...</span>
-    </button>
+        <span id="loginButtonText" data-i18n="login">ログイン</span>
+        <span id="loginButtonLoading" style="display: none;" data-i18n="logging-in">ログイン中...</span>
+      </button>
     </form>
     <button onclick="location.href='signup.html'" class="signup-button" data-i18n="signup">新規登録はこちら</button>
     <a href="doctor.html" class="back-link" data-i18n="doctor-login-link">← 医者の方はこちら</a>
@@ -343,15 +355,15 @@
 
   <script>
     const firebaseConfig = {
-  apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
-  authDomain: "web01-2484d.firebaseapp.com",
-  databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
-  projectId: "web01-2484d",
-  storageBucket: "web01-2484d.firebasestorage.app",
-  messagingSenderId: "90159472898",
-  appId: "1:90159472898:web:261ec71f9919611011e21b",
-  measurementId: "G-9TGR07ZSY9"
-};
+      apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+      authDomain: "web01-2484d.firebaseapp.com",
+      databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.firebasestorage.app",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b",
+      measurementId: "G-9TGR07ZSY9"
+    };
 
     firebase.initializeApp(firebaseConfig);
 
@@ -403,16 +415,16 @@
           
           switch (error.code) {
             case 'auth/user-not-found':
-              errorMessage += 'ユーザーが見つかりません。メールアドレスを確認してください。';
+              errorMessage += window.translationManager ? window.translationManager.getText('user-not-found', 'ユーザーが見つかりません。メールアドレスを確認してください。') : 'ユーザーが見つかりません。メールアドレスを確認してください。';
               break;
             case 'auth/wrong-password':
-              errorMessage += 'パスワードが間違っています。';
+              errorMessage += window.translationManager ? window.translationManager.getText('wrong-password', 'パスワードが間違っています。') : 'パスワードが間違っています。';
               break;
             case 'auth/invalid-email':
-              errorMessage += 'メールアドレスの形式が正しくありません。';
+              errorMessage += window.translationManager ? window.translationManager.getText('invalid-email', 'メールアドレスの形式が正しくありません。') : 'メールアドレスの形式が正しくありません。';
               break;
             case 'auth/too-many-requests':
-              errorMessage += 'ログイン試行回数が多すぎます。しばらく待ってから再試行してください。';
+              errorMessage += window.translationManager ? window.translationManager.getText('too-many-requests', 'ログイン試行回数が多すぎます。しばらく待ってから再試行してください。') : 'ログイン試行回数が多すぎます。しばらく待ってから再試行してください。';
               break;
             default:
               errorMessage += error.message;
@@ -426,6 +438,87 @@
           loginButtonLoading.style.display = 'none';
         });
     });
+
+    // --- 言語切り替え機能 ---
+    // サンプルの多言語辞書（本番は translation.js などで管理）
+    const translations = {
+      ja: {
+        "patient-login": "患者ログイン",
+        "email": "メールアドレス",
+        "password": "パスワード",
+        "login": "ログイン",
+        "logging-in": "ログイン中...",
+        "signup": "新規登録はこちら",
+        "doctor-login-link": "← 医者の方はこちら",
+        "language": "言語",
+        "login-success": "ログインに成功しました！",
+        "user-not-found": "ユーザーが見つかりません。メールアドレスを確認してください。",
+        "wrong-password": "パスワードが間違っています。",
+        "invalid-email": "メールアドレスの形式が正しくありません。",
+        "too-many-requests": "ログイン試行回数が多すぎます。しばらく待ってから再試行してください。"
+      },
+      en: {
+        "patient-login": "Patient Login",
+        "email": "Email Address",
+        "password": "Password",
+        "login": "Login",
+        "logging-in": "Logging in...",
+        "signup": "Sign Up Here",
+        "doctor-login-link": "← For Doctors",
+        "language": "Language",
+        "login-success": "Login successful!",
+        "user-not-found": "User not found. Please check your email address.",
+        "wrong-password": "Incorrect password.",
+        "invalid-email": "Invalid email format.",
+        "too-many-requests": "Too many login attempts. Please try again later."
+      },
+      zh: {
+        "patient-login": "患者登录",
+        "email": "电子邮件地址",
+        "password": "密码",
+        "login": "登录",
+        "logging-in": "登录中...",
+        "signup": "新用户注册",
+        "doctor-login-link": "← 医生入口",
+        "language": "语言",
+        "login-success": "登录成功！",
+        "user-not-found": "未找到用户。请检查您的电子邮件地址。",
+        "wrong-password": "密码错误。",
+        "invalid-email": "电子邮件格式不正确。",
+        "too-many-requests": "尝试登录次数过多。请稍后再试。"
+      }
+    };
+
+    // 簡易なi18n関数
+    function setLanguage(lang) {
+      // window.translationManagerがあればそちらも切り替え
+      if (window.translationManager && typeof window.translationManager.setLanguage === "function") {
+        window.translationManager.setLanguage(lang);
+      }
+      // すべてのdata-i18n属性を持つ要素を更新
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+      // <html lang="...">も更新
+      document.documentElement.lang = lang;
+    }
+
+    // 言語ボタンにイベントを付与
+    document.getElementById('langBtnJa').addEventListener('click', function() {
+      setLanguage('ja');
+    });
+    document.getElementById('langBtnEn').addEventListener('click', function() {
+      setLanguage('en');
+    });
+    document.getElementById('langBtnZh').addEventListener('click', function() {
+      setLanguage('zh');
+    });
+
+    // ページ初期表示時に日本語
+    setLanguage('ja');
   </script>
 </body>
 </html>

@@ -462,6 +462,15 @@
 
     let movieScoreChart = null;
 
+    // 翻訳ヘルパー
+    function t(key, fallback){
+      try{
+        const lang = (window.multiLang && window.multiLang.currentLanguage) || 'ja';
+        const dict = (window.multiLang && window.multiLang.translations && window.multiLang.translations[lang]) || {};
+        return (dict && dict[key]) || fallback;
+      }catch(_){ return fallback; }
+    }
+
     // 動画クイズスコアを取得
     async function loadMovieScores(userId) {
       try {
@@ -578,8 +587,8 @@
           data: { 
             labels: [], 
             datasets: [
-              { label: '正答率', data: [] },
-              { label: '正解数', data: [] }
+              { label: t('accuracy_label','正答率 (%)'), data: [] },
+              { label: t('correct_label','正解数'), data: [] }
             ] 
           },
           options: { 
@@ -588,7 +597,7 @@
             plugins: {
               title: {
                 display: true,
-                text: 'クイズ成績推移'
+                text: t('chart_title','📈 クイズ成績推移')
               }
             }
           }
@@ -625,7 +634,7 @@
           labels: labels,
           datasets: [
             {
-              label: '正答率 (%)',
+              label: t('accuracy_label','正答率 (%)'),
               data: accuracyData,
               borderColor: '#6c63ff',
               backgroundColor: 'rgba(76, 99, 255, 0.10)',
@@ -641,7 +650,7 @@
               pointHoverBorderWidth: 2
             },
             {
-              label: '正解数',
+              label: t('correct_label','正解数'),
               data: correctData,
               borderColor: '#48c6ef',
               backgroundColor: 'rgba(72, 198, 239, 0.10)',
@@ -668,7 +677,7 @@
           plugins: {
             title: {
               display: true,
-              text: '📈 クイズ成績推移',
+              text: t('chart_title','📈 クイズ成績推移'),
               font: {
                 size: 18,
                 weight: 'bold',
@@ -702,10 +711,10 @@
               displayColors: true,
               callbacks: {
                 label: function(context) {
-                  if (context.dataset.label === '正答率 (%)') {
-                    return `📊 正答率: ${context.parsed.y}%`;
+                  if (context.dataset.label === t('accuracy_label','正答率 (%)')) {
+                    return `${t('tooltip_accuracy','📊 正答率')}: ${context.parsed.y}%`;
                   } else {
-                    return `🎯 正解数: ${context.parsed.y}問`;
+                    return `${t('tooltip_correct','🎯 正解数')}: ${context.parsed.y}${t('unit_questions','問')}`;
                   }
                 }
               }
@@ -715,7 +724,7 @@
             x: {
               title: {
                 display: true,
-                text: '📅 日付',
+                text: t('date_axis','📅 日付'),
                 font: {
                   size: 13,
                   weight: 'bold'
@@ -741,7 +750,7 @@
               max: 100,
               title: {
                 display: true,
-                text: '📊 正答率 (%)',
+                text: t('accuracy_label','📊 正答率 (%)'),
                 font: {
                   size: 13,
                   weight: 'bold'
@@ -769,7 +778,7 @@
               beginAtZero: true,
               title: {
                 display: true,
-                text: '🎯 正解数',
+                text: t('correct_label','🎯 正解数'),
                 font: {
                   size: 13,
                   weight: 'bold'
@@ -924,8 +933,8 @@
         scoresContainer.innerHTML = `
           <div class="no-scores-message">
             <div class="no-scores-icon">📚</div>
-            <h3>まだクイズの結果がありません</h3>
-            <p>新しいクイズに挑戦して、学習を始めましょう！</p>
+            <h3 data-translate="no_quiz_results">まだクイズの結果がありません</h3>
+            <p data-translate="start_learning">新しいクイズに挑戦して、学習を始めましょう！</p>
           </div>
         `;
         return;

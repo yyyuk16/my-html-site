@@ -48,11 +48,12 @@
       }catch(_){ return fallback; }
     }
     
+    // who: 'user' | 'ai'
     function appendMessage(who, text){
       const messageDiv = document.createElement("div");
       messageDiv.className = "message";
       
-      if(who === "あなた"){
+      if(who === 'user'){
         messageDiv.className += " user-message";
         messageDiv.innerHTML = `<div class="message-content">${escapeHtml(text)}</div>`;
       } else {
@@ -101,17 +102,17 @@
 
     async function send(){
       const msg=(userInput.value||"").trim(); if(!msg) return;
-      appendMessage("あなた", msg); userInput.value=""; const id=loading();
+      appendMessage('user', msg); userInput.value=""; const id=loading();
       try{
         const r=await fetch(OPENAI_ENDPOINT,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ message: msg }) });
         let data=null; try{ data=await r.json(); }catch{}
         stopLoading(id);
-        if(!r.ok){ const err=(data&&(data.error?.message||data.error))||`通信エラー (${r.status})`; appendMessage("AI先生",`申し訳ありません。${err} が発生しました。`); return; }
-        appendMessage("AI先生", data?.reply ?? "うまく応答できませんでした。");
-      }catch(e){ stopLoading(id); appendMessage("AI先生","通信に問題が発生しました。時間をおいて再度お試しください。"); }
+        if(!r.ok){ const err=(data&&(data.error?.message||data.error))||`通信エラー (${r.status})`; appendMessage('ai',`申し訳ありません。${err} が発生しました。`); return; }
+        appendMessage('ai', data?.reply ?? "うまく応答できませんでした。");
+      }catch(e){ stopLoading(id); appendMessage('ai',"通信に問題が発生しました。時間をおいて再度お試しください。"); }
     }
     window.addEventListener("DOMContentLoaded", () => {
-      appendMessage("AI先生", t('greeting','こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。'));
+      appendMessage('ai', t('greeting','こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。'));
       userInput.addEventListener("keypress", e => {
         if(e.key === "Enter") send();
       });
