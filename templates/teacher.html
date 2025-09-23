@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI先生チャット</title>
+  <title data-translate="ai_chat">AI先生チャット</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="chat.css">
   
@@ -40,6 +40,13 @@
     const sendButton = document.getElementById("sendButton");
 
     function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+    function t(key, fallback){
+      try{
+        const lang = (window.multiLang && window.multiLang.currentLanguage) || 'ja';
+        const dict = (window.multiLang && window.multiLang.translations && window.multiLang.translations[lang]) || {};
+        return (dict && dict[key]) || fallback;
+      }catch(_){ return fallback; }
+    }
     
     function appendMessage(who, text){
       const messageDiv = document.createElement("div");
@@ -54,7 +61,7 @@
           <div class="message-content">
             <div class="ai-header">
               <span class="ai-icon">👨‍⚕️</span>
-              <span class="ai-name">AI先生</span>
+              <span class="ai-name" data-translate="ai_teacher">${escapeHtml(t('ai_teacher','AI先生'))}</span>
             </div>
             <div class="ai-text">${escapeHtml(text)}</div>
           </div>
@@ -74,11 +81,11 @@
         <div class="message-content">
           <div class="ai-header">
             <span class="ai-icon">👨‍⚕️</span>
-            <span class="ai-name">AI先生</span>
+            <span class="ai-name" data-translate="ai_teacher">${escapeHtml(t('ai_teacher','AI先生'))}</span>
           </div>
           <div class="loading-indicator">
             <div class="spinner"></div>
-            <span>考え中...</span>
+            <span>${escapeHtml(t('thinking','考え中...'))}</span>
           </div>
         </div>
       `;
@@ -104,12 +111,15 @@
       }catch(e){ stopLoading(id); appendMessage("AI先生","通信に問題が発生しました。時間をおいて再度お試しください。"); }
     }
     window.addEventListener("DOMContentLoaded", () => {
-      appendMessage("AI先生", "こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。");
+      appendMessage("AI先生", t('greeting','こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。'));
       userInput.addEventListener("keypress", e => {
         if(e.key === "Enter") send();
       });
       document.getElementById("sendButton").addEventListener("click", send);
       userInput.focus();
+      if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+        try { window.multiLang.updateUI(); } catch (_) {}
+      }
     });
   </script>
 </body></html>
