@@ -19,13 +19,17 @@
     <!-- 💚 ヘッダー -->
     <header class="top-bar">
       <div class="header-inner">
-        <strong class="site-title" data-translate="site_title">結核治療サイト</strong>
-        <ul class="tab-menu">
-          <li><a href="ai.html">💬 <span data-translate="ai_chat">チャット</span></a></li>
-          <li><a href="score.html">❓ <span data-translate="quiz_results">Q&A</span></a></li>
-          <li><a href="movie.html">🎥 <span data-translate="video_watching">動画視聴</span></a></li>
-          <li><a href="setting.html" class="active">👤 <span data-translate="settings">設定</span></a></li>
-        </ul>
+        <div class="logo">
+          <span data-translate="site_title">結核治療サイト</span>
+        </div>
+        <nav>
+          <ul class="tab-menu">
+            <li><a href="ai.html">💬 <span data-translate="ai_chat">チャット</span></a></li>
+            <li><a href="score.html">❓ <span data-translate="quiz_results">Q&A</span></a></li>
+            <li><a href="movie.html">🎥 <span data-translate="video_watching">動画視聴</span></a></li>
+            <li><a href="setting.html" class="active">👤 <span data-translate="settings">設定</span></a></li>
+          </ul>
+        </nav>
       </div>
     </header>
 
@@ -142,6 +146,21 @@
         if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
           try { window.multiLang.updateUI(); } catch (_) {}
         }
+        // 念のためヘッダー/フッターの文字も明示的に更新
+        try {
+          const lang = (window.multiLang && window.multiLang.currentLanguage) || 'ja';
+          const dict = (window.multiLang && window.multiLang.translations && window.multiLang.translations[lang]) || {};
+          const titleEl = document.querySelector('.site-title[data-translate]');
+          if (titleEl && dict[titleEl.getAttribute('data-translate')]) {
+            titleEl.textContent = dict[titleEl.getAttribute('data-translate')];
+          }
+          const termsEl = document.querySelector('footer [data-translate="terms"]');
+          if (termsEl && dict.terms) termsEl.textContent = dict.terms;
+          const privacyEl = document.querySelector('footer [data-translate="privacy"]');
+          if (privacyEl && dict.privacy) privacyEl.textContent = dict.privacy;
+          const copyEl = document.querySelector('footer [data-translate="copyright_name"]');
+          if (copyEl && dict['copyright_name']) copyEl.textContent = dict['copyright_name'];
+        } catch(_) {}
       });
 
       function logout() {
