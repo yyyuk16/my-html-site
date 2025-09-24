@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-translate="設定">設定</title>
+    <title data-translate="settings">設定</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="maintab.css">
     
@@ -19,12 +19,12 @@
     <!-- 💚 ヘッダー -->
     <header class="top-bar">
       <div class="header-inner">
-        <strong class="site-title">結核治療サイト</strong>
+        <strong class="site-title" data-translate="site_title">結核治療サイト</strong>
         <ul class="tab-menu">
-          <li><a href="ai.html">💬 チャット</a></li>
-          <li><a href="score.html">❓ Q&A</a></li>
-          <li><a href="movie.html">🎥 動画視聴</a></li>
-          <li><a href="setting.html" class="active">👤 設定</a></li>
+          <li><a href="ai.html">💬 <span data-translate="ai_chat">チャット</span></a></li>
+          <li><a href="score.html">❓ <span data-translate="quiz_results">Q&A</span></a></li>
+          <li><a href="movie.html">🎥 <span data-translate="video_watching">動画視聴</span></a></li>
+          <li><a href="setting.html" class="active">👤 <span data-translate="settings">設定</span></a></li>
         </ul>
       </div>
     </header>
@@ -32,7 +32,7 @@
     <main class="container" style="max-width: 700px; margin: 0 auto; padding-top: 3rem; padding-bottom: 3rem;">
       <div class="setting-header" style="margin-bottom: 2.5rem; text-align:center;">
         <h1 style="font-size:2.2rem; color:#2E7D32; font-weight:700; margin-bottom:0.5rem;" data-translate="settings">設定</h1>
-        <p class="subtitle" style="font-size:1.1rem; color:#4CAF50;">アカウント情報や使い方、お問い合わせはこちら</p>
+        <p class="subtitle" style="font-size:1.1rem; color:#4CAF50;" data-translate="how_to_use">使い方</p>
       </div>
       <div class="setting-sections">
 
@@ -65,7 +65,7 @@
 
     <style>
       body {
-        background: linear-gradient(120deg, #E3F2ED 0%, #A5D6B5 100%);
+        background: #fff;
         min-height: 100vh;
       }
       .setting-header {
@@ -138,6 +138,25 @@
         // ここでは例としてダミー値
         document.getElementById('userName').textContent = "ゲスト";
         document.getElementById('userEmail').textContent = "未登録";
+        // 言語に基づく翻訳を適用
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try { window.multiLang.updateUI(); } catch (_) {}
+        }
+        // 念のためヘッダー/フッターの文字も明示的に更新
+        try {
+          const lang = (window.multiLang && window.multiLang.currentLanguage) || 'ja';
+          const dict = (window.multiLang && window.multiLang.translations && window.multiLang.translations[lang]) || {};
+          const titleEl = document.querySelector('.site-title[data-translate]');
+          if (titleEl && dict[titleEl.getAttribute('data-translate')]) {
+            titleEl.textContent = dict[titleEl.getAttribute('data-translate')];
+          }
+          const termsEl = document.querySelector('footer [data-translate="terms"]');
+          if (termsEl && dict.terms) termsEl.textContent = dict.terms;
+          const privacyEl = document.querySelector('footer [data-translate="privacy"]');
+          if (privacyEl && dict.privacy) privacyEl.textContent = dict.privacy;
+          const copyEl = document.querySelector('footer [data-translate="copyright_name"]');
+          if (copyEl && dict['copyright_name']) copyEl.textContent = dict['copyright_name'];
+        } catch(_) {}
       });
 
       function logout() {
@@ -150,9 +169,9 @@
     <!-- フッター -->
     <footer class="footer container">
       <small>
-        <a href="#">利用規約</a>
-        <a href="#">プライバシーポリシー</a><br>
-        &copy; スマート医療ポータル
+        <a href="#" data-translate="terms">利用規約</a>
+        <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
+        &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
       </small>
     </footer>
 </body>
