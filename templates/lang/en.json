@@ -62,6 +62,8 @@
   "privacy": "Privacy Policy",
   "copyright_name": "Smart Medical Portal",
   "thinking": "Thinking...",
-  "greeting": "Hello. I can't diagnose, but I'll share reassuring info within 100 characters."
- 
+  "greeting": "Hello. I can't diagnose, but I'll share reassuring info within 100 characters.",
+  "not_found": "No matching items found.",
+  "browser_no_video": "Your browser does not support video playback.",
+  "loading_video": "Loading video..."
 }
