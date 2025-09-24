@@ -56,5 +56,12 @@
   "language_ja": "日本語",
   "language_en": "English",
   "language_zh": "中文",
-  "language_ko": "한국어"
+  "language_ko": "한국어",
+  "site_title": "TB Care Portal",
+  "terms": "Terms of Service",
+  "privacy": "Privacy Policy",
+  "copyright_name": "Smart Medical Portal",
+  "thinking": "Thinking...",
+  "greeting": "Hello. I can't diagnose, but I'll share reassuring info within 100 characters."
+ 
 }
