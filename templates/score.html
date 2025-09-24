@@ -7,6 +7,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="maintab.css">
     <style>
+
+      
       body {
         background: #fff !important;
         min-height: 100vh;
@@ -332,6 +334,14 @@
         margin: 0;
         font-size: 1em;
         line-height: 1.6;
+      }
+      /* フッターの横幅が切れないようにフル幅にする */
+      .footer.container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 24px 0 0 0 !important;
+        padding: 10px 16px !important;
+        box-sizing: border-box;
       }
       @media (max-width: 768px) {
         .container {
@@ -1030,7 +1040,6 @@
       }
     });
   </script>
-
   <!-- フッター -->
   <footer class="footer container">
     <small>
@@ -1039,5 +1048,6 @@
       &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
     </small>
   </footer>
+
 </body>
 </html>
