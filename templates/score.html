@@ -365,16 +365,20 @@
     <script src="multilang.js"></script>
 </head>
 <body>
-  <!-- 💚 ヘッダー -->
-  <header class="top-bar">
+   <!-- 💚 ヘッダー -->
+   <header class="top-bar">
     <div class="header-inner">
-      <strong class="site-title">結核治療サイト</strong>
-      <ul class="tab-menu">
-        <li><a href="ai.html">💬 <span data-translate="ai_chat">チャット</span></a></li>
-        <li><a href="score.html">❓ <span data-translate="quiz_results">Q&A</span></a></li>
-        <li><a href="movie.html">🎥 <span data-translate="video_watching">動画視聴</span></a></li>
-        <li><a href="setting.html" class="active">👤 <span data-translate="settings">設定</span></a></li>
-      </ul>
+      <div class="logo" style="font-size:2rem; font-weight:700; color:#2E7D32; letter-spacing:0.08em; display:flex; align-items:center;">
+        <span data-translate="site_title" style="vertical-align:middle;">結核治療サイト</span>
+      </div>
+      <nav>
+        <ul class="tab-menu">
+          <li><a href="ai.html">💬 <span data-translate="ai_chat">チャット</span></a></li>
+          <li><a href="score.html" class="active">❓ <span data-translate="quiz_results">Q&A</span></a></li>
+          <li><a href="movie.html">🎥 <span data-translate="video_watching">動画視聴</span></a></li>
+          <li><a href="setting.html">👤 <span data-translate="settings">設定</span></a></li>
+        </ul>
+      </nav>
     </div>
   </header>
 
@@ -1030,9 +1034,9 @@
   <!-- フッター -->
   <footer class="footer container">
     <small>
-      <a href="#">利用規約</a>
-      <a href="#">プライバシーポリシー</a><br>
-      &copy; スマート医療ポータル
+      <a href="#" data-translate="terms">利用規約</a>
+      <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
+      &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
     </small>
   </footer>
 </body>
