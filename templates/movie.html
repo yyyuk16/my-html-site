@@ -430,7 +430,8 @@
         });
         const infoDiv = document.getElementById("info-content");
         if (!anyVisible && input !== "") {
-            infoDiv.innerHTML = "該当する項目が見つかりませんでした。";
+            const notFound = (window.multiLang && window.multiLang.translations && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')] && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')]['not_found']) || '該当する項目が見つかりませんでした。';
+            infoDiv.innerHTML = notFound;
             infoDiv.style.display = "block";
             clearActiveButtons();
         } else if (input === "") {
@@ -478,10 +479,10 @@
         player.innerHTML = `
             <video id="myVideo" controls preload="metadata" width="${VIDEO_WIDTH}" height="${VIDEO_HEIGHT}" style="max-width:100%;">
             <source src="${aboutVideoIds[idx]}" type="video/mp4">
-            お使いのブラウザは動画の再生に対応していません。
+            ${(window.multiLang && window.multiLang.translations && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')] && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')]['browser_no_video']) || 'お使いのブラウザは動画の再生に対応していません。'}
             </video>
             <div id="loading-message" style="text-align:center; margin-top:10px; color:#666;">
-            動画を読み込み中...（大きなファイルの場合は時間がかかります）
+            ${(window.multiLang && window.multiLang.translations && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')] && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')]['loading_video']) || '動画を読み込み中...'}
             </div>
         `;
         const video = document.getElementById('myVideo');
@@ -536,10 +537,10 @@
         player.innerHTML = `
             <video id="myTestVideo" controls preload="metadata" width="${VIDEO_WIDTH}" height="${VIDEO_HEIGHT}" style="max-width:100%;">
             <source src="${testVideoIds[idx]}" type="video/mp4">
-            お使いのブラウザは動画の再生に対応していません。
+            ${(window.multiLang && window.multiLang.translations && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')] && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')]['browser_no_video']) || 'お使いのブラウザは動画の再生に対応していません。'}
             </video>
             <div id="loading-message" style="text-align:center; margin-top:10px; color:#666;">
-            動画を読み込み中...（大きなファイルの場合は時間がかかります）
+            ${(window.multiLang && window.multiLang.translations && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')] && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')]['loading_video']) || '動画を読み込み中...'}
             </div>
         `;
         const video = document.getElementById('myTestVideo');
@@ -594,10 +595,10 @@
         player.innerHTML = `
             <video id="myCVideo" controls preload="metadata" width="${VIDEO_WIDTH}" height="${VIDEO_HEIGHT}" style="max-width:100%;">
             <source src="${cVideoIds[idx]}" type="video/mp4">
-            お使いのブラウザは動画の再生に対応していません。
+            ${(window.multiLang && window.multiLang.translations && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')] && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')]['browser_no_video']) || 'お使いのブラウザは動画の再生に対応していません。'}
             </video>
             <div id="loading-message" style="text-align:center; margin-top:10px; color:#666;">
-            動画を読み込み中...
+            ${(window.multiLang && window.multiLang.translations && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')] && window.multiLang.translations[(window.multiLang.currentLanguage||'ja')]['loading_video']) || '動画を読み込み中...'}
             </div>
         `;
         const video = document.getElementById('myCVideo');
