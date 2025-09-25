@@ -107,9 +107,10 @@
         const r=await fetch(OPENAI_ENDPOINT,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ message: msg }) });
         let data=null; try{ data=await r.json(); }catch{}
         stopLoading(id);
-        if(!r.ok){ const err=(data&&(data.error?.message||data.error))||`通信エラー (${r.status})`; appendMessage('ai',`申し訳ありません。${err} が発生しました。`); return; }
-        appendMessage('ai', data?.reply ?? "うまく応答できませんでした。");
-      }catch(e){ stopLoading(id); appendMessage('ai',"通信に問題が発生しました。時間をおいて再度お試しください。"); }
+        if(!r.ok){ const err=(data&&(data.error?.message||data.error))||t('communication_error', `通信エラー (${r.status})`); appendMessage('ai',t('ai_sorry', `申し訳ありません。${err} が発生しました。`)); return; }
+        const aiReply = data?.reply ?? t('ai_error', "うまく応答できませんでした。");
+        appendMessage('ai', aiReply);
+      }catch(e){ stopLoading(id); appendMessage('ai',t('communication_problem', "通信に問題が発生しました。時間をおいて再度お試しください。")); }
     }
     window.addEventListener("DOMContentLoaded", () => {
       appendMessage('ai', t('greeting','こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。'));
