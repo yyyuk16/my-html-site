@@ -65,5 +65,9 @@
   "greeting": "Hello. I can't diagnose, but I'll share reassuring info within 100 characters.",
   "not_found": "No matching items found.",
   "browser_no_video": "Your browser does not support video playback.",
-  "loading_video": "Loading video..."
+  "loading_video": "Loading video...",
+  "ai_error": "Unable to respond properly.",
+  "communication_error": "Communication Error",
+  "ai_sorry": "Sorry, {0} occurred.",
+  "communication_problem": "Communication problem occurred. Please try again later."
 }
