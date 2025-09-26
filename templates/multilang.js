@@ -107,7 +107,18 @@ class MultiLanguage {
       const key = element.getAttribute('data-translate');
       const translation = this.translations[this.currentLanguage]?.[key];
       if (translation) {
+        // テキストコンテンツを更新
         element.textContent = translation;
+        
+        // プレースホルダー属性も更新
+        if (element.placeholder !== undefined) {
+          element.placeholder = translation;
+        }
+        
+        // title属性も更新
+        if (element.title !== undefined) {
+          element.title = translation;
+        }
       }
     });
   }

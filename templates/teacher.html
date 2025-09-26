@@ -113,15 +113,58 @@
       }catch(e){ stopLoading(id); appendMessage('ai',t('communication_problem', "通信に問題が発生しました。時間をおいて再度お試しください。")); }
     }
     window.addEventListener("DOMContentLoaded", () => {
-      appendMessage('ai', t('greeting','こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。'));
+      // 翻訳が読み込まれるまで待機してから初期メッセージを表示
+      const showInitialMessage = () => {
+        const greeting = t('greeting','こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。');
+        appendMessage('ai', greeting);
+      };
+      
+      // 翻訳システムの初期化を待つ
+      const waitForTranslation = () => {
+        if (window.multiLang && window.multiLang.currentLanguage && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+          showInitialMessage();
+        } else {
+          // 少し待ってから再試行
+          setTimeout(() => {
+            if (window.multiLang && window.multiLang.currentLanguage && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+              showInitialMessage();
+            } else {
+              // フォールバックとして日本語で表示
+              appendMessage('ai', 'こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。');
+            }
+          }, 1000);
+        }
+      };
+      
+      waitForTranslation();
+      
       userInput.addEventListener("keypress", e => {
         if(e.key === "Enter") send();
       });
       document.getElementById("sendButton").addEventListener("click", send);
       userInput.focus();
-      if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
-        try { window.multiLang.updateUI(); } catch (_) {}
-      }
+      
+      // 翻訳システムの初期化を待ってからUIを更新
+      const updateUIWhenReady = () => {
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try { 
+            window.multiLang.updateUI(); 
+            // プレースホルダーも明示的に更新
+            const userInput = document.getElementById('userInput');
+            if (userInput && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+              const translation = window.multiLang.translations[window.multiLang.currentLanguage]['health_consultation'];
+              if (translation) {
+                userInput.placeholder = translation;
+              }
+            }
+          } catch (_) {}
+        } else {
+          // 少し待ってから再試行
+          setTimeout(updateUIWhenReady, 500);
+        }
+      };
+      
+      updateUIWhenReady();
     });
   </script>
 </body></html>
