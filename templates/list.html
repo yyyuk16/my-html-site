@@ -464,20 +464,18 @@
           <div class="quiz-history">
             ${quizResults.recentQuizzesList.length > 0 ? 
               quizResults.recentQuizzesList.map(quiz => {
-                let accuracy = quiz.accuracy || 0;
-                // accuracyの値を適切に処理
-                if (accuracy <= 1) {
-                  accuracy = accuracy * 100;
-                }
-                const accuracyPercent = Math.round(accuracy);
+                // Firebaseの実際のフィールド名を使用
+                const score = quiz.score || 0;
+                const total = quiz.total || 0;
+                const accuracyPercent = total > 0 ? Math.round((score / total) * 100) : 0;
                 
                 // 正答率に基づく色分け（パーセンテージ基準）
                 const itemClass = accuracyPercent >= 80 ? 'excellent' : accuracyPercent >= 60 ? 'good' : 'poor';
                 
                 return `
                   <div class="quiz-item ${itemClass}">
-                    <div class="quiz-date">${new Date((quiz.timestamp && quiz.timestamp.seconds) ? quiz.timestamp.seconds * 1000 : Date.now()).toLocaleDateString('ja-JP')}</div>
-                    <div class="quiz-score">正答率: ${accuracyPercent}% (${quiz.correctAnswers || 0}/${quiz.totalQuestions || 0}問)</div>
+                    <div class="quiz-date">${new Date((quiz.createdAt && quiz.createdAt.seconds) ? quiz.createdAt.seconds * 1000 : Date.now()).toLocaleDateString('ja-JP')}</div>
+                    <div class="quiz-score">正答率: ${accuracyPercent}% (${score}/${total}問)</div>
                   </div>
                 `;
               }).join('') : 
@@ -643,10 +641,10 @@
           console.log('クイズデータの例:', quizzes[0]);
         }
         
-        // クライアント側でタイムスタンプ順にソート
+        // クライアント側でタイムスタンプ順にソート（createdAtフィールドを使用）
         quizzes.sort((a, b) => {
-          const timestampA = a.timestamp && a.timestamp.seconds ? a.timestamp.seconds : 0;
-          const timestampB = b.timestamp && b.timestamp.seconds ? b.timestamp.seconds : 0;
+          const timestampA = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
+          const timestampB = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : 0;
           return timestampB - timestampA; // 降順（新しい順）
         });
         
