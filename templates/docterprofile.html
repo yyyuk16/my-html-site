@@ -126,40 +126,129 @@
             messagingSenderId: "90159472898",
             appId: "1:90159472898:web:261ec71f9919611011e21b"
         };
-        firebase.initializeApp(firebaseConfig);
+        // Firebase初期化
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+        }
+
+        // 即座に認証状態を確認
+        console.log('Checking current auth state...');
+        const currentUser = firebase.auth().currentUser;
+        console.log('Current user:', currentUser);
 
         // 医師のプロフィール情報を取得
+        console.log('Setting up auth state listener...');
         firebase.auth().onAuthStateChanged((user) => {
+            console.log('Auth state changed:', user);
             if (user) {
+                console.log('User is logged in:', user.uid);
                 const db = firebase.firestore();
                 db.collection('users').doc(user.uid).get()
                     .then((doc) => {
+                        console.log('Document exists:', doc.exists);
                         if (doc.exists) {
                             const data = doc.data();
+                            console.log('User data:', data);
+                            
                             // プロフィールイニシャルを設定
                             const initial = data.name ? data.name.charAt(0).toUpperCase() : '?';
-                            document.getElementById('profileInitial').textContent = initial;
+                            const profileInitialEl = document.getElementById('profileInitial');
+                            if (profileInitialEl) {
+                                profileInitialEl.textContent = initial;
+                            }
                             
-                            // 既存のプロフィール情報設定
-                            if (document.getElementById('doctorName')) document.getElementById('doctorName').textContent = data.name || '';
-                            if (document.getElementById('doctorAge')) {
+                            // プロフィール情報を設定
+                            const doctorNameEl = document.getElementById('doctorName');
+                            if (doctorNameEl) {
+                                doctorNameEl.textContent = data.name || '未登録';
+                            }
+                            
+                            const doctorAgeEl = document.getElementById('doctorAge');
+                            if (doctorAgeEl) {
                                 if (data.age !== undefined && data.age !== null && data.age !== "") {
-                                    document.getElementById('doctorAge').textContent = `${data.age}歳`;
+                                    doctorAgeEl.textContent = `${data.age}歳`;
                                 } else {
-                                    document.getElementById('doctorAge').textContent = '未登録';
+                                    doctorAgeEl.textContent = '未登録';
                                 }
                             }
-                            if (document.getElementById('doctorEmail')) document.getElementById('doctorEmail').textContent = data.email || user.email || '';
-                            if (document.getElementById('doctorSpecialty')) document.getElementById('doctorSpecialty').textContent = data.specialty || '';
-                            if (document.getElementById('doctorHospital')) document.getElementById('doctorHospital').textContent = data.hospital || '';
-                            if (document.getElementById('doctorExperience')) document.getElementById('doctorExperience').textContent = (data.experience !== undefined && data.experience !== null && data.experience !== "") ? `${data.experience}年` : '';
+                            
+                            const doctorEmailEl = document.getElementById('doctorEmail');
+                            if (doctorEmailEl) {
+                                doctorEmailEl.textContent = data.email || user.email || '未登録';
+                            }
+                            
+                            const doctorSpecialtyEl = document.getElementById('doctorSpecialty');
+                            if (doctorSpecialtyEl) {
+                                doctorSpecialtyEl.textContent = data.specialty || '未登録';
+                            }
+                            
+                            const doctorHospitalEl = document.getElementById('doctorHospital');
+                            if (doctorHospitalEl) {
+                                doctorHospitalEl.textContent = data.hospital || '未登録';
+                            }
+                            
+                            const doctorExperienceEl = document.getElementById('doctorExperience');
+                            if (doctorExperienceEl) {
+                                if (data.experience !== undefined && data.experience !== null && data.experience !== "") {
+                                    doctorExperienceEl.textContent = `${data.experience}年`;
+                                } else {
+                                    doctorExperienceEl.textContent = '未登録';
+                                }
+                            }
+                        } else {
+                            console.log('No user document found');
+                            // ユーザードキュメントが存在しない場合の処理
+                            const profileInitialEl = document.getElementById('profileInitial');
+                            if (profileInitialEl) {
+                                profileInitialEl.textContent = '?';
+                            }
+                            
+                            // デフォルト値を設定
+                            const elements = [
+                                'doctorName', 'doctorAge', 'doctorEmail', 
+                                'doctorSpecialty', 'doctorHospital', 'doctorExperience'
+                            ];
+                            elements.forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el) {
+                                    el.textContent = '未登録';
+                                }
+                            });
+                            
+                            // メールアドレスは認証情報から取得
+                            const doctorEmailEl = document.getElementById('doctorEmail');
+                            if (doctorEmailEl && user.email) {
+                                doctorEmailEl.textContent = user.email;
+                            }
                         }
                     })
                     .catch((error) => {
                         console.error("Error fetching user profile:", error);
+                        alert('プロフィール情報の取得に失敗しました: ' + error.message);
                     });
+            } else {
+                console.log('No user logged in');
+                // ログインしていない場合はログインページにリダイレクト
+                alert('ログインが必要です。ログインページに移動します。');
+                window.location.href = 'index.html';
             }
         });
+
+        // テスト用：Firestore接続確認
+        setTimeout(() => {
+            console.log('Testing Firestore connection...');
+            const db = firebase.firestore();
+            db.collection('test').doc('test').get()
+                .then(() => {
+                    console.log('Firestore connection successful');
+                })
+                .catch((error) => {
+                    console.error('Firestore connection failed:', error);
+                });
+        }, 2000);
 
         // 退会処理
         document.getElementById('deleteAccountBtn').onclick = function() {

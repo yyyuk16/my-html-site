@@ -609,10 +609,9 @@
       }
       
       try {
-        // ai_quiz_scoresコレクションから患者のクイズ結果を取得
+        // ai_quiz_scoresコレクションから患者のクイズ結果を取得（orderByを削除してインデックスエラーを回避）
         const quizSnapshot = await db.collection('ai_quiz_scores')
           .where('userEmail', '==', patientEmail)
-          .orderBy('timestamp', 'desc')
           .get();
         
         if (quizSnapshot.empty) {
@@ -626,6 +625,14 @@
         }
         
         const quizzes = quizSnapshot.docs.map(doc => doc.data());
+        
+        // クライアント側でタイムスタンプ順にソート
+        quizzes.sort((a, b) => {
+          const timestampA = a.timestamp && a.timestamp.seconds ? a.timestamp.seconds : 0;
+          const timestampB = b.timestamp && b.timestamp.seconds ? b.timestamp.seconds : 0;
+          return timestampB - timestampA; // 降順（新しい順）
+        });
+        
         const totalQuizzes = quizzes.length;
         
         // 平均正答率を計算（accuracyは0-1の値なので100倍してパーセントに変換）
