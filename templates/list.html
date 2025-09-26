@@ -657,11 +657,13 @@
         let maxAccuracy = 0;
         
         quizzes.forEach(quiz => {
-          let accuracy = quiz.accuracy || 0;
+          // Firebaseの実際のフィールド名を使用: score/totalから正答率を計算
+          const score = quiz.score || 0;
+          const total = quiz.total || 0;
+          let accuracy = 0;
           
-          // accuracyが0-1の範囲の場合は100倍、既にパーセンテージの場合はそのまま使用
-          if (accuracy <= 1) {
-            accuracy = accuracy * 100;
+          if (total > 0) {
+            accuracy = (score / total) * 100;
           }
           
           totalAccuracy += accuracy;
@@ -675,8 +677,9 @@
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         const recentQuizzes = quizzes.filter(quiz => {
-          const quizDate = quiz.timestamp && quiz.timestamp.seconds ? 
-            new Date(quiz.timestamp.seconds * 1000) : new Date(0);
+          // createdAtフィールドを使用
+          const quizDate = quiz.createdAt && quiz.createdAt.seconds ? 
+            new Date(quiz.createdAt.seconds * 1000) : new Date(0);
           return quizDate >= sevenDaysAgo;
         }).length;
         

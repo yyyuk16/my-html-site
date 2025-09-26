@@ -128,7 +128,7 @@
         };
         // Firebase初期化
         try {
-            firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
             console.log('Firebase initialized successfully');
         } catch (error) {
             console.error('Firebase initialization error:', error);
@@ -249,6 +249,41 @@
             
             if (currentUser) {
                 console.log('User found in additional check:', currentUser.uid);
+                console.log('User email:', currentUser.email);
+                
+                // Firestoreの全ユーザードキュメントを確認
+                const db = firebase.firestore();
+                db.collection('users').get()
+                    .then((querySnapshot) => {
+                        console.log('All users in Firestore:');
+                        querySnapshot.forEach((doc) => {
+                            console.log('Document ID:', doc.id, 'Data:', doc.data());
+                        });
+                        
+                        // メールアドレスでユーザーを検索
+                        const userEmail = currentUser.email;
+                        console.log('Searching for user with email:', userEmail);
+                        
+                        db.collection('users').where('email', '==', userEmail).get()
+                            .then((emailQuerySnapshot) => {
+                                console.log('Users found by email:', emailQuerySnapshot.size);
+                                if (emailQuerySnapshot.size > 0) {
+                                    emailQuerySnapshot.forEach((doc) => {
+                                        console.log('Found user by email - ID:', doc.id, 'Data:', doc.data());
+                                        // プロフィール情報を表示
+                                        displayUserProfile(doc.data());
+                                    });
+                                } else {
+                                    console.log('No user found with email:', userEmail);
+                                }
+                            })
+                            .catch((error) => {
+                                console.error('Error searching by email:', error);
+                            });
+                    })
+                    .catch((error) => {
+                        console.error('Error getting all users:', error);
+                    });
             } else {
                 console.log('No user found in additional check');
             }
@@ -266,6 +301,57 @@
                     console.error('Firestore connection failed:', error);
                 });
         }, 2000);
+
+        // プロフィール情報を表示する関数
+        function displayUserProfile(data) {
+            console.log('Displaying user profile:', data);
+            
+            // プロフィールイニシャルを設定
+            const initial = data.name ? data.name.charAt(0).toUpperCase() : '?';
+            const profileInitialEl = document.getElementById('profileInitial');
+            if (profileInitialEl) {
+                profileInitialEl.textContent = initial;
+            }
+            
+            // プロフィール情報を設定
+            const doctorNameEl = document.getElementById('doctorName');
+            if (doctorNameEl) {
+                doctorNameEl.textContent = data.name || '未登録';
+            }
+            
+            const doctorAgeEl = document.getElementById('doctorAge');
+            if (doctorAgeEl) {
+                if (data.age !== undefined && data.age !== null && data.age !== "") {
+                    doctorAgeEl.textContent = `${data.age}歳`;
+                } else {
+                    doctorAgeEl.textContent = '未登録';
+                }
+            }
+            
+            const doctorEmailEl = document.getElementById('doctorEmail');
+            if (doctorEmailEl) {
+                doctorEmailEl.textContent = data.email || '未登録';
+            }
+            
+            const doctorSpecialtyEl = document.getElementById('doctorSpecialty');
+            if (doctorSpecialtyEl) {
+                doctorSpecialtyEl.textContent = data.specialty || '未登録';
+            }
+            
+            const doctorHospitalEl = document.getElementById('doctorHospital');
+            if (doctorHospitalEl) {
+                doctorHospitalEl.textContent = data.hospital || '未登録';
+            }
+            
+            const doctorExperienceEl = document.getElementById('doctorExperience');
+            if (doctorExperienceEl) {
+                if (data.experience !== undefined && data.experience !== null && data.experience !== "") {
+                    doctorExperienceEl.textContent = `${data.experience}年`;
+                } else {
+                    doctorExperienceEl.textContent = '未登録';
+                }
+            }
+        }
 
         // 退会処理
         document.getElementById('deleteAccountBtn').onclick = function() {
