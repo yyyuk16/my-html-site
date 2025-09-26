@@ -152,6 +152,122 @@
             padding: 20px;
             font-style: italic;
         }
+        
+        /* 患者リストのスタイル */
+        .flex-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            min-height: 70vh;
+        }
+        
+        .patient-list-panel {
+            flex: 0 0 300px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+            border: 1px solid #e3f2fd;
+        }
+        
+        .patient-list-panel h2 {
+            color: #2196f3;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 12px;
+            border: 1px solid #e3f2fd;
+            border-radius: 8px;
+            font-size: 0.95em;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .search-box input:focus {
+            border-color: #2196f3;
+        }
+        
+        .search-box i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        
+        .chat-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .chat-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .chat-item.selected {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .doctor-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2196f3, #21cbf3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 12px;
+            font-size: 0.9em;
+        }
+        
+        .chat-info {
+            flex: 1;
+        }
+        
+        .doctor-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .last-message {
+            font-size: 0.85em;
+            color: #666;
+        }
+        
+        .patient-info-container {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+            border: 1px solid #e3f2fd;
+        }
     </style>
 </head>
 <body>
@@ -172,20 +288,19 @@
         </div>
     </header>
         
-        <div class="flex-container">
-            <div class="patient-list-panel">
-                <h2><i class="fas fa-user-friends"></i> <span data-translate="担当患者リスト">担当患者リスト</span></h2>
-                <div class="search-box">
-                    <input type="text" id="patientSearch" data-translate="患者を検索..." placeholder="患者を検索...">
-                    <i class="fas fa-search"></i>
-                </div>
-                <div class="chat-list" id="patientList"></div>
+    <div class="flex-container">
+        <div class="patient-list-panel">
+            <h2><i class="fas fa-user-friends"></i> <span data-translate="担当患者リスト">担当患者リスト</span></h2>
+            <div class="search-box">
+                <input type="text" id="patientSearch" data-translate="患者を検索..." placeholder="患者を検索...">
+                <i class="fas fa-search"></i>
             </div>
-            <div class="patient-info-container" id="patientInfoArea">
-                <div class="no-data">
-                    <i class="fas fa-user" style="font-size: 3em; color: #ccc; margin-bottom: 15px;"></i>
-                    <p>患者を選択してください</p>
-                </div>
+            <div class="chat-list" id="patientList"></div>
+        </div>
+        <div class="patient-info-container" id="patientInfoArea">
+            <div class="no-data">
+                <i class="fas fa-user" style="font-size: 3em; color: #ccc; margin-bottom: 15px;"></i>
+                <p>患者を選択してください</p>
             </div>
         </div>
     </div>
