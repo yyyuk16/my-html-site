@@ -452,7 +452,7 @@
                         <div class="patient-info" id="patientInfo"></div>
                     </div>
                     
-                                        <div class="chat-messages" id="chatMessages">
+                    <div class="chat-messages" id="chatMessages">
                         <!-- メッセージがここに表示される -->
                     </div>
                     
@@ -806,6 +806,11 @@
                 const quizResultsSection = document.getElementById('quizResultsSection');
                 const quizResults = document.getElementById('quizResults');
                 
+                if (!quizResultsSection || !quizResults) {
+                    console.log('クイズ結果表示要素が見つかりません');
+                    return;
+                }
+                
                 // まず患者のメールアドレスを取得
                 const patientDoc = await db.collection('users').doc(patientId).get();
                 if (!patientDoc.exists) {
@@ -826,9 +831,9 @@
                 // ai_quiz_scoresコレクションからメールアドレスで患者のクイズ結果を取得
                 console.log('メールアドレスでクイズ結果を検索中:', patientEmail);
                 
+                // インデックスエラーを回避するため、orderByを削除
                 const quizSnapshot = await db.collection('ai_quiz_scores')
                     .where('userEmail', '==', patientEmail)
-                    .orderBy('timestamp', 'desc')
                     .limit(5) // 最新5件まで表示
                     .get();
                 
@@ -846,10 +851,21 @@
                 quizResultsSection.style.display = 'block';
                 
                 let quizHTML = '';
+                const quizDataArray = [];
                 quizSnapshot.forEach(doc => {
-                    const quizData = doc.data();
-                    const quizDate = quizData.timestamp && quizData.timestamp.toDate ? 
-                        quizData.timestamp.toDate().toLocaleDateString('ja-JP', {
+                    quizDataArray.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // クライアント側でソート
+                quizDataArray.sort((a, b) => {
+                    const aTime = a.timestamp && a.timestamp.seconds ? a.timestamp.seconds : 0;
+                    const bTime = b.timestamp && b.timestamp.seconds ? b.timestamp.seconds : 0;
+                    return bTime - aTime; // 降順（新しい順）
+                });
+                
+                quizDataArray.slice(0, 5).forEach(quizData => {
+                    const quizDate = quizData.timestamp && quizData.timestamp.seconds ? 
+                        new Date(quizData.timestamp.seconds * 1000).toLocaleDateString('ja-JP', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
@@ -943,7 +959,10 @@
             } catch (error) {
                 console.error('AIクイズ結果読み込みエラー:', error);
                 // エラー時はセクションを非表示
-                document.getElementById('quizResultsSection').style.display = 'none';
+                const quizResultsSection = document.getElementById('quizResultsSection');
+                if (quizResultsSection) {
+                    quizResultsSection.style.display = 'none';
+                }
             }
         }
 

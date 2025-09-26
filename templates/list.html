@@ -463,12 +463,24 @@
           </div>
           <div class="quiz-history">
             ${quizResults.recentQuizzesList.length > 0 ? 
-              quizResults.recentQuizzesList.map(quiz => `
-                <div class="quiz-item ${(quiz.accuracy || 0) >= 0.8 ? 'excellent' : (quiz.accuracy || 0) >= 0.6 ? 'good' : 'poor'}">
-                  <div class="quiz-date">${new Date((quiz.timestamp && quiz.timestamp.seconds) ? quiz.timestamp.seconds * 1000 : Date.now()).toLocaleDateString('ja-JP')}</div>
-                  <div class="quiz-score">正答率: ${Math.round((quiz.accuracy || 0) * 100)}% (${quiz.correctAnswers || 0}/${quiz.totalQuestions || 0}問)</div>
-                </div>
-              `).join('') : 
+              quizResults.recentQuizzesList.map(quiz => {
+                let accuracy = quiz.accuracy || 0;
+                // accuracyの値を適切に処理
+                if (accuracy <= 1) {
+                  accuracy = accuracy * 100;
+                }
+                const accuracyPercent = Math.round(accuracy);
+                
+                // 正答率に基づく色分け（パーセンテージ基準）
+                const itemClass = accuracyPercent >= 80 ? 'excellent' : accuracyPercent >= 60 ? 'good' : 'poor';
+                
+                return `
+                  <div class="quiz-item ${itemClass}">
+                    <div class="quiz-date">${new Date((quiz.timestamp && quiz.timestamp.seconds) ? quiz.timestamp.seconds * 1000 : Date.now()).toLocaleDateString('ja-JP')}</div>
+                    <div class="quiz-score">正答率: ${accuracyPercent}% (${quiz.correctAnswers || 0}/${quiz.totalQuestions || 0}問)</div>
+                  </div>
+                `;
+              }).join('') : 
               '<div class="no-data">クイズ結果がありません</div>'
             }
           </div>
@@ -626,6 +638,11 @@
         
         const quizzes = quizSnapshot.docs.map(doc => doc.data());
         
+        // デバッグ用: 最初のクイズデータの構造を確認
+        if (quizzes.length > 0) {
+          console.log('クイズデータの例:', quizzes[0]);
+        }
+        
         // クライアント側でタイムスタンプ順にソート
         quizzes.sort((a, b) => {
           const timestampA = a.timestamp && a.timestamp.seconds ? a.timestamp.seconds : 0;
@@ -635,12 +652,24 @@
         
         const totalQuizzes = quizzes.length;
         
-        // 平均正答率を計算（accuracyは0-1の値なので100倍してパーセントに変換）
-        const totalAccuracy = quizzes.reduce((sum, quiz) => sum + (quiz.accuracy || 0), 0);
-        const averageAccuracy = Math.round((totalAccuracy / totalQuizzes) * 100);
+        // 平均正答率を計算（accuracyの値の範囲を確認して適切に処理）
+        let totalAccuracy = 0;
+        let maxAccuracy = 0;
         
-        // 最高スコアを取得
-        const bestScore = Math.max(...quizzes.map(quiz => Math.round((quiz.accuracy || 0) * 100)));
+        quizzes.forEach(quiz => {
+          let accuracy = quiz.accuracy || 0;
+          
+          // accuracyが0-1の範囲の場合は100倍、既にパーセンテージの場合はそのまま使用
+          if (accuracy <= 1) {
+            accuracy = accuracy * 100;
+          }
+          
+          totalAccuracy += accuracy;
+          maxAccuracy = Math.max(maxAccuracy, accuracy);
+        });
+        
+        const averageAccuracy = Math.round(totalAccuracy / totalQuizzes);
+        const bestScore = Math.round(maxAccuracy);
         
         // 最近7日間のクイズ数
         const sevenDaysAgo = new Date();

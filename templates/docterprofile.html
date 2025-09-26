@@ -134,15 +134,14 @@
             console.error('Firebase initialization error:', error);
         }
 
-        // 即座に認証状態を確認
-        console.log('Checking current auth state...');
-        const currentUser = firebase.auth().currentUser;
-        console.log('Current user:', currentUser);
-
         // 医師のプロフィール情報を取得
         console.log('Setting up auth state listener...');
+        let authChecked = false;
+        
         firebase.auth().onAuthStateChanged((user) => {
             console.log('Auth state changed:', user);
+            authChecked = true;
+            
             if (user) {
                 console.log('User is logged in:', user.uid);
                 const db = firebase.firestore();
@@ -231,11 +230,29 @@
                     });
             } else {
                 console.log('No user logged in');
-                // ログインしていない場合はログインページにリダイレクト
-                alert('ログインが必要です。ログインページに移動します。');
-                window.location.href = 'index.html';
+                // 少し待ってからリダイレクト（認証状態の確認を待つ）
+                setTimeout(() => {
+                    if (!authChecked) {
+                        console.log('Auth check timeout, redirecting to login');
+                        alert('ログインが必要です。ログインページに移動します。');
+                        window.location.href = 'index.html';
+                    }
+                }, 3000);
             }
         });
+
+        // 認証状態の追加確認
+        setTimeout(() => {
+            console.log('Additional auth check...');
+            const currentUser = firebase.auth().currentUser;
+            console.log('Current user after timeout:', currentUser);
+            
+            if (currentUser) {
+                console.log('User found in additional check:', currentUser.uid);
+            } else {
+                console.log('No user found in additional check');
+            }
+        }, 1000);
 
         // テスト用：Firestore接続確認
         setTimeout(() => {
