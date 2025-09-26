@@ -69,5 +69,18 @@
   "ai_error": "Unable to respond properly.",
   "communication_error": "Communication Error",
   "ai_sorry": "Sorry, {0} occurred.",
-  "communication_problem": "Communication problem occurred. Please try again later."
+  "communication_problem": "Communication problem occurred. Please try again later.",
+  "accuracy_label": "Accuracy (%)",
+  "correct_label": "Correct Answers",
+  "chart_title": "📈 Quiz Progress",
+  "tooltip_accuracy": "📊 Accuracy",
+  "tooltip_correct": "🎯 Correct",
+  "unit_questions": " questions",
+  "date_axis": "📅 Date",
+  "days_unit": " days",
+  "percentage_unit": "%",
+  "questions_unit": " questions",
+  "beginner_level": "Beginner",
+  "intermediate_level": "Intermediate",
+  "expert_level": "Expert"
 }

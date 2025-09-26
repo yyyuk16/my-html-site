@@ -69,5 +69,18 @@
   "ai_error": "うまく応答できませんでした。",
   "communication_error": "通信エラー",
   "ai_sorry": "申し訳ありません。{0} が発生しました。",
-  "communication_problem": "通信に問題が発生しました。時間をおいて再度お試しください。"
+  "communication_problem": "通信に問題が発生しました。時間をおいて再度お試しください。",
+  "accuracy_label": "正答率 (%)",
+  "correct_label": "正解数",
+  "chart_title": "📈 クイズ成績推移",
+  "tooltip_accuracy": "📊 正答率",
+  "tooltip_correct": "🎯 正解数",
+  "unit_questions": "問",
+  "date_axis": "📅 日付",
+  "days_unit": "日",
+  "percentage_unit": "%",
+  "questions_unit": "問",
+  "beginner_level": "初心者",
+  "intermediate_level": "中級者",
+  "expert_level": "エキスパート"
 }
