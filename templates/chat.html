@@ -19,6 +19,114 @@
             background: #ffffff;
         }
         
+        /* 患者リストのスタイル */
+        .flex-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            min-height: 70vh;
+        }
+        
+        .patient-list-panel {
+            flex: 0 0 300px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+            border: 1px solid #e3f2fd;
+        }
+        
+        .patient-list-panel h2 {
+            color: #2196f3;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 12px;
+            border: 1px solid #e3f2fd;
+            border-radius: 8px;
+            font-size: 0.95em;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .search-box input:focus {
+            border-color: #2196f3;
+        }
+        
+        .search-box i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        
+        .chat-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .chat-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .chat-item.selected {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .doctor-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2196f3, #21cbf3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 12px;
+            font-size: 0.9em;
+        }
+        
+        .chat-info {
+            flex: 1;
+        }
+        
+        .doctor-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .last-message {
+            font-size: 0.85em;
+            color: #666;
+        }
+        
         /* チャットエリア全体 */
         .chat-area {
             background: #f7fafd;
@@ -481,6 +589,9 @@
                         
                         // チャット入力の送信処理
                         setupChatInput(doc.id);
+                        
+                        // リアルタイムチャットの設定
+                        setupRealtimeChat(doc.id);
                     };
 
                     chatItem.innerHTML = `
@@ -795,6 +906,25 @@
                 document.getElementById('quizResultsSection').style.display = 'none';
             }
         }
+
+        // 検索機能
+        document.getElementById('patientSearch').addEventListener('input', function(e) {
+            const searchText = e.target.value.toLowerCase();
+            const items = document.querySelectorAll('.chat-item');
+            let found = false;
+            items.forEach(item => {
+                const name = item.querySelector('.doctor-name').textContent.toLowerCase();
+                const show = name.includes(searchText);
+                item.style.display = show ? 'flex' : 'none';
+                if(show) found = true;
+            });
+            if(!found){
+                chatListDiv.innerHTML = '<p style="color:#888;text-align:center;margin:24px 0;">該当する患者が見つかりません</p>';
+            } else {
+                // 検索で消えた場合に再描画しない
+                if(chatListDiv.querySelector('.chat-item')) return;
+            }
+        });
 
         // リアルタイムでメッセージを受信
         function setupRealtimeChat(patientId) {
