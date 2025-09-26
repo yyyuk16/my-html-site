@@ -92,6 +92,10 @@
                         <span class="profile-value" id="doctorExperience" style="font-size:1.08em; color:var(--text-color,#1A1A1A);"></span>
                     </div>
                 </div>
+                <button id="logoutBtn" class="save-btn" style="margin-top:32px; margin-right:16px; background:linear-gradient(135deg,#2196F3,#1976D2); color:#fff; font-size:1.1em; font-weight:600; border:none; border-radius:8px; padding:14px 36px; box-shadow:0 2px 8px var(--shadow-color,rgba(33,150,243,0.10)); transition:background 0.2s, box-shadow 0.2s, transform 0.15s;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span data-translate="ログアウト">ログアウト</span>
+                </button>
                 <button id="deleteAccountBtn" class="save-btn" style="margin-top:32px; background:linear-gradient(135deg,#e57373,#1976D2); color:#fff; font-size:1.1em; font-weight:600; border:none; border-radius:8px; padding:14px 36px; box-shadow:0 2px 8px var(--shadow-color,rgba(33,150,243,0.10)); transition:background 0.2s, box-shadow 0.2s, transform 0.15s;">
                     <i class="fas fa-user-times"></i>
                     <span data-translate="退会（アカウント削除）">退会（アカウント削除）</span>
@@ -351,6 +355,23 @@
                 }
             }
         }
+
+        // ログアウト処理
+        document.getElementById('logoutBtn').onclick = function() {
+            if (!confirm('ログアウトしますか？')) return;
+            
+            firebase.auth().signOut()
+                .then(() => {
+                    console.log('User logged out successfully');
+                    alert('ログアウトしました。');
+                    // ログアウト後は同じページ（docterprofile.html）に留まる
+                    window.location.reload();
+                })
+                .catch((error) => {
+                    console.error('Logout error:', error);
+                    alert('ログアウト中にエラーが発生しました: ' + error.message);
+                });
+        };
 
         // 退会処理
         document.getElementById('deleteAccountBtn').onclick = function() {
