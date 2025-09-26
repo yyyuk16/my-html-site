@@ -570,9 +570,9 @@
         if (scoresContainer) {
           scoresContainer.innerHTML = `
             <div style="text-align: center; padding: 20px; color: #888;">
-              <p>AIクイズの結果を読み込めませんでした。</p>
-              <p>エラー: ${e.message}</p>
-              <p>しばらく待ってから再読み込みしてください。</p>
+              <p data-translate="ai_quiz_load_error">AIクイズの結果を読み込めませんでした。</p>
+              <p data-translate="error">エラー: ${e.message}</p>
+              <p data-translate="please_retry">しばらく待ってから再読み込みしてください。</p>
             </div>
           `;
         }
@@ -990,37 +990,42 @@
               ${formattedDate}
             </div>
             <div class="score-card-rank">
-              <span class="rank-badge ${rank.class}">${rank.label}ランク</span>
+              <span class="rank-badge ${rank.class}" data-translate="rank">${rank.label}ランク</span>
             </div>
           </div>
           <div class="score-card-body">
             <div class="score-card-main">
               <div class="score-accuracy">
-                <span class="accuracy-label">正答率</span>
+                <span class="accuracy-label" data-translate="accuracy_rate">正答率</span>
                 <span class="accuracy-value">${(parseFloat(score.accuracy) || 0).toFixed(1)}%</span>
               </div>
               <div class="score-correct">
-                <span class="correct-label">正解数</span>
+                <span class="correct-label" data-translate="correct_answers">正解数</span>
                 <span class="correct-value">${score.correct || 0} / ${score.total || 0}</span>
               </div>
             </div>
             <div class="score-card-details">
               <div class="detail-item">
                 <span class="detail-icon">🎯</span>
-                <span class="detail-label">カテゴリ:</span>
-                <span class="detail-value">${score.category || '不明'}</span>
+                <span class="detail-label" data-translate="category">カテゴリ:</span>
+                <span class="detail-value">${score.category || t('unknown', '不明')}</span>
               </div>
               <div class="detail-item">
                 <span class="detail-icon">🤖</span>
-                <span class="detail-label">クイズ種別:</span>
-                <span class="detail-value">AIクイズ</span>
+                <span class="detail-label" data-translate="quiz_type">クイズ種別:</span>
+                <span class="detail-value" data-translate="ai_quiz">AIクイズ</span>
               </div>
             </div>
           </div>
-          ${score === bestScore ? '<div class="best-score-badge">🏆 ベストスコア</div>' : ''}
+          ${score === bestScore ? `<div class="best-score-badge" data-translate="best_score">🏆 ベストスコア</div>` : ''}
         `;
         scoresContainer.appendChild(scoreCard);
       });
+      
+      // 動的に生成された要素に翻訳を適用
+      if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+        try { window.multiLang.updateUI(); } catch (_) {}
+      }
     }
 
     // ページ読み込み時に認証状態を確認し、スコアを反映（自動リダイレクトを無効化）
