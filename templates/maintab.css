@@ -24,7 +24,7 @@
 
 /* タイトル文字 */
 .site-title {
-  color: #2E7D32;
+  color: #2196f3;
           font-size: 1.5rem;
       font-weight: 600;
   margin: 0;
@@ -56,13 +56,13 @@
 }
 
 .tab-menu li a:hover {
-  color: #2E7D32;
-  border-bottom-color: #2E7D32;
+  color: #2196f3;
+  border-bottom-color: #2196f3;
 }
 
 .tab-menu li a.active {
-  color: #2E7D32;
-  border-bottom-color: #2E7D32;
+  color: #2196f3;
+  border-bottom-color: #2196f3;
 }
 
 /* メインエリア */
@@ -75,7 +75,7 @@ main.container {
 
 h1 {
   font-size: 2.8rem;
-  color: #2E7D32;
+  color: #2196f3;
   margin-bottom: 1rem;
   font-weight: 600;
   line-height: 1.2;
@@ -100,11 +100,76 @@ h2 {
 }
 
 .footer a {
-  color: #2E7D32;
+  color: #2196f3;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .footer a:hover {
-  color: #1B5E20;
+  color: #1976d2;
+}
+
+
+
+:root {
+    --main-color: #2196f3;
+    --accent-color: #1976d2;
+    --bg-color: #f7fafd;
+    --header-bg: #fff;
+    --tab-active: #e3f2fd;
+    --tab-hover: #f1f8e9;
+    --border-radius: 14px;
+    --footer-bg: #1976d2;
+    --footer-text: #fff;
+}
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #ffffff;
+    margin: 0;
+    min-height: 100vh;
+}
+.footer {
+    background: var(--footer-bg);
+    color: var(--footer-text);
+    padding: 24px 0;
+    text-align: center;
+    margin-top: 40px;
+}
+.footer .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.footer-links {
+    display: flex;
+    gap: 24px;
+}
+.footer-links a {
+    color: var(--footer-text);
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: opacity 0.3s;
+}
+.footer-links a:hover {
+    opacity: 0.8;
+}
+.footer-copyright {
+    font-size: 0.85em;
+    opacity: 0.9;
+}
+@media (max-width: 600px) {
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-links {
+        justify-content: center;
+    }
 }
