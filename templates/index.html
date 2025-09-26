@@ -13,6 +13,9 @@
   
   <!-- 多言語対応スクリプト -->
   <script src="translation.js"></script>
+  
+  <!-- タブ固有認証管理 -->
+  <script src="tab-auth.js"></script>
 
   <style>
    
@@ -378,6 +381,12 @@ h2 {
         })
         .then((userCredential) => {
           console.log("ログイン成功:", userCredential.user.email);
+          
+          // タブ固有の認証状態を更新
+          if (window.tabAuthManager) {
+            window.tabAuthManager.setTabAuthState(userCredential.user);
+          }
+          
           alert("ログインに成功しました！");
           window.location.href = "ai.html";
         })

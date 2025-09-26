@@ -178,12 +178,27 @@ class MultiLanguage {
     document.body.appendChild(buttonContainer);
   }
 
-  // 初期化
+  // タブ固有のIDを生成
+  generateTabId() {
+    if (!this.tabId) {
+      this.tabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem('currentTabId', this.tabId);
+    }
+    return this.tabId;
+  }
+
+  // タブ固有の認証状態を管理
   async init() {
     this.initFirebase();
+    this.generateTabId();
     
-    // 認証状態を監視
+    // タブ固有の認証状態を初期化
+    this.setTabAuthState(null);
+    
+    // 認証状態を監視（タブ固有）
     this.auth.onAuthStateChanged(async (user) => {
+      // タブ固有の認証状態を更新
+      this.setTabAuthState(user);
       this.currentUser = user;
       
       if (user) {
@@ -200,6 +215,54 @@ class MultiLanguage {
         this.createLanguageButtons();
       }
     });
+  }
+
+  // タブ固有の認証状態を設定
+  setTabAuthState(user) {
+    const tabAuthState = {
+      tabId: this.tabId,
+      user: user ? {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName
+      } : null,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem('tabAuthState', JSON.stringify(tabAuthState));
+  }
+
+  // タブ固有の認証状態を取得
+  getTabAuthState() {
+    try {
+      const stored = sessionStorage.getItem('tabAuthState');
+      if (stored) {
+        const state = JSON.parse(stored);
+        if (state.tabId === this.tabId) {
+          return state;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to get tab auth state:', e);
+    }
+    return null;
+  }
+
+  // 認証状態をリセット（タブ固有）
+  resetTabAuthState() {
+    this.setTabAuthState(null);
+    // Firebase認証からサインアウト
+    if (this.auth) {
+      this.auth.signOut().catch(error => {
+        console.warn('Sign out error:', error);
+      });
+    }
+  }
+
+  // タブが閉じられる時の処理
+  handleTabClose() {
+    // タブ固有の認証状態をクリア
+    sessionStorage.removeItem('tabAuthState');
+    sessionStorage.removeItem('currentTabId');
   }
 }
 
