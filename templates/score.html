@@ -422,7 +422,7 @@
         <div class="progress-card">
           <div class="progress-icon">📚</div>
           <h3 data-translate="learning_days">学習継続日数</h3>
-          <div class="progress-value" id="learning-days">0日</div>
+          <div class="progress-value" id="learning-days" data-translate="days_unit">0日</div>
           <div class="progress-bar">
             <div class="progress-fill" id="learning-days-bar"></div>
           </div>
@@ -430,7 +430,7 @@
         <div class="progress-card">
           <div class="progress-icon">🎯</div>
           <h3 data-translate="goal_achievement">目標達成率</h3>
-          <div class="progress-value" id="goal-achievement">0%</div>
+          <div class="progress-value" id="goal-achievement" data-translate="percentage_unit">0%</div>
           <div class="progress-bar">
             <div class="progress-fill" id="goal-achievement-bar"></div>
           </div>
@@ -438,7 +438,7 @@
         <div class="progress-card">
           <div class="progress-icon">🔥</div>
           <h3 data-translate="streak">連続正解</h3>
-          <div class="progress-value" id="streak">0問</div>
+          <div class="progress-value" id="streak" data-translate="questions_unit">0問</div>
           <div class="progress-bar">
             <div class="progress-fill" id="streak-bar"></div>
           </div>
@@ -446,7 +446,7 @@
         <div class="progress-card">
           <div class="progress-icon">⭐</div>
           <h3 data-translate="level">レベル</h3>
-          <div class="progress-value" id="level">初心者</div>
+          <div class="progress-value" id="level" data-translate="beginner_level">初心者</div>
           <div class="progress-bar">
             <div class="progress-fill" id="level-bar"></div>
           </div>
@@ -898,17 +898,17 @@
         }
       }
       // レベルを計算
-      let level = "初心者";
+      let level = t('beginner_level', '初心者');
       let levelProgress = 0;
       const avgAccuracy = scores.reduce((sum, score) => sum + (parseFloat(score.accuracy) || 0), 0) / scores.length;
       if (scores.length >= 10 && avgAccuracy >= 80) {
-        level = "エキスパート";
+        level = t('expert_level', 'エキスパート');
         levelProgress = 100;
       } else if (scores.length >= 5 && avgAccuracy >= 60) {
-        level = "中級者";
+        level = t('intermediate_level', '中級者');
         levelProgress = Math.min(100, (scores.length / 10) * 100);
       } else {
-        level = "初心者";
+        level = t('beginner_level', '初心者');
         levelProgress = Math.min(100, (scores.length / 5) * 100);
       }
       // 進捗バーを更新
@@ -925,7 +925,16 @@
       const element = document.getElementById(elementId);
       const bar = document.getElementById(elementId + '-bar');
       if (element && bar) {
-        element.textContent = current + unit;
+        // 単位を翻訳
+        let translatedUnit = unit;
+        if (unit === '日') {
+          translatedUnit = t('days_unit', '日');
+        } else if (unit === '問') {
+          translatedUnit = t('questions_unit', '問');
+        } else if (unit === '%') {
+          translatedUnit = '%';
+        }
+        element.textContent = current + translatedUnit;
         const percentage = Math.min(100, (current / max) * 100);
         bar.style.width = percentage + '%';
         // 色を動的に変更
