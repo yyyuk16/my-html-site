@@ -372,7 +372,10 @@ h2 {
       loginButtonText.style.display = 'none';
       loginButtonLoading.style.display = 'inline';
 
-      firebase.auth().signInWithEmailAndPassword(email, password)
+      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+        .then(() => {
+          return firebase.auth().signInWithEmailAndPassword(email, password);
+        })
         .then((userCredential) => {
           console.log("ログイン成功:", userCredential.user.email);
           alert("ログインに成功しました！");

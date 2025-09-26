@@ -163,7 +163,10 @@
         return;
       }
       
-      auth.signInWithEmailAndPassword(email, password)
+      auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+        .then(() => {
+          return auth.signInWithEmailAndPassword(email, password);
+        })
         .then(() => {
           console.log("ログイン成功");
         })

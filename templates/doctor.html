@@ -51,7 +51,10 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      firebase.auth().signInWithEmailAndPassword(email, password)
+      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+        .then(() => {
+          return firebase.auth().signInWithEmailAndPassword(email, password);
+        })
         .then((userCredential) => {
           const user = userCredential.user;
           alert('ログインに成功しました！');
