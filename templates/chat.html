@@ -565,21 +565,31 @@
                     chatItem.setAttribute('role', 'button');
                     chatItem.setAttribute('aria-label', `${patient.name || '名無しの患者'}のチャットを開く`);
                     chatItem.onclick = () => {
+                        console.log('患者を選択:', patient.name, doc.id);
+                        
                         // 選択状態のUI
                         document.querySelectorAll('.chat-item.selected').forEach(el => el.classList.remove('selected'));
                         chatItem.classList.add('selected');
                         
                         // チャット画面を表示
-                        chatGuide.style.display = 'none';
-                        document.getElementById('chatInterface').style.display = 'flex';
+                        const chatGuide = document.getElementById('chatGuide');
+                        const chatInterface = document.getElementById('chatInterface');
+                        
+                        if (chatGuide) chatGuide.style.display = 'none';
+                        if (chatInterface) chatInterface.style.display = 'flex';
                         
                         // 患者情報を表示
-                        document.getElementById('chatPatientName').textContent = patient.name || '名無しの患者';
-                        document.getElementById('patientInfo').innerHTML = `
-                            <span style="color:#666;font-size:0.9em;">
-                                <i class="fas fa-user"></i> ID: ${doc.id}
-                            </span>
-                        `;
+                        const chatPatientName = document.getElementById('chatPatientName');
+                        const patientInfo = document.getElementById('patientInfo');
+                        
+                        if (chatPatientName) chatPatientName.textContent = patient.name || '名無しの患者';
+                        if (patientInfo) {
+                            patientInfo.innerHTML = `
+                                <span style="color:#666;font-size:0.9em;">
+                                    <i class="fas fa-user"></i> ID: ${doc.id}
+                                </span>
+                            `;
+                        }
                         
                         // チャット履歴を読み込み
                         loadChatHistory(doc.id);
@@ -633,17 +643,26 @@
 
         // チャット履歴を読み込む関数
         async function loadChatHistory(patientId) {
+            console.log('チャット履歴を読み込み中:', patientId);
             const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) {
+                console.error('chatMessages要素が見つかりません');
+                return;
+            }
+            
             chatMessages.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">チャット履歴を読み込み中...</div>';
             
             try {
                 // チャットルームIDを作成（医師UIDと患者UIDを昇順で結合）
                 const currentUser = firebase.auth().currentUser;
                 const chatRoomId = [currentUser.uid, patientId].sort().join('_');
+                console.log('チャットルームID:', chatRoomId);
                 
                 // Firestoreからチャット履歴を取得
                 const chatRef = db.collection('chats').doc(chatRoomId).collection('messages');
                 const snapshot = await chatRef.orderBy('timestamp', 'asc').get();
+                
+                console.log('取得したメッセージ数:', snapshot.size);
                 
                 if (snapshot.empty) {
                     chatMessages.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">まだメッセージがありません</div>';
@@ -667,12 +686,18 @@
 
         // メッセージを表示する関数
         function displayMessage(message, currentUserId) {
+            console.log('メッセージを表示:', message);
             const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) {
+                console.error('chatMessages要素が見つかりません');
+                return;
+            }
+            
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${message.senderId === currentUserId ? 'sent' : 'received'}`;
             
             const time = message.timestamp
-                ? new Date(message.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
+                ? new Date(message.timestamp.seconds ? message.timestamp.seconds * 1000 : message.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
                 : '--:--';
             
             messageDiv.innerHTML = `
@@ -701,8 +726,14 @@
 
         // チャット入力の設定
         function setupChatInput(patientId) {
+            console.log('チャット入力設定:', patientId);
             const messageInput = document.getElementById('messageInput');
             const sendBtn = document.getElementById('sendBtn');
+            
+            if (!messageInput || !sendBtn) {
+                console.error('チャット入力要素が見つかりません');
+                return;
+            }
             
             // 既存のイベントリスナーを削除
             sendBtn.onclick = null;
@@ -724,14 +755,20 @@
 
         // メッセージを送信する関数
         async function sendMessage(patientId) {
+            console.log('メッセージ送信:', patientId);
             const messageInput = document.getElementById('messageInput');
-            const text = messageInput.value.trim();
+            if (!messageInput) {
+                console.error('messageInput要素が見つかりません');
+                return;
+            }
             
+            const text = messageInput.value.trim();
             if (!text) return;
             
             try {
                 const currentUser = firebase.auth().currentUser;
                 const chatRoomId = [currentUser.uid, patientId].sort().join('_');
+                console.log('チャットルームID:', chatRoomId);
                 
                 // メッセージをFirestoreに保存
                 const messageData = {
@@ -742,6 +779,7 @@
                     type: 'text'
                 };
                 
+                console.log('メッセージデータ:', messageData);
                 await db.collection('chats').doc(chatRoomId).collection('messages').add(messageData);
                 
                 // 入力フィールドをクリア
@@ -752,11 +790,13 @@
                 
                 // 最新のメッセージまでスクロール
                 const chatMessages = document.getElementById('chatMessages');
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                if (chatMessages) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
                 
             } catch (error) {
                 console.error('メッセージ送信エラー:', error);
-                alert('メッセージの送信に失敗しました');
+                alert('メッセージの送信に失敗しました: ' + error.message);
             }
         }
 
