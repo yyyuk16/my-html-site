@@ -464,9 +464,9 @@
           <div class="quiz-history">
             ${quizResults.recentQuizzesList.length > 0 ? 
               quizResults.recentQuizzesList.map(quiz => `
-                <div class="quiz-item ${quiz.accuracy >= 80 ? 'excellent' : quiz.accuracy >= 60 ? 'good' : 'poor'}">
-                  <div class="quiz-date">${new Date(quiz.timestamp.seconds * 1000).toLocaleDateString('ja-JP')}</div>
-                  <div class="quiz-score">正答率: ${Math.round(quiz.accuracy * 100)}% (${quiz.correctAnswers}/${quiz.totalQuestions}問)</div>
+                <div class="quiz-item ${(quiz.accuracy || 0) >= 0.8 ? 'excellent' : (quiz.accuracy || 0) >= 0.6 ? 'good' : 'poor'}">
+                  <div class="quiz-date">${new Date((quiz.timestamp && quiz.timestamp.seconds) ? quiz.timestamp.seconds * 1000 : Date.now()).toLocaleDateString('ja-JP')}</div>
+                  <div class="quiz-score">正答率: ${Math.round((quiz.accuracy || 0) * 100)}% (${quiz.correctAnswers || 0}/${quiz.totalQuestions || 0}問)</div>
                 </div>
               `).join('') : 
               '<div class="no-data">クイズ結果がありません</div>'
@@ -628,9 +628,9 @@
         const quizzes = quizSnapshot.docs.map(doc => doc.data());
         const totalQuizzes = quizzes.length;
         
-        // 平均正答率を計算
+        // 平均正答率を計算（accuracyは0-1の値なので100倍してパーセントに変換）
         const totalAccuracy = quizzes.reduce((sum, quiz) => sum + (quiz.accuracy || 0), 0);
-        const averageAccuracy = Math.round(totalAccuracy / totalQuizzes);
+        const averageAccuracy = Math.round((totalAccuracy / totalQuizzes) * 100);
         
         // 最高スコアを取得
         const bestScore = Math.max(...quizzes.map(quiz => Math.round((quiz.accuracy || 0) * 100)));
