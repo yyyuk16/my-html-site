@@ -5,71 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-translate="医療情報管理アプリ - 医師用ダッシュボード">医療情報管理アプリ - 医師用ダッシュボード</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="d_maintab.css">
-    <script src="https://apis.google.com/js/api.js"></script>
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
-    <!-- 翻訳機能 -->
-    <script src="translation.js"></script>
-    
-    <style>
-        /* 背景を統一 */
-        body {
-            background: 
-                linear-gradient(rgba(67,160,71,0.15), rgba(67,160,71,0.25)),
-                url('./phote/S__8994818.jpg') center/cover no-repeat,
-                var(--background-color, #f7fafd);
-            background-attachment: fixed;
-        }
-    </style>
+    <link rel="stylesheet" href="maintab.css">
+  
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 data-translate="医療管理アプリ">医療管理アプリ</h1>
+    <!-- 💚 ヘッダー -->
+    <header class="top-bar">
+        <div class="header-inner">
+            <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3; letter-spacing:0.08em; display:flex; align-items:center;">
+                <span data-translate="site_title" style="vertical-align:middle;">医療管理アプリ</span>
+            </div>
+            <nav>
+                <ul class="tab-menu">
+                    <li><a href="home.html" class="active">🏥 <span data-translate="HOME">HOME</span></a></li>
+                    <li><a href="list.html">👥 <span data-translate="患者診療記録">患者診療記録</span></a></li>
+                    <li><a href="chat.html">📅 <span data-translate="チャット">チャット</span></a></li>
+                    <li><a href="docterprofile.html">👤 <span data-translate="プロフィール">プロフィール</span></a></li>
+                </ul>
+            </nav>
         </div>
-        <div class="tab-container">
-            <div class="tab-header">
-                <button class="tab-button active" onclick="location.href='home.html'">
-                    <span class="tab-icon">🏥</span>
-                    <span class="tab-text" data-translate="HOME">HOME</span>
-                </button>
-                <button class="tab-button" onclick="location.href='list.html'">
-                    <span class="tab-icon">👥</span>
-                    <span class="tab-text" data-translate="患者診療記録">患者診療記録</span>
-                </button>
-                <button class="tab-button" onclick="location.href='chat.html'">
-                    <span class="tab-icon">📅</span>
-                    <span class="tab-text" data-translate="チャット">チャット</span>
-                </button>
-                <button class="tab-button" onclick="location.href='docterprofile.html'">
-                    <span class="tab-icon">👤</span>
-                    <span class="tab-text" data-translate="プロフィール">プロフィール</span>
-                </button>
-            </div>
-        </div>
-        <div style="background: #fff; border-radius: 16px; box-shadow: 0 4px 16px rgba(33,150,243,0.08); padding: 40px; min-height: 300px; margin-top: 40px;">
-            <h2 data-translate="患者からの新着メッセージ数">患者からの新着メッセージ数</h2>
-            <div id="patientMessageCount" style="font-size: 2.5em; color: #1976d2; font-weight: bold; margin-top: 24px;">
-                <span data-translate="読み込み中...">読み込み中...</span>
-            </div>
-            <div id="messageDetails" style="margin-top: 20px; font-size: 1.1em; color: #666;">
-                <!-- 詳細情報がここに表示されます -->
-            </div>
-            <div id="encouragementMessage" style="font-size: 1.3em; color: #388e3c; font-weight: 500; margin-top: 32px;">
-                <!-- 励ましメッセージがここに表示されます -->
+    </header>
+    
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" data-translate="terms">利用規約</a>
+                    <a href="#" data-translate="privacy">プライバシーポリシー</a>
+                </div>
+                <div class="footer-copyright">
+                    <small data-translate="copyright_name">© 2024 医療管理アプリ. All rights reserved.</small>
+                </div>
             </div>
         </div>
+    </footer>
+    
         <!-- Firebase SDKの読み込み -->
         <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js"></script>
+        
+        <!-- 多言語対応スクリプト -->
+        <script src="multilang.js"></script>
         <script>
         document.addEventListener("DOMContentLoaded", async function() {
+            // 多言語対応の初期化
+            if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                try { 
+                    window.multiLang.updateUI(); 
+                } catch (_) {}
+            }
+            
             // Firebaseの初期化
             const firebaseConfig = {
                 apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",

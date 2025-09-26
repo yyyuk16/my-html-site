@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-translate="医師プロフィール">医師プロフィール</title>
-    <link rel="stylesheet" href="d_maintab.css">
+    <link rel="stylesheet" href="maintab.css">
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -15,41 +15,29 @@
     <script src="translation.js"></script>
     
     <style>
-        /* 背景を統一 */
+        /* 背景を白に統一 */
         body {
-            background: 
-                linear-gradient(rgba(67,160,71,0.15), rgba(67,160,71,0.25)),
-                url('./phote/S__8994818.jpg') center/cover no-repeat,
-                var(--background-color, #f7fafd);
-            background-attachment: fixed;
+            background: #ffffff;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-           <h1 data-translate="医療管理アプリ">医療管理アプリ</h1>
-        </div>
-        <div class="tab-container">
-            <div class="tab-header">
-                <button class="tab-button" onclick="location.href='home.html'">
-                    <span class="tab-icon">🏥</span>
-                    <span class="tab-text" data-translate="HOME">HOME</span>
-                </button>
-                <button class="tab-button" onclick="location.href='list.html'">
-                    <span class="tab-icon">👥</span>
-                    <span class="tab-text" data-translate="患者診療記録">患者診療記録</span>
-                </button>
-                <button class="tab-button" onclick="location.href='chat.html'">
-                    <span class="tab-icon">📅</span>
-                    <span class="tab-text" data-translate="チャット">チャット</span>
-                </button>
-                <button class="tab-button active" onclick="location.href='docterprofile.html'">
-                    <span class="tab-icon">👤</span>
-                    <span class="tab-text" data-translate="プロフィール">プロフィール</span>
-                </button>
+    <!-- 💚 ヘッダー -->
+    <header class="top-bar">
+        <div class="header-inner">
+            <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3; letter-spacing:0.08em; display:flex; align-items:center;">
+                <span data-translate="site_title" style="vertical-align:middle;">医療管理アプリ</span>
             </div>
+            <nav>
+                <ul class="tab-menu">
+                    <li><a href="home.html">🏥 <span data-translate="HOME">HOME</span></a></li>
+                    <li><a href="list.html">👥 <span data-translate="患者診療記録">患者診療記録</span></a></li>
+                    <li><a href="chat.html">📅 <span data-translate="チャット">チャット</span></a></li>
+                    <li><a href="docterprofile.html" class="active">👤 <span data-translate="プロフィール">プロフィール</span></a></li>
+                </ul>
+            </nav>
         </div>
+    </header>
 
         <!-- 新デザイン：プロフィールカードを中央・カード型で表示 -->
         <div class="flex-container" style="justify-content:center; margin-top:40px;">
@@ -112,6 +100,22 @@
             </main>
         </div>
     </div>
+    
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" data-translate="terms">利用規約</a>
+                    <a href="#" data-translate="privacy">プライバシーポリシー</a>
+                </div>
+                <div class="footer-copyright">
+                    <small data-translate="copyright_name">© 2024 医療管理アプリ. All rights reserved.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script>
         const firebaseConfig = {
