@@ -82,5 +82,16 @@
   "questions_unit": "問",
   "beginner_level": "初心者",
   "intermediate_level": "中級者",
-  "expert_level": "エキスパート"
+  "expert_level": "エキスパート",
+  "accuracy_rate": "正答率",
+  "correct_answers": "正解数",
+  "category": "カテゴリ:",
+  "quiz_type": "クイズ種別:",
+  "ai_quiz": "AIクイズ",
+  "best_score": "🏆 ベストスコア",
+  "rank": "ランク",
+  "unknown": "不明",
+  "ai_quiz_load_error": "AIクイズの結果を読み込めませんでした。",
+  "error": "エラー:",
+  "please_retry": "しばらく待ってから再読み込みしてください。"
 }

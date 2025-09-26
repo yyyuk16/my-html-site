@@ -82,5 +82,16 @@
   "questions_unit": " questions",
   "beginner_level": "Beginner",
   "intermediate_level": "Intermediate",
-  "expert_level": "Expert"
+  "expert_level": "Expert",
+  "accuracy_rate": "Accuracy",
+  "correct_answers": "Correct",
+  "category": "Category:",
+  "quiz_type": "Quiz Type:",
+  "ai_quiz": "AI Quiz",
+  "best_score": "🏆 Best Score",
+  "rank": "Rank",
+  "unknown": "Unknown",
+  "ai_quiz_load_error": "Failed to load AI quiz results.",
+  "error": "Error:",
+  "please_retry": "Please wait a moment and try reloading."
 }

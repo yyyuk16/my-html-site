@@ -82,5 +82,16 @@
   "questions_unit": "题",
   "beginner_level": "初学者",
   "intermediate_level": "中级者",
-  "expert_level": "专家"
+  "expert_level": "专家",
+  "accuracy_rate": "准确率",
+  "correct_answers": "正确数",
+  "category": "类别:",
+  "quiz_type": "测验类型:",
+  "ai_quiz": "AI测验",
+  "best_score": "🏆 最佳成绩",
+  "rank": "等级",
+  "unknown": "未知",
+  "ai_quiz_load_error": "无法加载AI测验结果。",
+  "error": "错误:",
+  "please_retry": "请稍等片刻后重新加载。"
 }

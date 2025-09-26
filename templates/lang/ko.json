@@ -82,5 +82,16 @@
   "questions_unit": "문제",
   "beginner_level": "초보자",
   "intermediate_level": "중급자",
-  "expert_level": "전문가"
+  "expert_level": "전문가",
+  "accuracy_rate": "정답률",
+  "correct_answers": "정답",
+  "category": "카테고리:",
+  "quiz_type": "퀴즈 유형:",
+  "ai_quiz": "AI 퀴즈",
+  "best_score": "🏆 최고 점수",
+  "rank": "등급",
+  "unknown": "알 수 없음",
+  "ai_quiz_load_error": "AI 퀴즈 결과를 불러올 수 없습니다.",
+  "error": "오류:",
+  "please_retry": "잠시 후 다시 로드해 주세요."
 }
