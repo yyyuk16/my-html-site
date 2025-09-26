@@ -265,18 +265,31 @@
       });
       // 最初の患者を自動選択
       if (!selectedPatientId && patients.length > 0) {
-        selectPatient(patients[0].id);
+        setTimeout(() => {
+          selectPatient(patients[0].id);
+        }, 100);
       }
     }
 
     async function selectPatient(patientId) {
+      console.log('患者を選択:', patientId);
       selectedPatientId = patientId;
       const patient = patients.find(p => p.id === patientId);
-      if (!patient) return;
+      if (!patient) {
+        console.log('患者が見つかりません:', patientId);
+        return;
+      }
+      console.log('選択された患者:', patient);
       
       // 選択状態を更新
       document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('selected'));
-      document.querySelector(`[onclick*="${patientId}"]`).classList.add('selected');
+      // 患者リスト内の該当するアイテムを選択状態にする
+      const patientItems = document.querySelectorAll('.chat-item');
+      patientItems.forEach(item => {
+        if (item.onclick && item.onclick.toString().includes(patientId)) {
+          item.classList.add('selected');
+        }
+      });
       
       // 最新データ取得
       const doc = await db.collection('users').doc(patientId).get();
@@ -289,9 +302,11 @@
 
     async function renderPatientInfo(patient, data, memos) {
       const area = document.getElementById('patientInfoArea');
+      console.log('患者情報を表示中:', patient);
       
       // クイズ結果を取得
       const quizResults = await getQuizResults(patient.email);
+      console.log('クイズ結果:', quizResults);
       
       area.innerHTML = `
         <div class="patient-header">
