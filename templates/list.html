@@ -962,7 +962,7 @@
           condition: condition,
           prescription: prescription,
           other: other,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          createdAt: new Date().toISOString(),
           doctorId: currentUserId,
           doctorName: firebase.auth().currentUser?.displayName || '医師'
         };
