@@ -268,6 +268,124 @@
             box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
             border: 1px solid #e3f2fd;
         }
+
+        /* モーダルスタイル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 12px;
+            border: none;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .modal-title {
+            color: #2196f3;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #2196f3;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1976d2;
+        }
+
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -319,6 +437,50 @@
             </div>
         </div>
     </footer>
+
+    <!-- 診察記録追加モーダル -->
+    <div id="memoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-notes-medical"></i> 診察記録を追加
+                </h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="memoForm">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-alt"></i> 診察日
+                        </label>
+                        <input type="date" id="memoDate" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-stethoscope"></i> 病状
+                        </label>
+                        <textarea id="memoCondition" class="form-input form-textarea" placeholder="患者の症状や病状を記録してください" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-pills"></i> 処方箋
+                        </label>
+                        <textarea id="memoPrescription" class="form-input form-textarea" placeholder="処方した薬や治療内容を記録してください"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-pen"></i> その他のメモ
+                        </label>
+                        <textarea id="memoOther" class="form-input form-textarea" placeholder="その他の注意事項やメモがあれば記録してください"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeModalBtn">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="saveMemoBtn">保存</button>
+            </div>
+        </div>
+    </div>
 
     <script>
     const firebaseConfig = {
@@ -487,6 +649,9 @@
         <div class="info-section">
           <div class="section-title">
             <i class="fas fa-notes-medical"></i> 診察記録 (${memos.length}件)
+            <button id="addMemoBtn" class="add-memo-btn" style="margin-left: auto; background: #2196f3; color: white; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 0.9em;">
+              <i class="fas fa-plus"></i> 記録を追加
+            </button>
           </div>
           <div class="memo-history">
             ${memos.length > 0 ? 
@@ -505,6 +670,14 @@
           </div>
         </div>
       `;
+      
+      // 診察記録追加ボタンのイベントリスナーを追加
+      const addMemoBtn = document.getElementById('addMemoBtn');
+      if (addMemoBtn) {
+        addMemoBtn.onclick = function() {
+          openMemoModal(patient);
+        };
+      }
     }
 
     function renderMemoArea(patient, memos) {
@@ -711,6 +884,115 @@
             const name = item.querySelector('.doctor-name').textContent.toLowerCase();
             item.style.display = name.includes(searchText) ? 'flex' : 'none';
         });
+    });
+
+    // モーダル機能を追加
+    let currentPatientForMemos = null;
+
+    // モーダルを開く関数
+    function openMemoModal(patient) {
+      currentPatientForMemos = patient;
+      const modal = document.getElementById('memoModal');
+      const memoDateInput = document.getElementById('memoDate');
+      
+      // 今日の日付をデフォルト値として設定
+      const today = new Date().toISOString().split('T')[0];
+      memoDateInput.value = today;
+      
+      // フォームをリセット
+      document.getElementById('memoCondition').value = '';
+      document.getElementById('memoPrescription').value = '';
+      document.getElementById('memoOther').value = '';
+      
+      modal.style.display = 'block';
+    }
+
+    // モーダルを閉じる関数
+    function closeMemoModal() {
+      const modal = document.getElementById('memoModal');
+      modal.style.display = 'none';
+      currentPatientForMemos = null;
+    }
+
+    // 診察記録を保存する関数
+    async function saveMemo() {
+      if (!currentPatientForMemos) {
+        alert('患者情報が見つかりません');
+        return;
+      }
+
+      const condition = document.getElementById('memoCondition').value.trim();
+      const prescription = document.getElementById('memoPrescription').value.trim();
+      const other = document.getElementById('memoOther').value.trim();
+      const date = document.getElementById('memoDate').value;
+
+      if (!condition) {
+        alert('病状を入力してください');
+        return;
+      }
+
+      try {
+        // 既存の診察記録を取得
+        const patientDoc = await db.collection('users').doc(currentPatientForMemos.id).get();
+        const existingMemos = patientDoc.data().memos || [];
+
+        // 新しい診察記録を作成
+        const newMemo = {
+          date: date,
+          condition: condition,
+          prescription: prescription,
+          other: other,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          doctorId: currentUserId,
+          doctorName: firebase.auth().currentUser?.displayName || '医師'
+        };
+
+        // 新しい記録を配列に追加
+        existingMemos.unshift(newMemo);
+
+        // Firebaseに保存
+        await db.collection('users').doc(currentPatientForMemos.id).update({
+          memos: existingMemos,
+          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert('診察記録が保存されました');
+        closeMemoModal();
+
+        // 患者情報を再読み込み
+        await selectPatient(currentPatientForMemos.id);
+
+      } catch (error) {
+        console.error('診察記録保存エラー:', error);
+        alert('診察記録の保存に失敗しました: ' + error.message);
+      }
+    }
+
+    // イベントリスナーを追加
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('memoModal');
+      const closeBtn = document.querySelector('.close');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const saveMemoBtn = document.getElementById('saveMemoBtn');
+
+      if (closeBtn) {
+        closeBtn.onclick = closeMemoModal;
+      }
+
+      if (closeModalBtn) {
+        closeModalBtn.onclick = closeMemoModal;
+      }
+
+      if (saveMemoBtn) {
+        saveMemoBtn.onclick = saveMemo;
+      }
+
+      // モーダル外をクリックしたら閉じる
+      window.onclick = function(event) {
+        if (event.target === modal) {
+          closeMemoModal();
+        }
+      }
     });
     </script>
 </body>
