@@ -233,64 +233,53 @@
                     });
             } else {
                 console.log('No user logged in');
-                // 少し待ってからリダイレクト（認証状態の確認を待つ）
-                setTimeout(() => {
-                    if (!authChecked) {
-                        console.log('Auth check timeout, redirecting to login');
-                        alert('ログインが必要です。ログインページに移動します。');
-                        window.location.href = 'index.html';
-                    }
-                }, 3000);
+                // ログインしていない場合の処理
+                displayLoginPrompt();
             }
         });
 
-        // 認証状態の追加確認
-        setTimeout(() => {
-            console.log('Additional auth check...');
-            const currentUser = firebase.auth().currentUser;
-            console.log('Current user after timeout:', currentUser);
+        // ログインしていない場合の表示関数
+        function displayLoginPrompt() {
+            console.log('Displaying login prompt');
             
-            if (currentUser) {
-                console.log('User found in additional check:', currentUser.uid);
-                console.log('User email:', currentUser.email);
-                
-                // Firestoreの全ユーザードキュメントを確認
-                const db = firebase.firestore();
-                db.collection('users').get()
-                    .then((querySnapshot) => {
-                        console.log('All users in Firestore:');
-                        querySnapshot.forEach((doc) => {
-                            console.log('Document ID:', doc.id, 'Data:', doc.data());
-                        });
-                        
-                        // メールアドレスでユーザーを検索
-                        const userEmail = currentUser.email;
-                        console.log('Searching for user with email:', userEmail);
-                        
-                        db.collection('users').where('email', '==', userEmail).get()
-                            .then((emailQuerySnapshot) => {
-                                console.log('Users found by email:', emailQuerySnapshot.size);
-                                if (emailQuerySnapshot.size > 0) {
-                                    emailQuerySnapshot.forEach((doc) => {
-                                        console.log('Found user by email - ID:', doc.id, 'Data:', doc.data());
-                                        // プロフィール情報を表示
-                                        displayUserProfile(doc.data());
-                                    });
-                                } else {
-                                    console.log('No user found with email:', userEmail);
-                                }
-                            })
-                            .catch((error) => {
-                                console.error('Error searching by email:', error);
-                            });
-                    })
-                    .catch((error) => {
-                        console.error('Error getting all users:', error);
-                    });
-            } else {
-                console.log('No user found in additional check');
+            // プロフィール情報を「未ログイン」状態で表示
+            const profileInitialEl = document.getElementById('profileInitial');
+            if (profileInitialEl) {
+                profileInitialEl.textContent = '?';
             }
-        }, 1000);
+            
+            const elements = [
+                'doctorName', 'doctorAge', 'doctorEmail', 
+                'doctorSpecialty', 'doctorHospital', 'doctorExperience'
+            ];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.textContent = 'ログインが必要です';
+                }
+            });
+            
+            // ログインボタンを表示
+            const loginBtn = document.createElement('button');
+            loginBtn.className = 'save-btn';
+            loginBtn.style.cssText = 'margin-top:32px; background:linear-gradient(135deg,#2196F3,#1976D2); color:#fff; font-size:1.1em; font-weight:600; border:none; border-radius:8px; padding:14px 36px; box-shadow:0 2px 8px var(--shadow-color,rgba(33,150,243,0.10)); transition:background 0.2s, box-shadow 0.2s, transform 0.15s;';
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ログイン';
+            loginBtn.onclick = function() {
+                window.location.href = 'index.html';
+            };
+            
+            // 既存のボタンを非表示にして、ログインボタンを追加
+            const deleteBtn = document.getElementById('deleteAccountBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (deleteBtn) deleteBtn.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            
+            // ログインボタンを追加
+            const mainElement = document.querySelector('main');
+            if (mainElement) {
+                mainElement.appendChild(loginBtn);
+            }
+        }
 
         // テスト用：Firestore接続確認
         setTimeout(() => {
@@ -364,8 +353,8 @@
                 .then(() => {
                     console.log('User logged out successfully');
                     alert('ログアウトしました。');
-                    // ログアウト後は同じページ（docterprofile.html）に留まる
-                    window.location.reload();
+                    // ログアウト後はdoctersignup.htmlに遷移
+                    window.location.href = 'doctersignup.html';
                 })
                 .catch((error) => {
                     console.error('Logout error:', error);
