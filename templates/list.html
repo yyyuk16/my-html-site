@@ -903,6 +903,13 @@
 
     // モーダルを開く関数
     function openMemoModal(patient) {
+      console.log('openMemoModal called with patient:', patient);
+      
+      if (!patient || !patient.id) {
+        alert('患者情報が正しくありません');
+        return;
+      }
+      
       currentPatientForMemos = patient;
       const modal = document.getElementById('memoModal');
       const memoDateInput = document.getElementById('memoDate');
@@ -936,8 +943,11 @@
 
     // 診察記録を保存する関数
     async function saveMemo() {
-      if (!currentPatientForMemos) {
-        alert('患者情報が見つかりません');
+      console.log('saveMemo called, currentPatientForMemos:', currentPatientForMemos);
+      
+      if (!currentPatientForMemos || !currentPatientForMemos.id) {
+        alert('患者情報が見つかりません。患者を選択し直してください。');
+        closeMemoModal();
         return;
       }
 
@@ -952,6 +962,8 @@
       }
 
       try {
+        console.log('Saving memo for patient:', currentPatientForMemos.id);
+        
         // 既存の診察記録を取得
         const patientDoc = await db.collection('users').doc(currentPatientForMemos.id).get();
         const existingMemos = patientDoc.data().memos || [];
