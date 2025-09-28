@@ -294,9 +294,26 @@
                 });
         }, 2000);
 
+        // 編集可能なフィールド（医師用）
+        const editableFields = {
+            name: {label:'名前', icon:'<i class="fas fa-user"></i>', type:'text', placeholder:'お名前'},
+            age: {label:'年齢', icon:'<i class="fas fa-birthday-cake"></i>', type:'number', min:0, max:120, placeholder:'年齢'},
+            email: {label:'メール', icon:'<i class="fas fa-envelope"></i>', type:'email', placeholder:'メールアドレス'},
+            specialty: {label:'専門', icon:'<i class="fas fa-stethoscope"></i>', type:'text', placeholder:'専門分野'},
+            hospital: {label:'病院', icon:'<i class="fas fa-hospital"></i>', type:'text', placeholder:'勤務病院'},
+            experience: {label:'勤務年数', icon:'<i class="fas fa-clock"></i>', type:'number', min:0, max:50, placeholder:'勤務年数'}
+        };
+
+        // 表示順
+        const order = ['name','age','email','specialty','hospital','experience'];
+
+        let currentData = {};
+        let isEditing = false;
+
         // プロフィール情報を表示する関数
         function displayUserProfile(data) {
             console.log('Displaying user profile:', data);
+            currentData = data;
             
             // プロフィールイニシャルを設定
             const initial = data.name ? data.name.charAt(0).toUpperCase() : '?';
@@ -305,42 +322,225 @@
                 profileInitialEl.textContent = initial;
             }
             
-            // プロフィール情報を設定
-            const doctorNameEl = document.getElementById('doctorName');
-            if (doctorNameEl) {
-                doctorNameEl.textContent = data.name || '未登録';
-            }
-            
-            const doctorAgeEl = document.getElementById('doctorAge');
-            if (doctorAgeEl) {
-                if (data.age !== undefined && data.age !== null && data.age !== "") {
-                    doctorAgeEl.textContent = `${data.age}歳`;
-                } else {
-                    doctorAgeEl.textContent = '未登録';
+            renderProfile(data, false);
+        }
+
+        // プロフィール表示・編集関数
+        function renderProfile(data, editing = false) {
+            const profileContainer = document.querySelector('.profile-info-container') || document.querySelector('main');
+            if (!profileContainer) return;
+
+            if (!editing) {
+                // 通常表示
+                let profileHtml = '';
+                for (const key of order) {
+                    let value = data[key];
+                    let label = '';
+                    let icon = '';
+                    let skip = false;
+
+                    switch(key){
+                        case 'name': label='名前'; icon='<i class="fas fa-user"></i>'; break;
+                        case 'age': 
+                            label='年齢'; 
+                            value = value ? value + '歳' : '未登録'; 
+                            icon='<i class="fas fa-birthday-cake"></i>'; 
+                            break;
+                        case 'email': label='メール'; icon='<i class="fas fa-envelope"></i>'; break;
+                        case 'specialty': label='専門'; icon='<i class="fas fa-stethoscope"></i>'; break;
+                        case 'hospital': label='病院'; icon='<i class="fas fa-hospital"></i>'; break;
+                        case 'experience': 
+                            label='勤務年数'; 
+                            value = value ? value + '年' : '未登録'; 
+                            icon='<i class="fas fa-clock"></i>'; 
+                            break;
+                        default: skip = true; break;
+                    }
+                    if (skip) continue;
+
+                    profileHtml += `
+                        <div class="profile-row" style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border-color-light,#E3F2FD);">
+                            <div class="profile-label" style="display:flex; align-items:center; gap:10px; color:var(--secondary-color,#1976D2); font-weight:500;">
+                                ${icon}
+                                <span>${label}</span>
+                            </div>
+                            <span class="profile-value" style="font-size:1.08em; color:var(--text-color,#1A1A1A);">
+                                ${value !== undefined ? value : '未登録'}
+                            </span>
+                        </div>
+                    `;
                 }
-            }
-            
-            const doctorEmailEl = document.getElementById('doctorEmail');
-            if (doctorEmailEl) {
-                doctorEmailEl.textContent = data.email || '未登録';
-            }
-            
-            const doctorSpecialtyEl = document.getElementById('doctorSpecialty');
-            if (doctorSpecialtyEl) {
-                doctorSpecialtyEl.textContent = data.specialty || '未登録';
-            }
-            
-            const doctorHospitalEl = document.getElementById('doctorHospital');
-            if (doctorHospitalEl) {
-                doctorHospitalEl.textContent = data.hospital || '未登録';
-            }
-            
-            const doctorExperienceEl = document.getElementById('doctorExperience');
-            if (doctorExperienceEl) {
-                if (data.experience !== undefined && data.experience !== null && data.experience !== "") {
-                    doctorExperienceEl.textContent = `${data.experience}年`;
+                
+                // 編集ボタンを追加
+                profileHtml += `
+                    <div style="margin-top:32px; text-align:center;">
+                        <button id="editProfileBtn" class="save-btn" style="background:linear-gradient(135deg,#2196F3,#1976D2); color:#fff; font-size:1.1em; font-weight:600; border:none; border-radius:8px; padding:14px 36px; box-shadow:0 2px 8px var(--shadow-color,rgba(33,150,243,0.10)); transition:background 0.2s, box-shadow 0.2s, transform 0.15s;">
+                            <i class="fas fa-pen"></i> プロフィールを編集
+                        </button>
+                    </div>
+                `;
+
+                // 既存のプロフィール情報を置き換え
+                const existingProfile = profileContainer.querySelector('.profile-info-container');
+                if (existingProfile) {
+                    existingProfile.innerHTML = profileHtml;
                 } else {
-                    doctorExperienceEl.textContent = '未登録';
+                    // プロフィール情報を直接更新
+                    const nameEl = document.getElementById('doctorName');
+                    const ageEl = document.getElementById('doctorAge');
+                    const emailEl = document.getElementById('doctorEmail');
+                    const specialtyEl = document.getElementById('doctorSpecialty');
+                    const hospitalEl = document.getElementById('doctorHospital');
+                    const experienceEl = document.getElementById('doctorExperience');
+
+                    if (nameEl) nameEl.textContent = data.name || '未登録';
+                    if (ageEl) ageEl.textContent = data.age ? `${data.age}歳` : '未登録';
+                    if (emailEl) emailEl.textContent = data.email || '未登録';
+                    if (specialtyEl) specialtyEl.textContent = data.specialty || '未登録';
+                    if (hospitalEl) hospitalEl.textContent = data.hospital || '未登録';
+                    if (experienceEl) experienceEl.textContent = data.experience ? `${data.experience}年` : '未登録';
+                }
+
+                // 編集ボタンのイベントリスナー
+                const editBtn = document.getElementById('editProfileBtn');
+                if (editBtn) {
+                    editBtn.onclick = function() {
+                        isEditing = true;
+                        renderProfile(currentData, true);
+                    };
+                }
+            } else {
+                // 編集フォーム
+                let formHtml = `
+                    <div style="background:white; border-radius:12px; padding:20px; margin:20px 0;">
+                        <h3 style="color:#2196f3; margin-bottom:20px;"><i class="fas fa-edit"></i> プロフィール編集</h3>
+                        <form id="profileEditForm" autocomplete="off">
+                `;
+
+                for (const key of order) {
+                    let field = editableFields[key];
+                    let value = data[key];
+                    let label = '';
+                    let icon = '';
+
+                    switch(key){
+                        case 'name': label='名前'; icon='<i class="fas fa-user"></i>'; break;
+                        case 'age': label='年齢'; icon='<i class="fas fa-birthday-cake"></i>'; break;
+                        case 'email': label='メール'; icon='<i class="fas fa-envelope"></i>'; break;
+                        case 'specialty': label='専門'; icon='<i class="fas fa-stethoscope"></i>'; break;
+                        case 'hospital': label='病院'; icon='<i class="fas fa-hospital"></i>'; break;
+                        case 'experience': label='勤務年数'; icon='<i class="fas fa-clock"></i>'; break;
+                    }
+
+                    let inputHtml = '';
+                    if (field) {
+                        inputHtml = `<input class="form-input" name="${key}" id="editInput_${key}" type="${field.type}" value="${value!==undefined?value:''}" 
+                            ${field.placeholder?`placeholder="${field.placeholder}"`:''}
+                            ${field.min!==undefined?`min="${field.min}"`:''}
+                            ${field.max!==undefined?`max="${field.max}"`:''}
+                            style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:1em; outline:none; transition:border-color 0.3s;"
+                        >`;
+                    }
+
+                    formHtml += `
+                        <div class="form-group" style="margin-bottom:20px;">
+                            <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">
+                                ${icon} ${label}
+                            </label>
+                            ${inputHtml}
+                        </div>
+                    `;
+                }
+
+                formHtml += `
+                        <div style="display:flex; justify-content:center; gap:10px; margin-top:20px;">
+                            <button type="submit" class="btn btn-primary" style="background:#2196f3; color:white; padding:12px 24px; border:none; border-radius:8px; cursor:pointer; font-size:1em; font-weight:600;">
+                                <i class="fas fa-check"></i> 保存
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="background:#f5f5f5; color:#333; padding:12px 24px; border:1px solid #ddd; border-radius:8px; cursor:pointer; font-size:1em; font-weight:600;">
+                                <i class="fas fa-times"></i> キャンセル
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                `;
+
+                // 既存のプロフィール情報を編集フォームに置き換え
+                const profileInfoArea = document.querySelector('main');
+                if (profileInfoArea) {
+                    profileInfoArea.innerHTML = formHtml;
+                }
+
+                // フォーム送信処理
+                const form = document.getElementById('profileEditForm');
+                if (form) {
+                    form.onsubmit = async function(e) {
+                        e.preventDefault();
+                        let updateObj = {};
+                        let newEmail = null;
+
+                        for (const key of Object.keys(editableFields)) {
+                            let field = editableFields[key];
+                            let input = form.querySelector(`[name="${key}"]`);
+                            if (!input) continue;
+                            let newValue = input.value;
+
+                            // バリデーション
+                            if (field.type === 'number') {
+                                newValue = Number(newValue);
+                                if (isNaN(newValue) || (field.min!==undefined && newValue<field.min) || (field.max!==undefined && newValue>field.max)) {
+                                    alert(`${field.label}は${field.min}～${field.max}の数値で入力してください`);
+                                    input.focus();
+                                    return;
+                                }
+                            }
+                            if (field.type === 'email') {
+                                if (!/^[^@]+@[^@]+\.[^@]+$/.test(newValue)) {
+                                    alert('正しいメールアドレスを入力してください');
+                                    input.focus();
+                                    return;
+                                }
+                                newEmail = newValue;
+                            }
+                            if (field.type === 'text' && (!newValue || newValue.trim()==='')) {
+                                alert(`${field.label}を入力してください`);
+                                input.focus();
+                                return;
+                            }
+                            updateObj[key] = newValue;
+                        }
+
+                        try {
+                            const db = firebase.firestore();
+                            const user = firebase.auth().currentUser;
+                            
+                            // メールアドレス変更はauthにも反映
+                            if (newEmail && newEmail !== user.email) {
+                                await user.updateEmail(newEmail);
+                            }
+                            
+                            // Firestoreに保存
+                            await db.collection('users').doc(user.uid).update(updateObj);
+                            
+                            // 画面上のcurrentDataも更新
+                            Object.assign(currentData, updateObj);
+                            isEditing = false;
+                            alert('プロフィールを更新しました');
+                            renderProfile(currentData, false);
+                        } catch (e) {
+                            alert('保存に失敗しました: ' + e.message);
+                            renderProfile(currentData, false);
+                        }
+                    };
+                }
+
+                // キャンセルボタン
+                const cancelBtn = document.getElementById('cancelEditBtn');
+                if (cancelBtn) {
+                    cancelBtn.onclick = function() {
+                        isEditing = false;
+                        renderProfile(currentData, false);
+                    };
                 }
             }
         }
