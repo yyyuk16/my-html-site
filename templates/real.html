@@ -76,8 +76,9 @@
       const el = document.createElement('div');
       el.className = `message${isSelf ? ' self' : ''}`;
       const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '';
-      el.innerHTML = `<div class="bubble"><span class="msg-text"></span><span class="msg-translation" style="margin-left:8px;color:#475569;"></span><span class="msg-time">${timeStr}</span></div>`;
-      el.querySelector('.msg-text').textContent = text;
+      el.innerHTML = `<div class="bubble"><span class="msg-text"></span><span class="msg-time">${timeStr}</span></div>`;
+      // 自分のメッセージは原文を表示、相手メッセージは翻訳が入るまでプレースホルダ
+      el.querySelector('.msg-text').textContent = isSelf ? text : '…';
       chatDiv.appendChild(el);
       chatDiv.scrollTop = chatDiv.scrollHeight;
       return el;
@@ -122,12 +123,11 @@
             const ts = m.timestamp?.toMillis?.() ?? (typeof m.timestamp?.seconds === 'number' ? m.timestamp.seconds*1000 : m.clientTimeMs);
             const isSelf = m.senderId === currentUserUid;
             const el = appendMessageBubble(m.text || '', isSelf, ts);
-            // 受信メッセージをユーザー設定言語にリアルタイム翻訳
+            // 相手メッセージは翻訳テキストのみを表示
             if (!isSelf && userLanguage) {
               translateTextOpenAI(m.text || '', userLanguage).then(t => {
-                if (!t) return;
-                const transSpan = el.querySelector('.msg-translation');
-                if (transSpan) transSpan.textContent = `→ ${t}`;
+                const textSpan = el.querySelector('.msg-text');
+                if (textSpan) textSpan.textContent = t || (m.text || '');
               });
             }
           });
