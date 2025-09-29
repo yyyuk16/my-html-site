@@ -706,8 +706,22 @@
                     snapshot.docChanges().forEach(change => {
                         if (change.type === 'added') {
                             const msg = change.doc.data();
-                            // 自分・相手どちらのメッセージも即時描画
-                                displayMessage(msg, currentUser.uid);
+                            // 重複チェック: 既に表示されているメッセージかチェック
+                            const chatMessages = document.getElementById('chatMessages');
+                            if (chatMessages) {
+                                const existingMessages = chatMessages.querySelectorAll('.message');
+                                let isDuplicate = false;
+                                existingMessages.forEach(existingMsg => {
+                                    const existingText = existingMsg.querySelector('.message-text')?.textContent;
+                                    const existingTime = existingMsg.querySelector('.message-time')?.textContent;
+                                    if (existingText === (msg.text || '') && existingTime === (msg.timestamp ? new Date(msg.timestamp.toMillis ? msg.timestamp.toMillis() : msg.timestamp.seconds * 1000).toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' }) : '--:--')) {
+                                        isDuplicate = true;
+                                    }
+                                });
+                                if (!isDuplicate) {
+                                    displayMessage(msg, currentUser.uid);
+                                }
+                            }
                         }
                     });
                 });
