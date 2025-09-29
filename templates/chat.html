@@ -593,20 +593,29 @@
             const time = dateObj
                 ? dateObj.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })
                 : '--:--';
-            // まずプレースホルダ（受信時は"…"）を表示
-            const initialText = message.senderId === currentUserId ? (message.text || '') : '…';
+            
+            const messageTextDiv = document.createElement('div');
+            messageTextDiv.className = 'message-text';
+            messageTextDiv.textContent = escapeHTML(message.text || ''); // 初期は原文
+
             div.innerHTML = `<div class="message-content">
-                <div class="message-text">${escapeHTML(initialText)}</div>
+                ${messageTextDiv.outerHTML}
                 <div class="message-time">${time}</div>
             </div>`;
             chatMessages.appendChild(div);
-            // 受信メッセージはユーザー設定言語に翻訳して置き換え
+
+            // 受信メッセージのみ翻訳（医師側は常に日本語）
             if (message.senderId !== currentUserId) {
                 const textEl = div.querySelector('.message-text');
-                translateTextOpenAI(message.text || '', 'ja').then(t => {
-                    if (textEl) textEl.textContent = t || (message.text || '');
+                textEl.textContent = '...'; // 翻訳中表示
+                translateTextOpenAI(message.text || '', 'ja').then(translatedText => {
+                    if (textEl) textEl.textContent = translatedText || (message.text || '');
+                }).catch(e => {
+                    console.error("Translation failed:", e);
+                    if (textEl) textEl.textContent = escapeHTML(message.text || ''); // 失敗時は原文に戻す
                 });
             }
+
             // 近くにいる時だけ最下部へ自動スクロール
             if (window.__chatUserAtBottom !== false) {
                 chatMessages.scrollTop = chatMessages.scrollHeight;
