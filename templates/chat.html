@@ -613,10 +613,14 @@
             }
         }
 
+        const TRANSLATE_ENDPOINT = (location.protocol === 'file:')
+            ? 'https://my-html-site-git-main-yyyuk16s-projects.vercel.app/api/translate'
+            : '/api/translate';
+
         async function translateTextOpenAI(text, targetLang) {
             if (!text) return '';
             try {
-                const res = await fetch('/api/translate', {
+                const res = await fetch(TRANSLATE_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text, targetLang })
