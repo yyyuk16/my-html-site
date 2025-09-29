@@ -5,16 +5,389 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-translate="患者診療記録">患者診療記録</title>
     <link rel="stylesheet" href="maintab.css">
-
-    <!-- 翻訳機能 -->
-    <script src="translation.js"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <style>
-        body { background: #ffffff; }
-        /* ===== サイドバー・チャットエリア・スタイルは省略（元のCSS流用） ===== */
-        /* … あなたの元コードのCSS部分をそのままここに残してください … */
+        body {
+            background: #f4f8fb;
+            font-family: 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif;
+            color: #222;
+        }
+
+        /* ===== レイアウト全体 ===== */
+        .flex-container {
+            display: flex;
+            gap: 28px;
+            padding: 28px 24px 0 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 80vh;
+        }
+
+        /* ===== サイドバー（患者リスト） ===== */
+        .patient-list-panel {
+            width: 300px;
+            min-width: 220px;
+            background: #fff;
+            border: 1px solid #e3e8ef;
+            border-radius: 16px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+            height: calc(100vh - 140px);
+            padding: 20px 16px 16px 16px;
+            display: flex;
+            flex-direction: column;
+        }
+        .patient-list-panel h2 {
+            font-size: 1.13rem;
+            margin: 0 0 16px;
+            color: #1976d2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .patient-list-panel .search-box {
+            position: relative;
+            margin: 8px 0 14px 0;
+        }
+        #patientSearch {
+            width: 100%;
+            box-sizing: border-box;
+            height: 40px;
+            padding: 8px 38px 8px 12px;
+            border: 1px solid #cfd8dc;
+            border-radius: 12px;
+            outline: none;
+            font-size: 1em;
+            background: #f1f5f9;
+            transition: border-color 0.2s, background-color .2s;
+        }
+        #patientSearch:focus {
+            border-color: #1976d2;
+            background: #fff;
+        }
+        .patient-list-panel .search-box i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.05em;
+            pointer-events: none;
+        }
+        .chat-list {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 2px;
+            margin-top: 2px;
+        }
+        .chat-item {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.18s;
+            margin-bottom: 2px;
+        }
+        .chat-item:hover, .chat-item.active {
+            background: #e3f2fd;
+        }
+        .doctor-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e0f7fa 60%, #bbdefb 100%);
+            color: #1976d2;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            font-size: 1.1em;
+            box-shadow: 0 2px 8px rgba(33,150,243,0.07);
+        }
+        .doctor-name {
+            font-weight: 600;
+            color: #222b45;
+            font-size: 1em;
+        }
+
+        /* ===== チャットエリア ===== */
+        .chat-area {
+            flex: 1;
+            min-width: 0;
+            background: #fff;
+            border: 1px solid #e3e8ef;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(33,150,243,0.07);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 140px);
+            position: relative;
+            overflow: hidden; /* 内側(#chatMessages)にスクロールを閉じ込める */
+        }
+        #chatInterface {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+        }
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px 12px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            background: #f8fafc;
+            border-radius: 16px 16px 0 0;
+        }
+        #chatPatientName {
+            margin: 0;
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: #1976d2;
+            letter-spacing: 0.01em;
+        }
+        #patientInfo {
+            color: #607d8b;
+            font-size: 0.98em;
+        }
+
+        /* ===== チャットボックスの中スクロールできるように修正 ===== */
+        .chat-messages {
+            flex: 1 1 0%;
+            min-height: 0;
+            max-height: 100%;
+            padding: 18px 20px 18px 20px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #f8fafc 0%, #e3f2fd 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overscroll-behavior: contain; /* ページ全体にスクロールが伝播しないように */
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 70%;
+            margin: 10px 6px;
+            display: flex;
+        }
+        .message.sent {
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+        .message.received {
+            justify-content: flex-start;
+            margin-right: auto;
+        }
+        .message-content {
+            position: relative;
+            background: #fff;
+            border-radius: 16px;
+            padding: 8px 12px;
+            box-shadow: 0 2px 8px rgba(33,150,243,0.06);
+            border: 1px solid #e3e8ef;
+            min-width: 60px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+        }
+        .message.received .message-content {
+            border-radius: 16px 16px 16px 8px;
+        }
+        .message.sent .message-content {
+            background: #e3f2fd;
+            border-color: #90caf9;
+            border-radius: 16px 16px 8px 16px;
+        }
+        .message-content:after {
+            content: "";
+            position: absolute;
+            bottom: 10px;
+            width: 12px;
+            height: 12px;
+            transform: rotate(45deg);
+        }
+        .message.received .message-content:after {
+            left: -6px;
+            background: #fff;
+            border-left: 1px solid #e3e8ef;
+            border-bottom: 1px solid #e3e8ef;
+        }
+        .message.sent .message-content:after {
+            right: -6px;
+            background: #e3f2fd;
+            border-right: 1px solid #90caf9;
+            border-bottom: 1px solid #90caf9;
+        }
+        .message-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            color: #222b45;
+            font-size: 1.02em;
+            flex: 1 1 auto;
+        }
+        .message-time {
+            font-size: .72rem;
+            color: #90a4ae;
+            margin-top: 0;
+            margin-left: 6px;
+            text-align: right;
+            flex: 0 0 auto;
+        }
+        .message-sender {
+            font-size: .82rem;
+            font-weight: 600;
+            color: #1976d2;
+            margin: 0;
+            flex: 0 0 auto;
+        }
+        .message + .message.sent,
+        .message + .message.received {
+            margin-top: 14px;
+        }
+
+        /* ===== チャット入力 ===== */
+        .chat-input-container {
+            border-top: 1px solid #e3e8ef;
+            background: #f8fafc;
+            padding: 14px 18px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            position: sticky;
+            bottom: 0;
+            border-radius: 0 0 16px 16px;
+        }
+        #messageInput {
+            flex: 1;
+            height: 42px;
+            border: 1px solid #cfd8dc;
+            border-radius: 10px;
+            padding: 10px 14px;
+            outline: none;
+            font-size: 1em;
+            background: #fff;
+            box-shadow: inset 0 1px 2px rgba(33,150,243,0.04);
+            transition: border-color 0.2s;
+        }
+        #messageInput:focus {
+            border-color: #1976d2;
+        }
+        .chat-input-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .send-btn {
+            background: linear-gradient(90deg, #1976d2 60%, #42a5f5 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1em;
+            box-shadow: 0 2px 8px rgba(33,150,243,0.10);
+            transition: transform .07s, filter .15s;
+        }
+        .send-btn:active {
+            transform: translateY(1px);
+            filter: brightness(.97);
+        }
+        .send-btn[disabled] {
+            background: #b0b8c1;
+            cursor: not-allowed;
+        }
+        #newlineBtn {
+            background: #26c6da;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        #clearBtn {
+            background: #90a4ae;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        /* ===== ガイド表示 ===== */
+        #chatGuide {
+            color: #90a4ae;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+        #chatGuide p {
+            margin: 0;
+            font-size: 1.15em;
+            color: #607d8b;
+        }
+
+        /* ===== レスポンシブ ===== */
+        @media (max-width: 1100px) {
+            .flex-container {
+                gap: 12px;
+                padding: 12px 6px 0 6px;
+            }
+            .patient-list-panel {
+                width: 210px;
+                min-width: 160px;
+                padding: 12px 6px 8px 6px;
+            }
+            .chat-area {
+                height: calc(100vh - 120px);
+            }
+        }
+        @media (max-width: 900px) {
+            .flex-container {
+                flex-direction: column;
+                gap: 18px;
+                padding: 10px 2vw 0 2vw;
+            }
+            .patient-list-panel {
+                width: 100%;
+                min-width: 0;
+                height: auto;
+                margin-bottom: 8px;
+            }
+            .chat-area {
+                height: 60vh;
+                min-height: 340px;
+            }
+        }
+        @media (max-width: 600px) {
+            .flex-container {
+                padding: 2vw 0 0 0;
+            }
+            .chat-area {
+                border-radius: 0;
+                box-shadow: none;
+                height: 54vh;
+            }
+            .patient-list-panel {
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .chat-header, .chat-messages, .chat-input-container {
+                padding-left: 6px;
+                padding-right: 6px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -63,6 +436,7 @@
                     <div class="patient-info" id="patientInfo"></div>
                 </div>
 
+                <!-- チャットボックスの中をスクロールできるようにするため、flex:1, min-height:0, max-height:100%を適用 -->
                 <div class="chat-messages" id="chatMessages"></div>
 
                 <!-- AIクイズ結果 -->
@@ -73,18 +447,10 @@
 
                 <!-- 入力 -->
                 <div class="chat-input-container">
-                    <textarea id="messageInput" placeholder="メッセージを入力..." rows="2" aria-label="メッセージ入力"></textarea>
-                    <div class="chat-input-actions" style="display:flex;gap:8px;align-items:center;">
-                        <button id="newlineBtn" class="send-btn" type="button" aria-label="改行を挿入" title="改行">
-                            <i class="fas fa-level-down-alt" style="transform:rotate(90deg);"></i> 改行
-                        </button>
-                        <button id="clearBtn" class="send-btn" type="button" aria-label="入力をクリア" title="クリア">
-                            <i class="fas fa-eraser"></i> クリア
-                        </button>
-                        <button id="sendBtn" class="send-btn" type="button" aria-label="メッセージを送信" title="送信" disabled>
-                            <i class="fas fa-paper-plane"></i> 送信
-                        </button>
-                    </div>
+                    <input id="messageInput" type="text" placeholder="メッセージを入力..." />
+                    <button id="sendBtn" class="send-btn">
+                        <i class="fas fa-paper-plane"></i> 送信
+                    </button>
                 </div>
             </div>
         </main>
@@ -175,9 +541,17 @@
                 `<span style="color:#666;font-size:0.9em;"><i class="fas fa-user"></i> ID: ${patientId}</span>`;
 
             loadChatHistory(patientId);
-            loadAIQuizResults(patientId);
             setupChatInput(patientId);
             setupRealtimeChat(patientId);
+            // スクロール位置監視（手動スクロール中は自動で最下部へ飛ばさない）
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages) {
+                window.__chatUserAtBottom = true;
+                chatMessages.addEventListener('scroll', () => {
+                    const nearBottom = (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight) < 24;
+                    window.__chatUserAtBottom = nearBottom;
+                });
+            }
         }
 
         // ================= チャット履歴 =================
@@ -197,8 +571,9 @@
                 return;
             }
             snapshot.forEach(doc => displayMessage(doc.data(), currentUser.uid));
-            // 履歴ロード後に一番下へスクロール
+            // 初期表示時は最下部へ
             chatMessages.scrollTop = chatMessages.scrollHeight;
+            window.__chatUserAtBottom = true;
         }
 
         function displayMessage(message, currentUserId) {
@@ -207,16 +582,23 @@
 
             const div = document.createElement('div');
             div.className = `message ${message.senderId === currentUserId ? 'sent' : 'received'}`;
-            const time = message.timestamp?.seconds
-                ? new Date(message.timestamp.seconds * 1000).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})
+            // Firestore Timestamp 互換（toMillis or seconds 両対応）
+            const ts = message.timestamp;
+            const dateObj = ts?.toMillis ? new Date(ts.toMillis())
+                          : (typeof ts?.seconds === 'number' ? new Date(ts.seconds * 1000)
+                          : (typeof message.clientTimeMs === 'number' ? new Date(message.clientTimeMs) : null));
+            const time = dateObj
+                ? dateObj.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })
                 : '--:--';
             div.innerHTML = `<div class="message-content">
                 <div class="message-text">${escapeHTML(message.text)}</div>
                 <div class="message-time">${time}</div>
             </div>`;
             chatMessages.appendChild(div);
-            // 新規メッセージ表示後に一番下へスクロール
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            // 近くにいる時だけ最下部へ自動スクロール
+            if (window.__chatUserAtBottom !== false) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
         }
 
         function escapeHTML(str) {
@@ -227,14 +609,7 @@
         function setupChatInput(patientId) {
             const input = document.getElementById('messageInput');
             const btn = document.getElementById('sendBtn');
-            const newlineBtn = document.getElementById('newlineBtn');
-            const clearBtn = document.getElementById('clearBtn');
             if (!input || !btn) return;
-
-            const updateSendButtonState = () => {
-                const hasText = input.value.trim().length > 0;
-                btn.disabled = !hasText;
-            };
 
             btn.onclick = () => sendMessage(patientId);
             input.onkeypress = (e) => {
@@ -243,30 +618,12 @@
                     sendMessage(patientId);
                 }
             };
-            input.addEventListener('input', updateSendButtonState);
-            updateSendButtonState();
-
-            if (newlineBtn) {
-                newlineBtn.onclick = () => {
-                    const start = input.selectionStart ?? input.value.length;
-                    const end = input.selectionEnd ?? input.value.length;
-                    const before = input.value.substring(0, start);
-                    const after = input.value.substring(end);
-                    input.value = `${before}\n${after}`;
-                    const newPos = start + 1;
-                    input.selectionStart = input.selectionEnd = newPos;
-                    input.focus();
-                    updateSendButtonState();
-                };
-            }
-
-            if (clearBtn) {
-                clearBtn.onclick = () => {
-                    input.value = '';
-                    input.focus();
-                    updateSendButtonState();
-                };
-            }
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage(patientId);
+                }
+            });
         }
 
         async function sendMessage(patientId) {
@@ -278,43 +635,16 @@
             const currentUser = firebase.auth().currentUser;
             const chatRoomId = [currentUser.uid, patientId].sort().join('_');
             const msg = {
-                text, senderId: currentUser.uid,
+                text,
+                senderId: currentUser.uid,
                 senderName: currentUser.displayName || '医師',
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                clientTimeMs: Date.now()
             };
             await db.collection('chats').doc(chatRoomId).collection('messages').add(msg);
             input.value = '';
-            // 送信後はボタンを非活性に戻す
-            const btn = document.getElementById('sendBtn');
-            if (btn) btn.disabled = true;
-            // メッセージリストを下へスクロール
-            const chatMessages = document.getElementById('chatMessages');
-            if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // ================= AIクイズ結果 =================
-        async function loadAIQuizResults(patientId) {
-            const section = document.getElementById('quizResultsSection');
-            const container = document.getElementById('quizResults');
-            if (!section || !container) return;
-
-            const patientDoc = await db.collection('users').doc(patientId).get();
-            if (!patientDoc.exists || !patientDoc.data().email) return;
-
-            const email = patientDoc.data().email;
-            const snapshot = await db.collection('ai_quiz_scores')
-                .where('userEmail', '==', email).limit(5).get();
-
-            if (snapshot.empty) { section.style.display = 'none'; return; }
-            section.style.display = 'block';
-            container.innerHTML = '';
-
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const accuracy = data.accuracy ? Math.round(data.accuracy*100) : 0;
-                container.innerHTML += `<div>正答率: ${accuracy}%</div>`;
-            });
-        }
 
         // ================= リアルタイム =================
         function setupRealtimeChat(patientId) {
@@ -328,9 +658,8 @@
                     snapshot.docChanges().forEach(change => {
                         if (change.type === 'added') {
                             const msg = change.doc.data();
-                            if (msg.senderId !== currentUser.uid) {
-                                displayMessage(msg, currentUser.uid);
-                            }
+                            // 自分・相手どちらのメッセージも即時描画
+                            displayMessage(msg, currentUser.uid);
                         }
                     });
                 });
