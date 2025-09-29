@@ -18,8 +18,14 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'missing_openai_key' });
     }
 
-    const lang = (targetLang || 'ja').trim();
-    const systemPrompt = `You are a translation engine. Translate the user's message into ${lang} using concise, natural wording. Return only the translated text.`;
+    // 言語コードを正規化
+    const inputLang = (targetLang || 'ja').toString().trim().toLowerCase();
+    const langMap = { jp: 'ja', japanese: 'ja', 日本語: 'ja', ja: 'ja', en: 'en', english: 'en', 英語: 'en', ko: 'ko', korean: 'ko', 韓国語: 'ko', zh: 'zh', chinese: 'zh', 中国語: 'zh' };
+    const lang = langMap[inputLang] || inputLang || 'ja';
+    // 日本語指定時は日本語で厳密に指示
+    const systemPrompt = (lang === 'ja')
+      ? 'あなたは高品質な翻訳エンジンです。ユーザーの文章を自然で読みやすい日本語に翻訳してください。出力は翻訳文のみ（引用符・注釈・原文の再掲なし）。'
+      : `You are a high‑quality translation engine. Translate the user's message into ${lang} using concise, natural wording. Output only the translated text (no quotes, no notes).`;
 
     const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -33,8 +39,8 @@ export default async function handler(req, res) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: text },
         ],
-        max_tokens: 200,
-        temperature: 0.2,
+        max_tokens: 300,
+        temperature: 0.1,
       }),
     });
 
@@ -44,7 +50,10 @@ export default async function handler(req, res) {
       return res.status(openaiRes.status).json(data);
     }
 
-    const translated = (data?.choices?.[0]?.message?.content || '').trim();
+    let translated = (data?.choices?.[0]?.message?.content || '').trim();
+    // 余計な囲み（例: "..." や ```）を除去
+    translated = translated.replace(/^"|"$/g, '').replace(/^`{3}[\s\S]*?\n|`{3}$/g, '').trim();
+    if (!translated) translated = text; // フォールバック
     return res.status(200).json({ translated });
   } catch (e) {
     console.error(e);
