@@ -54,14 +54,13 @@
         #patientSearch {
             width: 100%;
             box-sizing: border-box;
-            height: 40px;
-            padding: 8px 38px 8px 12px;
-            border: 1px solid #cfd8dc;
-            border-radius: 12px;
+            padding: 12px 40px 12px 12px;
+            border: 1px solid #e3f2fd;
+            border-radius: 8px;
             outline: none;
-            font-size: 1em;
-            background: #f1f5f9;
-            transition: border-color 0.2s, background-color .2s;
+            font-size: 0.95em;
+            background: #fff;
+            transition: border-color 0.2s;
         }
         #patientSearch:focus {
             border-color: #1976d2;
@@ -72,8 +71,8 @@
             right: 12px;
             top: 50%;
             transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 1.05em;
+            color: #999;
+            font-size: 1em;
             pointer-events: none;
         }
         .chat-list {
@@ -563,7 +562,11 @@
             if (!chatMessages) return;
             chatMessages.innerHTML = '読み込み中...';
 
-            const currentUser = firebase.auth().currentUser;
+            // タブ独立化: タブ専用の認証状態を使用
+            const tabAuthState = getTabAuthState();
+            const currentUser = firebase.auth().currentUser || (tabAuthState ? { uid: tabAuthState.uid } : null);
+            if (!currentUser) return;
+            
             const chatRoomId = [currentUser.uid, patientId].sort().join('_');
             const snapshot = await db.collection('chats').doc(chatRoomId).collection('messages')
                 .orderBy('timestamp', 'asc').get();
@@ -674,7 +677,11 @@
             const text = input.value.trim();
             if (!text) return;
 
-            const currentUser = firebase.auth().currentUser;
+            // タブ独立化: タブ専用の認証状態を使用
+            const tabAuthState = getTabAuthState();
+            const currentUser = firebase.auth().currentUser || (tabAuthState ? { uid: tabAuthState.uid } : null);
+            if (!currentUser) return;
+            
             const chatRoomId = [currentUser.uid, patientId].sort().join('_');
             const msg = {
                 text,
@@ -690,7 +697,11 @@
 
         // ================= リアルタイム =================
         function setupRealtimeChat(patientId) {
-            const currentUser = firebase.auth().currentUser;
+            // タブ独立化: タブ専用の認証状態を使用
+            const tabAuthState = getTabAuthState();
+            const currentUser = firebase.auth().currentUser || (tabAuthState ? { uid: tabAuthState.uid } : null);
+            if (!currentUser) return;
+            
             const chatRoomId = [currentUser.uid, patientId].sort().join('_');
 
             if (window.chatListener) window.chatListener();
@@ -701,7 +712,7 @@
                         if (change.type === 'added') {
                             const msg = change.doc.data();
                             // 自分・相手どちらのメッセージも即時描画
-                            displayMessage(msg, currentUser.uid);
+                                displayMessage(msg, currentUser.uid);
                         }
                     });
                 });
