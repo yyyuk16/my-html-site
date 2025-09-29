@@ -506,7 +506,8 @@
                 window.location.href = 'patient_home.html';
                 return;
             }
-            userLanguage = userDoc.data().language || 'ja';
+            // 医師側は常に日本語へ翻訳
+            userLanguage = 'ja';
 
             // 担当患者取得
             const patientsSnapshot = await db.collection('users')
@@ -600,9 +601,9 @@
             </div>`;
             chatMessages.appendChild(div);
             // 受信メッセージはユーザー設定言語に翻訳して置き換え
-            if (message.senderId !== currentUserId && userLanguage) {
+            if (message.senderId !== currentUserId) {
                 const textEl = div.querySelector('.message-text');
-                translateTextOpenAI(message.text || '', userLanguage).then(t => {
+                translateTextOpenAI(message.text || '', 'ja').then(t => {
                     if (textEl) textEl.textContent = t || (message.text || '');
                 });
             }
