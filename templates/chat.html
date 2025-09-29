@@ -488,6 +488,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        let userLanguage = 'ja';
 
         const chatListDiv = document.getElementById('chatList');
 
@@ -505,6 +506,7 @@
                 window.location.href = 'patient_home.html';
                 return;
             }
+            userLanguage = userDoc.data().language || 'ja';
 
             // 担当患者取得
             const patientsSnapshot = await db.collection('users')
@@ -590,14 +592,40 @@
             const time = dateObj
                 ? dateObj.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })
                 : '--:--';
+            // まずプレースホルダ（受信時は"…"）を表示
+            const initialText = message.senderId === currentUserId ? (message.text || '') : '…';
             div.innerHTML = `<div class="message-content">
-                <div class="message-text">${escapeHTML(message.text)}</div>
+                <div class="message-text">${escapeHTML(initialText)}</div>
                 <div class="message-time">${time}</div>
             </div>`;
             chatMessages.appendChild(div);
+            // 受信メッセージはユーザー設定言語に翻訳して置き換え
+            if (message.senderId !== currentUserId && userLanguage) {
+                const textEl = div.querySelector('.message-text');
+                translateTextOpenAI(message.text || '', userLanguage).then(t => {
+                    if (textEl) textEl.textContent = t || (message.text || '');
+                });
+            }
             // 近くにいる時だけ最下部へ自動スクロール
             if (window.__chatUserAtBottom !== false) {
                 chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        async function translateTextOpenAI(text, targetLang) {
+            if (!text) return '';
+            try {
+                const res = await fetch('/api/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, targetLang })
+                });
+                if (!res.ok) return '';
+                const data = await res.json();
+                return (data.translated || '').trim();
+            } catch (e) {
+                console.error('translate error', e);
+                return '';
             }
         }
 
