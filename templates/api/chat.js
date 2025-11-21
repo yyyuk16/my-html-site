@@ -71,7 +71,23 @@ module.exports = async (req, res) => {
           detail
         });
       }
-      return res.status(r.status).json({ ok: false, error: 'OpenAI API error', detail });
+      if (r.status === 429) {
+        // レート制限エラーの場合、適切なメッセージを返す
+        return res.status(429).json({
+          ok: false,
+          error: 'リクエストが多すぎます。しばらく待ってから再度お試しください。',
+          detail: 'Rate limit exceeded. Please wait a moment before trying again.'
+        });
+      }
+      // その他のエラーの場合
+      let errorMsg = 'OpenAI API error';
+      try {
+        const errorData = JSON.parse(detail);
+        if (errorData.error && errorData.error.message) {
+          errorMsg = errorData.error.message;
+        }
+      } catch {}
+      return res.status(r.status).json({ ok: false, error: errorMsg, detail });
     }
 
     const data = await r.json();
