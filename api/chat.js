@@ -63,31 +63,20 @@ module.exports = async (req, res) => {
     });
 
     if (!r.ok) {
-      const detail = await r.text().catch(() => '');
-      if (r.status === 401) {
-        return res.status(401).json({
-          ok: false,
-          error: 'OpenAI auth failed (401). Check OPENAI_API_KEY and Redeploy.',
-          detail
-        });
-      }
-      if (r.status === 429) {
-        // レート制限エラーの場合、適切なメッセージを返す
-        return res.status(429).json({
-          ok: false,
-          error: 'リクエストが多すぎます。しばらく待ってから再度お試しください。',
-          detail: 'Rate limit exceeded. Please wait a moment before trying again.'
-        });
-      }
-      // その他のエラーの場合
-      let errorMsg = 'OpenAI API error';
-      try {
-        const errorData = JSON.parse(detail);
-        if (errorData.error && errorData.error.message) {
-          errorMsg = errorData.error.message;
+      const text = await r.text().catch(() => '');
+      let parsed = null;
+      try { parsed = JSON.parse(text); } catch {}
+
+      const err = parsed?.error || {};
+      return res.status(r.status).json({
+        ok: false,
+        status: r.status,
+        error: {
+          message: err.message || text,
+          type: err.type,
+          code: err.code
         }
-      } catch {}
-      return res.status(r.status).json({ ok: false, error: errorMsg, detail });
+      });
     }
 
     const data = await r.json();
