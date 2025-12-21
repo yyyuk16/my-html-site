@@ -6,6 +6,7 @@
   <title data-translate="ai_chat">AIチャット</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="maintab.css">
+  <link rel="stylesheet" href="footer.css">
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -36,10 +37,9 @@
   <!-- メイン -->
   <main class="container" style="max-width: 1000px; margin: 0 auto; padding: 3rem 1rem;">
     <div class="section-title">
-      <img src="phote/被写体４.png"  style="width:1.5em;vertical-align:middle;margin-right:0.3em;">
-      <span data-translate="ai_chat">AI先生チャット</span>
+      <span data-translate="ai_chat">チャット</span>
     </div>
-    <p class="section-subtitle" data-translate="ai_teacher_24h">「AI先生」では24時間いつでも健康相談ができます。</p>
+    <p class="section-subtitle" data-translate="ai_teacher_24h">分からないこと、不安なことは積極的に質問しましょう。</p>
 
     <div class="cards">
       <!-- 左のカード -->
@@ -52,7 +52,7 @@
       <!-- 右のカード -->
       <div class="card blue" onclick="startChat('real')">
         <h3 data-translate="realtime_chat">リアルタイムチャット（患者用）</h3>
-        <p data-translate="realtime_chat_desc">「リアルタイム」では医療スタッフと直接チャットが可能です。</p>
+        <p data-translate="realtime_chat_desc">「リアルタイム」では保健師との直接チャットが可能<br>です。</p>
         <button class="start-chat-btn"><span data-translate="start_chat">チャットを始める</span></button>
       </div>
     </div>
