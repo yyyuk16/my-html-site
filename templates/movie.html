@@ -61,31 +61,6 @@
         margin-bottom: 0.4rem;
         flex: 1;
       }
-      .header-lang-select {
-        flex-shrink: 0;
-        margin-top: 0.2rem;
-      }
-      .header-lang-select .lang-select {
-        padding: 0.5rem 1rem;
-        border: 1px solid #C8E6C9;
-        border-radius: 0.7rem;
-        background: #FFFFFF;
-        color: #2E7D32;
-        font-size: 0.9rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: border-color 0.2s, box-shadow 0.2s;
-        min-width: 140px;
-      }
-      .header-lang-select .lang-select:hover {
-        border-color: #81C784;
-        box-shadow: 0 2px 8px rgba(129, 199, 132, 0.20);
-      }
-      .header-lang-select .lang-select:focus {
-        outline: none;
-        border-color: #2E7D32;
-        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
-      }
       .movie-subtitle {
         font-size: 0.98rem;
         color: #555;
@@ -354,13 +329,6 @@
           flex-direction: column;
           gap: 1rem;
         }
-        .header-lang-select {
-          align-self: flex-end;
-          margin-top: 0;
-        }
-        .header-lang-select .lang-select {
-          min-width: 120px;
-        }
         .movie-title {
           font-size: 1.35rem;
         }
@@ -388,20 +356,8 @@
           <h1 class="movie-title" data-translate="movie_title">結核学習動画</h1>
           <p class="movie-subtitle">
             <span data-translate="movie_subtitle_line1">結核について、短い動画でわかりやすく学べるページです。</span><br>
-            <span data-translate="movie_subtitle_line2">右上で「言語」を選び、見たい「項目」と「動画タイトル」を押すと、動画を視聴することできます。</span>
+            <span data-translate="movie_subtitle_line2">見たい「項目」と「動画タイトル」を押すと、動画を視聴することできます。</span>
           </p>
-        </div>
-        <div class="header-lang-select">
-          <select class="lang-select" id="langSelect">
-            <option value="ja" selected>日本語</option>
-            <option value="en">English</option>
-            <option value="zh">中国語</option>
-            <option value="ko">한국어</option>
-            <option value="ne">ネパール語</option>
-            <option value="vi">ベトナム語</option>
-            <option value="my">ミャンマー語</option>
-            <option value="tl">タガログ語</option>
-          </select>
         </div>
       </section>
 
@@ -827,7 +783,6 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
         const videoGrid = document.getElementById('videoGrid');
         const videoEmptyMessage = document.getElementById('videoEmptyMessage');
         const movieLayout = document.querySelector('.movie-layout');
-        const langSelect = document.getElementById('langSelect');
 
         let currentLang = 'ja';
         let currentTopic = 'basic';
@@ -838,30 +793,26 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
             if (user && window.multiLang) {
               // ユーザーの言語設定を取得
               const userLanguage = await window.multiLang.getUserLanguage();
-              if (userLanguage && langSelect) {
-                // langSelectの値を更新
-                langSelect.value = userLanguage;
+              if (userLanguage) {
                 currentLang = userLanguage;
                 // 動画フィルターを更新
                 updateFilters();
               }
-            } else if (!user && langSelect) {
+            } else if (!user) {
               // 未ログイン時はデフォルト言語
-              langSelect.value = 'ja';
               currentLang = 'ja';
               updateFilters();
             }
           });
         }
 
-        // multiLangの言語変更を監視して、langSelectを同期
+        // multiLangの言語変更を監視
         if (window.multiLang) {
           // multiLangの初期化完了を待つ
           const checkMultiLang = setInterval(() => {
             if (window.multiLang && window.multiLang.currentLanguage) {
               const lang = window.multiLang.currentLanguage;
-              if (langSelect && langSelect.value !== lang) {
-                langSelect.value = lang;
+              if (currentLang !== lang) {
                 currentLang = lang;
                 updateFilters();
               }
@@ -892,20 +843,6 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
           }
         }
 
-        // 言語選択（select要素）
-        if (langSelect) {
-          langSelect.addEventListener('change', async function() {
-            const selectedLang = this.value;
-            currentLang = selectedLang;
-            
-            // multiLangで言語を切り替え（Firebaseに保存される）
-            if (window.multiLang && typeof window.multiLang.switchLanguage === 'function') {
-              await window.multiLang.switchLanguage(selectedLang);
-            }
-            
-            updateFilters();
-          });
-        }
 
         topicTabs.forEach(function(tab) {
           tab.addEventListener('click', function() {
@@ -982,9 +919,6 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
         setTimeout(() => {
           if (window.multiLang && window.multiLang.currentLanguage) {
             currentLang = window.multiLang.currentLanguage;
-            if (langSelect) {
-              langSelect.value = currentLang;
-            }
           }
           updateFilters();
         }, 300);
