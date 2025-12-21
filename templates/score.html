@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-translate="クイズ結果">クイズ結果</title>
+    <title data-translate="quiz_results">クイズ結果</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="maintab.css">
+    <link rel="stylesheet" href="footer.css">
     <style>
 
       
@@ -335,14 +336,6 @@
         font-size: 1em;
         line-height: 1.6;
       }
-      /* フッターの横幅が切れないようにフル幅にする */
-      .footer.container {
-        max-width: 100% !important;
-        width: 100% !important;
-        margin: 24px 0 0 0 !important;
-        padding: 10px 16px !important;
-        box-sizing: border-box;
-      }
       @media (max-width: 768px) {
         .container {
           padding: 0 4px 24px 4px;
@@ -395,6 +388,17 @@
   <div class="container">
     <!-- クイズのスコア表示とランク表示の画面 -->
     <!-- クイズのスコアとランクをfirebaseのmovie_quiz_scoresから反映する画面 -->
+    <!-- クイズ開始ボタン -->
+     
+    <div style="text-align: center; margin: 30px 0;">
+      <p style="margin-top: 15px; color: #888; font-size: 0.95em;" data-translate="update_score_message">
+        新しいクイズに挑戦して、成績を更新しましょう！
+      </p>
+      <button onclick="location.href='allq&a.html'" class="quiz-btn">
+        <span data-translate="start_quiz">🎯 クイズを開始する</span>
+      </button>
+  
+    </div>
 
     <div class="stats-container">
       <div class="stats-card">
@@ -405,15 +409,7 @@
       </div>
     </div>
 
-    <!-- クイズ開始ボタン -->
-    <div style="text-align: center; margin: 30px 0;">
-      <button onclick="location.href='allq&a.html'" class="quiz-btn" data-translate="start_quiz">
-        🎯 クイズを開始する
-      </button>
-      <p style="margin-top: 15px; color: #888; font-size: 0.95em;" data-translate="start_learning">
-        新しいクイズに挑戦して、成績を更新しましょう！
-      </p>
-    </div>
+
 
     <!-- 学習進捗セクション -->
     <div class="progress-section">
@@ -530,9 +526,9 @@
             correct: data.score || 0,
             accuracy: data.total ? ((data.score / data.total) * 100).toFixed(1) : 0,
             timestamp: data.createdAt || data.timestamp,
-            userName: data.userName || '匿名',
+            userName: data.userName || t('anonymous', '匿名'),
             userEmail: data.userEmail || '',
-            category: '結核クイズ'
+            category: t('tuberculosis_quiz', '結核クイズ')
           };
           scores.push(score);
         });
@@ -844,24 +840,28 @@
         statsSummary.innerHTML = `
           <div>
             <div class="stat-box">
-              <div class="stat-title">総クイズ数</div>
+              <div class="stat-title" data-translate="total_quizzes">総クイズ数</div>
               <div class="stat-value">${totalQuizzes}</div>
             </div>
             <div class="stat-box">
-              <div class="stat-title">総正解数</div>
+              <div class="stat-title" data-translate="total_correct">総正解数</div>
               <div class="stat-value">${totalCorrect}</div>
             </div>
             <div class="stat-box">
-              <div class="stat-title">総問題数</div>
+              <div class="stat-title" data-translate="total_questions">総問題数</div>
               <div class="stat-value">${totalQuestions}</div>
             </div>
             <div class="stat-box">
-              <div class="stat-title">平均正答率</div>
+              <div class="stat-title" data-translate="average_accuracy">平均正答率</div>
               <div class="stat-value">${averageAccuracy.toFixed(1)}%</div>
             </div>
           </div>
         `;
         statsContainer.appendChild(statsSummary);
+        // 動的に生成された要素に翻訳を適用
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try { window.multiLang.updateUI(); } catch (_) {}
+        }
       }
       // 学習進捗を更新
       updateLearningProgress(scores);
@@ -990,7 +990,7 @@
               ${formattedDate}
             </div>
             <div class="score-card-rank">
-              <span class="rank-badge ${rank.class}" data-translate="rank">${rank.label}ランク</span>
+              <span class="rank-badge ${rank.class}">${rank.label}${t('rank', 'ランク')}</span>
             </div>
           </div>
           <div class="score-card-body">
@@ -1042,9 +1042,9 @@
           scoresContainer.innerHTML = `
             <div class="no-scores-message">
               <div class="no-scores-icon">🔒</div>
-              <h3>ログインが必要です</h3>
-              <p>クイズの結果を表示するには、ログインしてください。</p>
-              <button onclick="location.href='index.html'" class="quiz-btn" style="margin-top: 15px; font-size:1em;">ログインする</button>
+              <h3 data-translate="login_required">ログインが必要です</h3>
+              <p data-translate="login_required_message">クイズの結果を表示するには、ログインしてください。</p>
+              <button onclick="location.href='index.html'" class="quiz-btn" style="margin-top: 15px; font-size:1em;" data-translate="login">ログインする</button>
             </div>
           `;
         }
