@@ -376,8 +376,7 @@
 
           <div class="video-list-card">
             <div class="video-list-header">
-              <div class="video-list-title">動画一覧（テンプレート）</div>
-              <div class="video-list-caption">※ YouTube のURLは後で差し替えてください</div>
+              <div class="video-list-title" data-translate="video_list">動画一覧</div>
             </div>
             <div class="video-grid" id="videoGrid">
               <!-- ▼▼ ここからテンプレート（必要に応じて複製・編集してください） ▼▼ -->
@@ -874,7 +873,7 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
               const playerArea = document.createElement('div');
               playerArea.className = 'player-card';
               playerArea.innerHTML = `
-                <button class="back-button" id="backButton">← 動画一覧に戻る</button>
+                <button class="back-button" id="backButton" data-translate="back_to_video_list">← 動画一覧に戻る</button>
                 <div class="player-label">
                   <div class="player-label-main">選択中の動画</div>
                   <div class="player-label-sub">${titleText}${langText ? '（' + langText + '）' : ''}</div>
