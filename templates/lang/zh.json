@@ -112,5 +112,7 @@
   "average_accuracy": "平均准确率",
   "login_required": "需要登录",
   "login_required_message": "请登录以查看测验结果。",
-  "login": "登录"
+  "login": "登录",
+  "video_list": "视频列表",
+  "back_to_video_list": "← 返回视频列表"
 }

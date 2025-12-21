@@ -112,5 +112,7 @@
   "average_accuracy": "Average Accuracy",
   "login_required": "Login Required",
   "login_required_message": "Please log in to view quiz results.",
-  "login": "Log In"
+  "login": "Log In",
+  "video_list": "Video List",
+  "back_to_video_list": "← Back to Video List"
 }

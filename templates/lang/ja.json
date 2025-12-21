@@ -112,5 +112,7 @@
   "average_accuracy": "平均正答率",
   "login_required": "ログインが必要です",
   "login_required_message": "クイズの結果を表示するには、ログインしてください。",
-  "login": "ログインする"
+  "login": "ログインする",
+  "video_list": "動画一覧",
+  "back_to_video_list": "動画一覧に戻る"
 }
