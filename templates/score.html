@@ -1,407 +1,392 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-translate="quiz_results">クイズ結果</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="maintab.css">
-    <link rel="stylesheet" href="footer.css">
-    <style>
-      /* ヘッダーのサイズ調整 */
-      .top-bar {
-        padding: 0.7rem 1.5rem;
-        margin: 0;
-        position: relative;
-      }
-      body {
-        margin: 0 !important;
-        padding: 0;
-      }
-      .top-bar .logo {
-        font-size: 1.6rem !important;
-      }
-      .tab-menu li a {
-        font-size: 0.95rem;
-        padding: 0.4rem 0;
-      }
-      @media (max-width: 768px) {
-        .top-bar {
-          padding: 0.6rem 1rem;
-        }
-        .top-bar .logo {
-          font-size: 1.4rem !important;
-        }
-        .tab-menu {
-          gap: 1rem;
-        }
-        .tab-menu li a {
-          font-size: 0.85rem;
-        }
-      }
-      
-      body {
-        background: #fff !important;
-        min-height: 100vh;
-        font-family: 'Noto Sans JP', 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
-        color: #222;
-        margin: 0 !important;
-        padding: 0;
-      }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-translate="quiz_results">クイズ結果</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- 共通CSS（ヘッダー/タブ/フッターはここで統一） -->
+  <link rel="stylesheet" href="maintab.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <style>
+    /* ===========================================
+      ✅ 注意：この<style>には
+      ヘッダー(.top-bar / .logo / .tab-menu)と
+      フッター(.footer)の上書きは入れていません
+      → maintab.css / footer.css に統一
+    ============================================ */
+
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #fff !important;
+      min-height: 100vh;
+      font-family: 'Noto Sans JP', 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+      color: #222;
+    }
+
+    /* ====== ここから下は “コンテンツ専用” のスタイル ====== */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 16px 40px 16px;
+    }
+
+    .stats-container {
+      margin-bottom: 32px;
+    }
+    .stats-card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(60, 72, 88, 0.08);
+      padding: 32px 24px 24px 24px;
+      border: 1px solid #e3e8ee;
+    }
+    .stats-card h2 {
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: 600;
+      color: #4f4f4f;
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+    .chart-container {
+      background: #f7fafd;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(60, 72, 88, 0.06);
+      border: 1px solid #e3e8ee;
+      margin: 16px 0;
+      min-height: 340px;
+    }
+    .stats-summary {
+      margin-top: 18px;
+    }
+    .stats-summary > div {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .stats-summary .stat-box {
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1px solid #e3e8ee;
+      padding: 18px 10px;
+      text-align: center;
+    }
+    .stats-summary .stat-title {
+      color: #6c63ff;
+      font-size: 1em;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .stats-summary .stat-value {
+      font-size: 1.7em;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .quiz-btn {
+      background: linear-gradient(90deg, #6c63ff 0%, #48c6ef 100%);
+      color: #fff;
+      border: none;
+      padding: 15px 36px;
+      font-size: 1.15em;
+      border-radius: 28px;
+      cursor: pointer;
+      box-shadow: 0 2px 12px rgba(76, 110, 245, 0.13);
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    .quiz-btn:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 6px 24px rgba(76, 110, 245, 0.18);
+      background: linear-gradient(90deg, #48c6ef 0%, #6c63ff 100%);
+    }
+
+    /* Progress Section */
+    .progress-section {
+      margin: 40px 0;
+      padding: 28px 18px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(60, 72, 88, 0.08);
+      color: #333;
+      border: 1px solid #e3e8ee;
+    }
+    .progress-section h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #4f4f4f;
+      letter-spacing: 0.04em;
+    }
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 18px;
+      margin-top: 10px;
+    }
+    .progress-card {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 18px 10px;
+      text-align: center;
+      border: 1px solid #e3e8ee;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .progress-card:hover {
+      box-shadow: 0 6px 18px rgba(76, 110, 245, 0.10);
+      transform: translateY(-2px) scale(1.02);
+    }
+    .progress-icon {
+      font-size: 2.2em;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .progress-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 1em;
+      font-weight: 500;
+      color: #6c63ff;
+      opacity: 0.95;
+    }
+    .progress-value {
+      font-size: 1.7em;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #222;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 7px;
+      background: #e3e8ee;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6c63ff, #48c6ef);
+      border-radius: 4px;
+      transition: width 1s cubic-bezier(.4,2,.6,1), background-color 0.5s;
+      width: 0%;
+    }
+
+    /* Scores Section */
+    .scores-section {
+      margin: 40px 0;
+      padding: 28px 18px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(60, 72, 88, 0.08);
+      border: 1px solid #e3e8ee;
+    }
+    .scores-section h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #4f4f4f;
+      font-size: 1.3em;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    /* Score Card */
+    .score-card {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 18px 10px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 10px rgba(60, 72, 88, 0.06);
+      border: 1px solid #e3e8ee;
+      transition: box-shadow 0.2s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .score-card:hover {
+      box-shadow: 0 6px 18px rgba(76, 110, 245, 0.10);
+      transform: translateY(-2px) scale(1.02);
+    }
+    .score-card.best-score {
+      border: 2px solid #ffd700;
+      background: linear-gradient(135deg, #fffbe7 0%, #f8fafc 100%);
+      box-shadow: 0 8px 25px rgba(255, 215, 0, 0.13);
+    }
+    .score-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e3e8ee;
+    }
+    .score-card-date {
+      display: flex;
+      align-items: center;
+      color: #888;
+      font-size: 0.95em;
+    }
+    .date-icon {
+      margin-right: 7px;
+      font-size: 1.1em;
+    }
+    .score-card-rank {
+      display: flex;
+      gap: 8px;
+    }
+    .rank-badge {
+      padding: 5px 10px;
+      border-radius: 16px;
+      font-size: 0.85em;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: #e3e8ee;
+      color: #6c63ff;
+    }
+    .rank-s { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #b8860b; }
+    .rank-a { background: linear-gradient(135deg, #c0c0c0, #e5e5e5); color: #666; }
+    .rank-b { background: linear-gradient(135deg, #cd7f32, #daa520); color: #8b4513; }
+    .rank-c { background: linear-gradient(135deg, #ff6b6b, #ff8e8e); color: #c41e3a; }
+    .rank-d { background: linear-gradient(135deg, #6c757d, #868e96); color: #495057; }
+    .score-card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+    .score-card-main {
+      text-align: center;
+    }
+    .score-accuracy, .score-correct {
+      margin-bottom: 12px;
+    }
+    .accuracy-label, .correct-label {
+      display: block;
+      font-size: 0.9em;
+      color: #888;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .accuracy-value {
+      display: block;
+      font-size: 2em;
+      font-weight: bold;
+      color: #6c63ff;
+    }
+    .correct-value {
+      display: block;
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #48c6ef;
+    }
+    .score-card-details {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 0;
+      background: #fff;
+      border-radius: 6px;
+    }
+    .detail-icon {
+      font-size: 1.1em;
+    }
+    .detail-label {
+      font-weight: 500;
+      color: #888;
+      min-width: 70px;
+    }
+    .detail-value {
+      font-weight: 600;
+      color: #333;
+    }
+    .best-score-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #b8860b;
+      padding: 7px 13px;
+      border-radius: 16px;
+      font-size: 0.85em;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.13);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .no-scores-message {
+      text-align: center;
+      padding: 50px 10px;
+      color: #888;
+    }
+    .no-scores-icon {
+      font-size: 3em;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    .no-scores-message h3 {
+      margin: 0 0 10px 0;
+      color: #4f4f4f;
+      font-size: 1.2em;
+      font-weight: 500;
+    }
+    .no-scores-message p {
+      margin: 0;
+      font-size: 1em;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
       .container {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 20px 16px 40px 16px;
+        padding: 24px 12px 32px 12px;
       }
-
-      .stats-container {
-        margin-bottom: 32px;
+      .progress-grid, .stats-summary > div {
+        grid-template-columns: 1fr;
+        gap: 12px;
       }
-      .stats-card {
-        background: #fff;
-        border-radius: 18px;
-        box-shadow: 0 4px 24px rgba(60, 72, 88, 0.08);
-        padding: 32px 24px 24px 24px;
-        border: 1px solid #e3e8ee;
-      }
-      .stats-card h2 {
-        text-align: center;
-        font-size: 1.5em;
-        font-weight: 600;
-        color: #4f4f4f;
-        margin-bottom: 24px;
-        letter-spacing: 0.05em;
-      }
-      .chart-container {
-        background: #f7fafd;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 2px 12px rgba(60, 72, 88, 0.06);
-        border: 1px solid #e3e8ee;
-        margin: 16px 0;
-        min-height: 340px;
-      }
-      .stats-summary {
-        margin-top: 18px;
-      }
-      .stats-summary > div {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 16px;
-      }
-      .stats-summary .stat-box {
-        background: #f8fafc;
-        border-radius: 10px;
-        border: 1px solid #e3e8ee;
-        padding: 18px 10px;
-        text-align: center;
-      }
-      .stats-summary .stat-title {
-        color: #6c63ff;
-        font-size: 1em;
-        margin-bottom: 6px;
-        font-weight: 500;
-      }
-      .stats-summary .stat-value {
-        font-size: 1.7em;
-        font-weight: bold;
-        color: #222;
-      }
-
-      .quiz-btn {
-        background: linear-gradient(90deg, #6c63ff 0%, #48c6ef 100%);
-        color: #fff;
-        border: none;
-        padding: 15px 36px;
-        font-size: 1.15em;
-        border-radius: 28px;
-        cursor: pointer;
-        box-shadow: 0 2px 12px rgba(76, 110, 245, 0.13);
-        font-weight: bold;
-        transition: all 0.2s;
-      }
-      .quiz-btn:hover {
-        transform: translateY(-2px) scale(1.03);
-        box-shadow: 0 6px 24px rgba(76, 110, 245, 0.18);
-        background: linear-gradient(90deg, #48c6ef 0%, #6c63ff 100%);
-      }
-
-      /* Progress Section */
-      .progress-section {
-        margin: 40px 0;
-        padding: 28px 18px;
-        background: #fff;
-        border-radius: 18px;
-        box-shadow: 0 4px 24px rgba(60, 72, 88, 0.08);
-        color: #333;
-        border: 1px solid #e3e8ee;
-      }
-      .progress-section h2 {
-        text-align: center;
-        margin-bottom: 24px;
-        font-size: 1.3em;
-        font-weight: 600;
-        color: #4f4f4f;
-        letter-spacing: 0.04em;
-      }
-      .progress-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 18px;
-        margin-top: 10px;
-      }
-      .progress-card {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 18px 10px;
-        text-align: center;
-        border: 1px solid #e3e8ee;
-        transition: box-shadow 0.2s, transform 0.2s;
-      }
-      .progress-card:hover {
-        box-shadow: 0 6px 18px rgba(76, 110, 245, 0.10);
-        transform: translateY(-2px) scale(1.02);
-      }
-      .progress-icon {
-        font-size: 2.2em;
-        margin-bottom: 10px;
-        display: block;
-      }
-      .progress-card h3 {
-        margin: 0 0 10px 0;
-        font-size: 1em;
-        font-weight: 500;
-        color: #6c63ff;
-        opacity: 0.95;
-      }
-      .progress-value {
-        font-size: 1.7em;
-        font-weight: bold;
-        margin-bottom: 12px;
-        color: #222;
-      }
-      .progress-bar {
-        width: 100%;
-        height: 7px;
-        background: #e3e8ee;
-        border-radius: 4px;
-        overflow: hidden;
-      }
-      .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #6c63ff, #48c6ef);
-        border-radius: 4px;
-        transition: width 1s cubic-bezier(.4,2,.6,1), background-color 0.5s;
-        width: 0%;
-      }
-
-      /* Scores Section */
-      .scores-section {
-        margin: 40px 0;
-        padding: 28px 18px;
-        background: #fff;
-        border-radius: 18px;
-        box-shadow: 0 4px 24px rgba(60, 72, 88, 0.08);
-        border: 1px solid #e3e8ee;
-      }
-      .scores-section h2 {
-        text-align: center;
-        margin-bottom: 24px;
-        color: #4f4f4f;
-        font-size: 1.3em;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-      }
-
-      /* Score Card */
-      .score-card {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 18px 10px;
-        margin-bottom: 18px;
-        box-shadow: 0 2px 10px rgba(60, 72, 88, 0.06);
-        border: 1px solid #e3e8ee;
-        transition: box-shadow 0.2s, transform 0.2s;
-        position: relative;
-        overflow: hidden;
-      }
-      .score-card:hover {
-        box-shadow: 0 6px 18px rgba(76, 110, 245, 0.10);
-        transform: translateY(-2px) scale(1.02);
-      }
-      .score-card.best-score {
-        border: 2px solid #ffd700;
-        background: linear-gradient(135deg, #fffbe7 0%, #f8fafc 100%);
-        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.13);
-      }
-      .score-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 14px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #e3e8ee;
-      }
-      .score-card-date {
-        display: flex;
-        align-items: center;
-        color: #888;
-        font-size: 0.95em;
-      }
-      .date-icon {
-        margin-right: 7px;
-        font-size: 1.1em;
-      }
-      .score-card-rank {
-        display: flex;
-        gap: 8px;
-      }
-      .rank-badge {
-        padding: 5px 10px;
-        border-radius: 16px;
-        font-size: 0.85em;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        background: #e3e8ee;
-        color: #6c63ff;
-      }
-      .rank-s { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #b8860b; }
-      .rank-a { background: linear-gradient(135deg, #c0c0c0, #e5e5e5); color: #666; }
-      .rank-b { background: linear-gradient(135deg, #cd7f32, #daa520); color: #8b4513; }
-      .rank-c { background: linear-gradient(135deg, #ff6b6b, #ff8e8e); color: #c41e3a; }
-      .rank-d { background: linear-gradient(135deg, #6c757d, #868e96); color: #495057; }
       .score-card-body {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
-        align-items: center;
-      }
-      .score-card-main {
-        text-align: center;
-      }
-      .score-accuracy, .score-correct {
-        margin-bottom: 12px;
-      }
-      .accuracy-label, .correct-label {
-        display: block;
-        font-size: 0.9em;
-        color: #888;
-        margin-bottom: 3px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .accuracy-value {
-        display: block;
-        font-size: 2em;
-        font-weight: bold;
-        color: #6c63ff;
-      }
-      .correct-value {
-        display: block;
-        font-size: 1.3em;
-        font-weight: bold;
-        color: #48c6ef;
-      }
-      .score-card-details {
-        display: flex;
-        flex-direction: column;
+        grid-template-columns: 1fr;
         gap: 10px;
       }
-      .detail-item {
-        display: flex;
-        align-items: center;
+      .score-card-header {
+        flex-direction: column;
         gap: 8px;
-        padding: 7px 0;
-        background: #fff;
-        border-radius: 6px;
+        align-items: flex-start;
       }
-      .detail-icon {
-        font-size: 1.1em;
+      .progress-section, .scores-section, .stats-card {
+        padding: 14px 8px;
+        margin: 16px 0;
       }
-      .detail-label {
-        font-weight: 500;
-        color: #888;
-        min-width: 70px;
-      }
-      .detail-value {
-        font-weight: 600;
-        color: #333;
-      }
-      .best-score-badge {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background: linear-gradient(135deg, #ffd700, #ffed4e);
-        color: #b8860b;
-        padding: 7px 13px;
-        border-radius: 16px;
-        font-size: 0.85em;
-        font-weight: bold;
-        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.13);
-        animation: pulse 2s infinite;
-      }
-      @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-      }
-      .no-scores-message {
-        text-align: center;
-        padding: 50px 10px;
-        color: #888;
-      }
-      .no-scores-icon {
-        font-size: 3em;
-        margin-bottom: 16px;
-        opacity: 0.5;
-      }
-      .no-scores-message h3 {
-        margin: 0 0 10px 0;
-        color: #4f4f4f;
-        font-size: 1.2em;
-        font-weight: 500;
-      }
-      .no-scores-message p {
-        margin: 0;
-        font-size: 1em;
-        line-height: 1.6;
-      }
-      @media (max-width: 768px) {
-        .container {
-          padding: 0 4px 24px 4px;
-        }
-        .progress-grid, .stats-summary > div {
-          grid-template-columns: 1fr;
-          gap: 12px;
-        }
-        .score-card-body {
-          grid-template-columns: 1fr;
-          gap: 10px;
-        }
-        .score-card-header {
-          flex-direction: column;
-          gap: 8px;
-          align-items: flex-start;
-        }
-        .progress-section, .scores-section, .stats-card {
-          padding: 14px 4px;
-          margin: 16px 0;
-        }
-      }
-    </style>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
-    <!-- 多言語対応 -->
-    <script src="multilang.js"></script>
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- 多言語対応 -->
+  <script src="multilang.js"></script>
 </head>
+
 <body>
-   <!-- 💚 ヘッダー -->
-   <header class="top-bar">
+  <!-- 💚 ヘッダー（デザインは maintab.css に統一） -->
+  <header class="top-bar">
     <div class="header-inner">
       <div class="logo" style="font-size:2rem; font-weight:700; color:#2E7D32; letter-spacing:0.08em; display:flex; align-items:center;">
         <span data-translate="site_title" style="vertical-align:middle;">結核治療サイト</span>
@@ -418,10 +403,6 @@
   </header>
 
   <div class="container">
-    <!-- クイズのスコア表示とランク表示の画面 -->
-    <!-- クイズのスコアとランクをfirebaseのmovie_quiz_scoresから反映する画面 -->
-    <!-- クイズ開始ボタン -->
-     
     <div style="text-align: center; margin: 30px 0;">
       <p style="margin-top: 15px; color: #888; font-size: 0.95em;" data-translate="update_score_message">
         新しいクイズに挑戦して、成績を更新しましょう！
@@ -429,7 +410,6 @@
       <button onclick="location.href='allq&a.html'" class="quiz-btn">
         <span data-translate="start_quiz">🎯 クイズを開始する</span>
       </button>
-  
     </div>
 
     <div class="stats-container">
@@ -440,8 +420,6 @@
         </div>
       </div>
     </div>
-
-
 
     <!-- 学習進捗セクション -->
     <div class="progress-section">
@@ -488,17 +466,18 @@
       <div id="scores-container"></div>
     </div>
   </div>
+
   <script>
     // Firebaseの設定
     const firebaseConfig = {
-        apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
-        authDomain: "web01-2484d.firebaseapp.com",
-        databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
-        projectId: "web01-2484d",
-        storageBucket: "web01-2484d.firebasestorage.app",
-        messagingSenderId: "90159472898",
-        appId: "1:90159472898:web:261ec71f9919611011e21b",
-        measurementId: "G-9TGR07ZSY9"
+      apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+      authDomain: "web01-2484d.firebaseapp.com",
+      databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.firebasestorage.app",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b",
+      measurementId: "G-9TGR07ZSY9"
     };
     firebase.initializeApp(firebaseConfig);
 
@@ -521,7 +500,7 @@
           .where('userId', '==', userId)
           .orderBy('timestamp', 'desc')
           .get();
-        
+
         const scores = [];
         snapshot.forEach(doc => {
           const data = doc.data();
@@ -531,7 +510,7 @@
             quizType: 'movie'
           });
         });
-        
+
         return scores;
       } catch (e) {
         console.error("動画クイズスコアの取得に失敗:", e);
@@ -566,11 +545,11 @@
         });
         // クライアント側でソート（createdAtで降順）
         scores.sort((a, b) => {
-          const ta = a.timestamp && typeof a.timestamp.toDate === "function" 
-            ? a.timestamp.toDate() 
+          const ta = a.timestamp && typeof a.timestamp.toDate === "function"
+            ? a.timestamp.toDate()
             : new Date(a.timestamp);
-          const tb = b.timestamp && typeof b.timestamp.toDate === "function" 
-            ? b.timestamp.toDate() 
+          const tb = b.timestamp && typeof b.timestamp.toDate === "function"
+            ? b.timestamp.toDate()
             : new Date(b.timestamp);
           return tb - ta; // 降順
         });
@@ -624,39 +603,39 @@
     function updateMovieScoreChart(scores) {
       const ctx = document.getElementById('movieScoreChart').getContext('2d');
       if (movieScoreChart) movieScoreChart.destroy();
+
       if (!scores || scores.length === 0) {
         movieScoreChart = new Chart(ctx, {
           type: 'line',
-          data: { 
-            labels: [], 
+          data: {
+            labels: [],
             datasets: [
               { label: t('accuracy_label','正答率 (%)'), data: [] },
               { label: t('correct_label','正解数'), data: [] }
-            ] 
+            ]
           },
-          options: { 
-            responsive: true, 
+          options: {
+            responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              title: {
-                display: true,
-                text: t('chart_title','📈 クイズ成績推移')
-              }
+              title: { display: true, text: t('chart_title','📈 クイズ成績推移') }
             }
           }
         });
         return;
       }
+
       // 日付順にソート
       const sortedScores = scores.slice().sort((a, b) => {
-        const ta = a.timestamp && typeof a.timestamp.toDate === "function" 
-          ? a.timestamp.toDate() 
+        const ta = a.timestamp && typeof a.timestamp.toDate === "function"
+          ? a.timestamp.toDate()
           : new Date(a.timestamp);
-        const tb = b.timestamp && typeof b.timestamp.toDate === "function" 
-          ? b.timestamp.toDate() 
+        const tb = b.timestamp && typeof b.timestamp.toDate === "function"
+          ? b.timestamp.toDate()
           : new Date(b.timestamp);
         return ta - tb;
       });
+
       const labels = sortedScores.map(score => {
         let d;
         if (score.timestamp && typeof score.timestamp.toDate === "function") {
@@ -664,10 +643,11 @@
         } else if (score.timestamp) {
           d = new Date(score.timestamp);
         } else {
-          d = new Date(); // フォールバック
+          d = new Date();
         }
         return d.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
       });
+
       const accuracyData = sortedScores.map(score => parseFloat(score.accuracy) || 0);
       const correctData = sortedScores.map(score => score.correct || score.score || 0);
 
@@ -713,34 +693,21 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            intersect: false,
-          },
+          interaction: { mode: 'index', intersect: false },
           plugins: {
             title: {
               display: true,
               text: t('chart_title','📈 クイズ成績推移'),
-              font: {
-                size: 18,
-                weight: 'bold',
-                family: "'Noto Sans JP', sans-serif"
-              },
+              font: { size: 18, weight: 'bold', family: "'Noto Sans JP', sans-serif" },
               color: '#4f4f4f',
-              padding: {
-                top: 6,
-                bottom: 12
-              }
+              padding: { top: 6, bottom: 12 }
             },
             legend: {
               position: 'top',
               labels: {
                 usePointStyle: true,
                 padding: 12,
-                font: {
-                  size: 13,
-                  family: "'Noto Sans JP', sans-serif"
-                },
+                font: { size: 13, family: "'Noto Sans JP', sans-serif" },
                 color: '#4f4f4f'
               }
             },
@@ -768,22 +735,11 @@
               title: {
                 display: true,
                 text: t('date_axis','📅 日付'),
-                font: {
-                  size: 13,
-                  weight: 'bold'
-                },
+                font: { size: 13, weight: 'bold' },
                 color: '#4f4f4f'
               },
-              grid: {
-                color: 'rgba(227,232,238,0.5)',
-                lineWidth: 1
-              },
-              ticks: {
-                color: '#888',
-                font: {
-                  size: 12
-                }
-              }
+              grid: { color: 'rgba(227,232,238,0.5)', lineWidth: 1 },
+              ticks: { color: '#888', font: { size: 12 } }
             },
             y: {
               type: 'linear',
@@ -794,24 +750,14 @@
               title: {
                 display: true,
                 text: t('accuracy_label','📊 正答率 (%)'),
-                font: {
-                  size: 13,
-                  weight: 'bold'
-                },
+                font: { size: 13, weight: 'bold' },
                 color: '#4f4f4f'
               },
-              grid: {
-                color: 'rgba(227,232,238,0.5)',
-                lineWidth: 1
-              },
+              grid: { color: 'rgba(227,232,238,0.5)', lineWidth: 1 },
               ticks: {
                 color: '#888',
-                font: {
-                  size: 12
-                },
-                callback: function(value) {
-                  return value + '%';
-                }
+                font: { size: 12 },
+                callback: function(value) { return value + '%'; }
               }
             },
             y1: {
@@ -822,34 +768,15 @@
               title: {
                 display: true,
                 text: t('correct_label','🎯 正解数'),
-                font: {
-                  size: 13,
-                  weight: 'bold'
-                },
+                font: { size: 13, weight: 'bold' },
                 color: '#4f4f4f'
               },
-              grid: {
-                drawOnChartArea: false,
-                color: 'rgba(227,232,238,0.5)',
-                lineWidth: 1
-              },
-              ticks: {
-                color: '#888',
-                font: {
-                  size: 12
-                }
-              }
+              grid: { drawOnChartArea: false, color: 'rgba(227,232,238,0.5)', lineWidth: 1 },
+              ticks: { color: '#888', font: { size: 12 } }
             }
           },
-          elements: {
-            line: {
-              borderWidth: 3
-            }
-          },
-          animation: {
-            duration: 1500,
-            easing: 'easeInOutQuart'
-          }
+          elements: { line: { borderWidth: 3 } },
+          animation: { duration: 1500, easing: 'easeInOutQuart' }
         }
       });
     }
@@ -861,13 +788,12 @@
       const totalCorrect = scores.reduce((sum, score) => sum + (score.correct || 0), 0);
       const totalQuestions = scores.reduce((sum, score) => sum + (score.total || 0), 0);
       const averageAccuracy = scores.reduce((sum, score) => sum + (parseFloat(score.accuracy) || 0), 0) / totalQuizzes;
-      // 統計カードを更新
+
       const statsContainer = document.querySelector('.stats-container');
       if (statsContainer) {
         const existingStats = statsContainer.querySelector('.stats-summary');
-        if (existingStats) {
-          existingStats.remove();
-        }
+        if (existingStats) existingStats.remove();
+
         const statsSummary = document.createElement('div');
         statsSummary.className = 'stats-summary';
         statsSummary.innerHTML = `
@@ -891,21 +817,20 @@
           </div>
         `;
         statsContainer.appendChild(statsSummary);
-        // 動的に生成された要素に翻訳を適用
+
         setTimeout(() => {
           if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
             try { window.multiLang.updateUI(); } catch (_) {}
           }
         }, 100);
       }
-      // 学習進捗を更新
+
       updateLearningProgress(scores);
     }
 
-    // 学習進捗を更新
     function updateLearningProgress(scores) {
       if (!scores || scores.length === 0) return;
-      // 学習継続日数を計算
+
       const uniqueDates = [...new Set(scores.map(score => {
         let date;
         if (score.timestamp && typeof score.timestamp.toDate === "function") {
@@ -913,15 +838,15 @@
         } else if (score.timestamp) {
           date = new Date(score.timestamp);
         } else {
-          date = new Date(); // フォールバック
+          date = new Date();
         }
         return date.toDateString();
       }))];
       const learningDays = uniqueDates.length;
-      // 目標達成率を計算（80%以上を目標とする）
+
       const highAccuracyQuizzes = scores.filter(score => (parseFloat(score.accuracy) || 0) >= 80);
       const goalAchievement = Math.round((highAccuracyQuizzes.length / scores.length) * 100);
-      // 連続正解数を計算
+
       let currentStreak = 0;
       let maxStreak = 0;
       for (let i = scores.length - 1; i >= 0; i--) {
@@ -932,7 +857,7 @@
           currentStreak = 0;
         }
       }
-      // レベルを計算
+
       let level = t('beginner_level', '初心者');
       let levelProgress = 0;
       const avgAccuracy = scores.reduce((sum, score) => sum + (parseFloat(score.accuracy) || 0), 0) / scores.length;
@@ -946,33 +871,28 @@
         level = t('beginner_level', '初心者');
         levelProgress = Math.min(100, (scores.length / 5) * 100);
       }
-      // 進捗バーを更新
+
       updateProgressBar('learning-days', learningDays, 30, '日');
       updateProgressBar('goal-achievement', goalAchievement, 100, '%');
       updateProgressBar('streak', maxStreak, 20, '問');
       updateProgressBar('level', levelProgress, 100, '%');
-      // レベル表示を更新
+
       document.getElementById('level').textContent = level;
     }
 
-    // 進捗バーを更新
     function updateProgressBar(elementId, current, max, unit) {
       const element = document.getElementById(elementId);
       const bar = document.getElementById(elementId + '-bar');
       if (element && bar) {
-        // 単位を翻訳
         let translatedUnit = unit;
-        if (unit === '日') {
-          translatedUnit = t('days_unit', '日');
-        } else if (unit === '問') {
-          translatedUnit = t('questions_unit', '問');
-        } else if (unit === '%') {
-          translatedUnit = '%';
-        }
+        if (unit === '日') translatedUnit = t('days_unit', '日');
+        else if (unit === '問') translatedUnit = t('questions_unit', '問');
+        else if (unit === '%') translatedUnit = '%';
+
         element.textContent = current + translatedUnit;
         const percentage = Math.min(100, (current / max) * 100);
         bar.style.width = percentage + '%';
-        // 色を動的に変更
+
         if (percentage >= 80) {
           bar.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
         } else if (percentage >= 60) {
@@ -983,10 +903,10 @@
       }
     }
 
-    // クイズスコアカード描画
     function renderMovieScores(scores) {
       const scoresContainer = document.getElementById('scores-container');
       if (!scoresContainer) return;
+
       if (!scores || scores.length === 0) {
         scoresContainer.innerHTML = `
           <div class="no-scores-message">
@@ -997,27 +917,30 @@
         `;
         return;
       }
+
       scoresContainer.innerHTML = '';
-      // ベストスコアを探す
+
       const bestScore = scores.reduce((best, current) =>
         (parseFloat(current.accuracy) || 0) > (parseFloat(best.accuracy) || 0) ? current : best
       );
+
       scores.forEach((score) => {
         const scoreCard = document.createElement('div');
         scoreCard.className = 'score-card';
+
         let dateObj;
         if (score.timestamp && typeof score.timestamp.toDate === 'function') {
           dateObj = score.timestamp.toDate();
         } else if (score.timestamp) {
           dateObj = new Date(score.timestamp);
         } else {
-          dateObj = new Date(); // フォールバック
+          dateObj = new Date();
         }
         const formattedDate = dateObj.toLocaleString('ja-JP');
         const rank = getRank(parseFloat(score.accuracy) || 0);
-        if (score === bestScore) {
-          scoreCard.classList.add('best-score');
-        }
+
+        if (score === bestScore) scoreCard.classList.add('best-score');
+
         scoreCard.innerHTML = `
           <div class="score-card-header">
             <div class="score-card-date">
@@ -1054,10 +977,10 @@
           </div>
           ${score === bestScore ? `<div class="best-score-badge" data-translate="best_score">🏆 ベストスコア</div>` : ''}
         `;
+
         scoresContainer.appendChild(scoreCard);
       });
-      
-      // 動的に生成された要素に翻訳を適用
+
       if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
         try { window.multiLang.updateUI(); } catch (_) {}
       }
@@ -1077,27 +1000,23 @@
       const originalSwitchLanguage = window.multiLang.switchLanguage.bind(window.multiLang);
       window.multiLang.switchLanguage = async function(language) {
         await originalSwitchLanguage(language);
-        // グラフと統計情報を再描画
         refreshChartOnLanguageChange();
-        // UIを更新
         if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
           try { window.multiLang.updateUI(); } catch (_) {}
         }
       };
     }
 
-    // ページ読み込み時に認証状態を確認し、スコアを反映（自動リダイレクトを無効化）
+    // 認証状態を確認し、スコアを反映
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         loadAIQuizScoresOnly(user.uid);
-        // 翻訳を適用（少し遅延させてDOMが完全に構築された後に実行）
         setTimeout(() => {
           if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
             try { window.multiLang.updateUI(); } catch (_) {}
           }
         }, 500);
       } else {
-        // 未ログイン状態のメッセージを表示
         const scoresContainer = document.getElementById('scores-container');
         if (scoresContainer) {
           scoresContainer.innerHTML = `
@@ -1115,14 +1034,16 @@
       }
     });
   </script>
-  <!-- フッター -->
-  <footer class="footer container">
-    <small>
-      <a href="#" data-translate="terms">利用規約</a>
-      <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
-      &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
-    </small>
-  </footer>
 
+  <!-- ✅ フッター（footer.css の設計通り：footerの中に .container を入れる） -->
+  <footer class="footer">
+    <div class="container">
+      <small>
+        <a href="#" data-translate="terms">利用規約</a>
+        <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
+        &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
+      </small>
+    </div>
+  </footer>
 </body>
 </html>
