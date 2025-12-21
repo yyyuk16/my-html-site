@@ -6,7 +6,7 @@
   <title>Firebase リアルタイムチャット</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="chat.css">
-  
+    
   <style>
     /* 左右で配置を分ける簡易スタイル */
     .chat-messages { padding: 12px; overflow-y: auto; height: 60vh; background: #f8fafc; }
@@ -84,18 +84,44 @@
       return el;
     }
 
+    // 翻訳キャッシュ
+    const translationCache = new Map();
+    
     // OpenAI API（翻訳）
     async function translateTextOpenAI(text, targetLang) {
       if (!text) return '';
+      
+      // キャッシュチェック
+      const cacheKey = `${text}_${targetLang}`;
+      if (translationCache.has(cacheKey)) {
+        return translationCache.get(cacheKey);
+      }
+      
       try {
         const res = await fetch('/api/translate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, targetLang })
         });
-        if (!res.ok) return '';
+        if (!res.ok) {
+          // 429エラーの場合は空文字を返して原文を表示
+          if (res.status === 429) {
+            console.warn('Translation rate limited, showing original text');
+            return text;
+          }
+          return '';
+        }
         const data = await res.json();
-        return (data.translated || '').trim();
+        const translated = (data.translated || '').trim();
+        
+        // キャッシュに保存（最大100件まで）
+        if (translationCache.size >= 100) {
+          const firstKey = translationCache.keys().next().value;
+          translationCache.delete(firstKey);
+        }
+        translationCache.set(cacheKey, translated);
+        
+        return translated;
       } catch (e) {
         console.error('translate error', e);
         return '';
@@ -112,6 +138,10 @@
       }
     }
 
+    // 翻訳リクエストのデバウンス用
+    let translationQueue = [];
+    let translationTimer = null;
+    
     function subscribeMessages() {
       if (!chatRoomId) return;
       return db.collection('chats').doc(chatRoomId).collection('messages')
@@ -125,10 +155,18 @@
             const el = appendMessageBubble(m.text || '', isSelf, ts);
             // 相手メッセージは翻訳テキストのみを表示
             if (!isSelf && userLanguage) {
-              translateTextOpenAI(m.text || '', userLanguage).then(t => {
-                const textSpan = el.querySelector('.msg-text');
-                if (textSpan) textSpan.textContent = t || (m.text || '');
-              });
+              // デバウンス: 500ms待ってから翻訳（複数メッセージをまとめて処理）
+              translationQueue.push({ el, text: m.text || '', lang: userLanguage });
+              clearTimeout(translationTimer);
+              translationTimer = setTimeout(() => {
+                translationQueue.forEach(({ el, text, lang }) => {
+                  translateTextOpenAI(text, lang).then(t => {
+                    const textSpan = el.querySelector('.msg-text');
+                    if (textSpan) textSpan.textContent = t || text;
+                  });
+                });
+                translationQueue = [];
+              }, 500);
             }
           });
         });
