@@ -552,7 +552,7 @@
             timestamp: data.createdAt || data.timestamp,
             userName: data.userName || t('anonymous', '匿名'),
             userEmail: data.userEmail || '',
-            category: t('tuberculosis_quiz', '結核クイズ')
+            category: 'tuberculosis_quiz' // 翻訳キーを保存
           };
           scores.push(score);
         });
@@ -1035,7 +1035,7 @@
               <div class="detail-item">
                 <span class="detail-icon">🎯</span>
                 <span class="detail-label" data-translate="category">カテゴリ:</span>
-                <span class="detail-value">${score.category || t('unknown', '不明')}</span>
+                <span class="detail-value">${score.category ? t(score.category, score.category) : t('unknown', '不明')}</span>
               </div>
               <div class="detail-item">
                 <span class="detail-icon">🤖</span>
