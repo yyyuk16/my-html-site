@@ -102,5 +102,15 @@
   "topic_basic": "1. 그 기침, 정말 감기일까요?",
   "topic_treatment": "2. 접촉자 검진",
   "topic_daily": "3. 잠복 결핵 감염",
-  "topic_family": "4. 결핵"
+  "topic_family": "4. 결핵",
+  "update_score_message": "새로운 퀴즈에 도전하여 성적을 업데이트하세요!",
+  "anonymous": "익명",
+  "tuberculosis_quiz": "결핵 퀴즈",
+  "total_quizzes": "총 퀴즈 수",
+  "total_correct": "총 정답 수",
+  "total_questions": "총 문제 수",
+  "average_accuracy": "평균 정답률",
+  "login_required": "로그인이 필요합니다",
+  "login_required_message": "퀴즈 결과를 보려면 로그인해 주세요.",
+  "login": "로그인"
 }

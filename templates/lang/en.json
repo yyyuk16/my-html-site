@@ -102,5 +102,15 @@
   "topic_basic": "1. Is That Cough Really a Cold?",
   "topic_treatment": "2. Contact Screening",
   "topic_daily": "3. Latent Tuberculosis Infection",
-  "topic_family": "4. Tuberculosis"
+  "topic_family": "4. Tuberculosis",
+  "update_score_message": "Take on a new quiz and update your score!",
+  "anonymous": "Anonymous",
+  "tuberculosis_quiz": "Tuberculosis Quiz",
+  "total_quizzes": "Total Quizzes",
+  "total_correct": "Total Correct",
+  "total_questions": "Total Questions",
+  "average_accuracy": "Average Accuracy",
+  "login_required": "Login Required",
+  "login_required_message": "Please log in to view quiz results.",
+  "login": "Log In"
 }

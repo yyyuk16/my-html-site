@@ -102,5 +102,15 @@
   "topic_basic": "1. 那个咳嗽，真的是感冒吗？",
   "topic_treatment": "2. 接触者筛查",
   "topic_daily": "3. 潜伏性结核感染",
-  "topic_family": "4. 结核病"
+  "topic_family": "4. 结核病",
+  "update_score_message": "挑战新测验，更新您的成绩！",
+  "anonymous": "匿名",
+  "tuberculosis_quiz": "结核病测验",
+  "total_quizzes": "总测验数",
+  "total_correct": "总正确数",
+  "total_questions": "总问题数",
+  "average_accuracy": "平均准确率",
+  "login_required": "需要登录",
+  "login_required_message": "请登录以查看测验结果。",
+  "login": "登录"
 }
