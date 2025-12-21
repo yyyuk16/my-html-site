@@ -96,5 +96,10 @@
   "please_retry": "Please wait a moment and try reloading.",
   "movie_title": "Tuberculosis Learning Videos",
   "movie_subtitle_line1": "This page allows you to learn about tuberculosis easily through short videos.",
-  "movie_subtitle_line2": "Click on the topic and video title you want to watch."
+  "movie_subtitle_line2": "Click on the topic and video title you want to watch.",
+  "learning_topics": "Learning Topics",
+  "topic_basic": "1. Is That Cough Really a Cold?",
+  "topic_treatment": "2. Contact Screening",
+  "topic_daily": "3. Latent Tuberculosis Infection",
+  "topic_family": "4. Tuberculosis"
 }

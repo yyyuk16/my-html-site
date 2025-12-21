@@ -96,5 +96,10 @@
   "please_retry": "しばらく待ってから再読み込みしてください。",
   "movie_title": "結核学習動画",
   "movie_subtitle_line1": "結核について、短い動画でわかりやすく学べるページです。",
-  "movie_subtitle_line2": "見たい「項目」と「動画タイトル」を押すと、動画を視聴することできます。"
+  "movie_subtitle_line2": "見たい「項目」と「動画タイトル」を押すと、動画を視聴することできます。",
+  "learning_topics": "学習項目",
+  "topic_basic": "1.その咳、本当に風邪ですか",
+  "topic_treatment": "2.接触者健診",
+  "topic_daily": "3.潜在性結核感染症",
+  "topic_family": "4.結核"
 }

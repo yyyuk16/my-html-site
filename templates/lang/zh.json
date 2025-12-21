@@ -96,5 +96,10 @@
   "please_retry": "请稍等片刻后重新加载。",
   "movie_title": "结核病学习视频",
   "movie_subtitle_line1": "这是一个通过短视频轻松学习结核病知识的页面。",
-  "movie_subtitle_line2": "请点击您想观看的主题和视频标题。"
+  "movie_subtitle_line2": "请点击您想观看的主题和视频标题。",
+  "learning_topics": "学习主题",
+  "topic_basic": "1. 那个咳嗽，真的是感冒吗？",
+  "topic_treatment": "2. 接触者筛查",
+  "topic_daily": "3. 潜伏性结核感染",
+  "topic_family": "4. 结核病"
 }
