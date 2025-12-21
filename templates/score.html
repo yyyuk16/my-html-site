@@ -8,7 +8,31 @@
     <link rel="stylesheet" href="maintab.css">
     <link rel="stylesheet" href="footer.css">
     <style>
-
+      /* ヘッダーのサイズ調整 */
+      .top-bar {
+        padding: 0.7rem 1.5rem;
+      }
+      .top-bar .logo {
+        font-size: 1.6rem !important;
+      }
+      .tab-menu li a {
+        font-size: 0.95rem;
+        padding: 0.4rem 0;
+      }
+      @media (max-width: 768px) {
+        .top-bar {
+          padding: 0.6rem 1rem;
+        }
+        .top-bar .logo {
+          font-size: 1.4rem !important;
+        }
+        .tab-menu {
+          gap: 1rem;
+        }
+        .tab-menu li a {
+          font-size: 0.85rem;
+        }
+      }
       
       body {
         background: #fff !important;
@@ -553,6 +577,7 @@
     async function loadAIQuizScoresOnly(userId) {
       try {
         const aiScores = await loadAIQuizScores(userId);
+        currentScores = aiScores; // スコアを保存
         if (aiScores.length === 0) {
           updateMovieScoreChart([]);
           renderMovieScores([]);
@@ -859,9 +884,11 @@
         `;
         statsContainer.appendChild(statsSummary);
         // 動的に生成された要素に翻訳を適用
-        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
-          try { window.multiLang.updateUI(); } catch (_) {}
-        }
+        setTimeout(() => {
+          if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+            try { window.multiLang.updateUI(); } catch (_) {}
+          }
+        }, 100);
       }
       // 学習進捗を更新
       updateLearningProgress(scores);
@@ -1028,13 +1055,39 @@
       }
     }
 
+    // 言語変更時にグラフと統計情報を再描画
+    let currentScores = [];
+    function refreshChartOnLanguageChange() {
+      if (currentScores.length > 0) {
+        updateMovieScoreChart(currentScores);
+        updateStatistics(currentScores);
+      }
+    }
+
+    // multiLangの言語変更を監視
+    if (window.multiLang) {
+      const originalSwitchLanguage = window.multiLang.switchLanguage.bind(window.multiLang);
+      window.multiLang.switchLanguage = async function(language) {
+        await originalSwitchLanguage(language);
+        // グラフと統計情報を再描画
+        refreshChartOnLanguageChange();
+        // UIを更新
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try { window.multiLang.updateUI(); } catch (_) {}
+        }
+      };
+    }
+
     // ページ読み込み時に認証状態を確認し、スコアを反映（自動リダイレクトを無効化）
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         loadAIQuizScoresOnly(user.uid);
-        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
-          try { window.multiLang.updateUI(); } catch (_) {}
-        }
+        // 翻訳を適用（少し遅延させてDOMが完全に構築された後に実行）
+        setTimeout(() => {
+          if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+            try { window.multiLang.updateUI(); } catch (_) {}
+          }
+        }, 500);
       } else {
         // 未ログイン状態のメッセージを表示
         const scoresContainer = document.getElementById('scores-container');
