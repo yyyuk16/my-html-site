@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-translate="settings">設定</title>
+    <title data-translate="video_watching">動画視聴</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="maintab.css">
     <link rel="stylesheet" href="footer.css">
@@ -832,6 +832,47 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
         let currentLang = 'ja';
         let currentTopic = 'basic';
 
+        // Firebase認証状態を監視して、ユーザーの言語設定を取得
+        if (window.multiLang && window.multiLang.auth) {
+          window.multiLang.auth.onAuthStateChanged(async (user) => {
+            if (user && window.multiLang) {
+              // ユーザーの言語設定を取得
+              const userLanguage = await window.multiLang.getUserLanguage();
+              if (userLanguage && langSelect) {
+                // langSelectの値を更新
+                langSelect.value = userLanguage;
+                currentLang = userLanguage;
+                // 動画フィルターを更新
+                updateFilters();
+              }
+            } else if (!user && langSelect) {
+              // 未ログイン時はデフォルト言語
+              langSelect.value = 'ja';
+              currentLang = 'ja';
+              updateFilters();
+            }
+          });
+        }
+
+        // multiLangの言語変更を監視して、langSelectを同期
+        if (window.multiLang) {
+          // multiLangの初期化完了を待つ
+          const checkMultiLang = setInterval(() => {
+            if (window.multiLang && window.multiLang.currentLanguage) {
+              const lang = window.multiLang.currentLanguage;
+              if (langSelect && langSelect.value !== lang) {
+                langSelect.value = lang;
+                currentLang = lang;
+                updateFilters();
+              }
+              clearInterval(checkMultiLang);
+            }
+          }, 100);
+          
+          // 5秒後にタイムアウト
+          setTimeout(() => clearInterval(checkMultiLang), 5000);
+        }
+
         function updateFilters() {
           let visibleCount = 0;
           videoCards.forEach(function(card) {
@@ -853,8 +894,15 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
 
         // 言語選択（select要素）
         if (langSelect) {
-          langSelect.addEventListener('change', function() {
-            currentLang = this.value;
+          langSelect.addEventListener('change', async function() {
+            const selectedLang = this.value;
+            currentLang = selectedLang;
+            
+            // multiLangで言語を切り替え（Firebaseに保存される）
+            if (window.multiLang && typeof window.multiLang.switchLanguage === 'function') {
+              await window.multiLang.switchLanguage(selectedLang);
+            }
+            
             updateFilters();
           });
         }
@@ -930,7 +978,16 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
         }
 
         // 初期表示：現在の条件に合う動画だけを表示
-        updateFilters();
+        // multiLangの初期化を待ってから初期フィルターを適用
+        setTimeout(() => {
+          if (window.multiLang && window.multiLang.currentLanguage) {
+            currentLang = window.multiLang.currentLanguage;
+            if (langSelect) {
+              langSelect.value = currentLang;
+            }
+          }
+          updateFilters();
+        }, 300);
       });
     </script>
 
