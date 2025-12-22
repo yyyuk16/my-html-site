@@ -115,5 +115,17 @@
   "login": "ログインする",
   "logout": "ログアウト",
   "video_list": "動画一覧",
-  "back_to_video_list": "動画一覧に戻る"
+  "back_to_video_list": "動画一覧に戻る",
+  "name_placeholder": "お名前",
+  "male": "男性",
+  "female": "女性",
+  "other": "その他",
+  "years_old": "歳",
+  "email_placeholder": "メールアドレス",
+  "saving": "保存中...",
+  "update_success": "更新しました",
+  "save_failed": "保存に失敗しました: ",
+  "validation_number_range": "{label}は{min}～{max}の数値で入力してください",
+  "validation_email": "正しいメールアドレスを入力してください",
+  "validation_required": "{label}を入力してください"
 }

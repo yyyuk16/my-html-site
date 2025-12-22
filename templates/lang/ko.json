@@ -112,5 +112,20 @@
   "average_accuracy": "평균 정답률",
   "login_required": "로그인이 필요합니다",
   "login_required_message": "퀴즈 결과를 보려면 로그인해 주세요.",
-  "login": "로그인"
+  "login": "로그인",
+  "logout": "로그아웃",
+  "video_list": "동영상 목록",
+  "back_to_video_list": "← 동영상 목록으로 돌아가기",
+  "name_placeholder": "이름",
+  "male": "남성",
+  "female": "여성",
+  "other": "기타",
+  "years_old": "세",
+  "email_placeholder": "이메일 주소",
+  "saving": "저장 중...",
+  "update_success": "업데이트되었습니다",
+  "save_failed": "저장에 실패했습니다: ",
+  "validation_number_range": "{label}은(는) {min}에서 {max} 사이의 숫자로 입력해 주세요",
+  "validation_email": "올바른 이메일 주소를 입력해 주세요",
+  "validation_required": "{label}을(를) 입력해 주세요"
 }

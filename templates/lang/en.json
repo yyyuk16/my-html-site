@@ -115,5 +115,17 @@
   "login": "Log In",
   "logout": "Logout",
   "video_list": "Video List",
-  "back_to_video_list": "← Back to Video List"
+  "back_to_video_list": "← Back to Video List",
+  "name_placeholder": "Your Name",
+  "male": "Male",
+  "female": "Female",
+  "other": "Other",
+  "years_old": " years old",
+  "email_placeholder": "Email Address",
+  "saving": "Saving...",
+  "update_success": "Updated successfully",
+  "save_failed": "Failed to save: ",
+  "validation_number_range": "Please enter {label} as a number between {min} and {max}",
+  "validation_email": "Please enter a valid email address",
+  "validation_required": "Please enter {label}"
 }
