@@ -201,17 +201,19 @@
                         let label = '';
                         let icon = '';
                         let skip = false;
-                        switch(key){
-                            case 'name': label = getTranslation('name', '名前'); icon='<i class="fas fa-user"></i>'; break;
-                            case 'gender': label = getTranslation('gender', '性別'); icon='<i class="fas fa-venus-mars"></i>'; break;
-                            case 'age': label = getTranslation('age', '年齢'); icon='<i class="fas fa-birthday-cake"></i>'; break;
-                            case 'email': label = getTranslation('email', 'メール'); icon='<i class="fas fa-envelope"></i>'; break;
-                            case 'assignedDoctor':
-                                label = getTranslation('assigned_doctor', '担当医'); icon='<i class="fas fa-user-md"></i>';
-                                skip = false;
-                                break;
-                            default: skip = true; break;
+                        
+                        // editableFieldsから取得（翻訳済み）
+                        if (field) {
+                            label = field.label;
+                            icon = field.icon;
+                        } else if (key === 'assignedDoctor') {
+                            // 担当医はeditableFieldsに含まれていないので個別に処理
+                            label = getTranslation('assigned_doctor', '担当医');
+                            icon = '<i class="fas fa-user-md"></i>';
+                        } else {
+                            skip = true;
                         }
+                        
                         if (skip) continue;
 
                         // 担当医は編集不可
