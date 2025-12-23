@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
     ].join("\n");
 
     const url =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" +
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=" +
       encodeURIComponent(apiKey);
 
     const payload = {
