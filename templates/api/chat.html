@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="患者診療記録">患者診療記録</title>
+    <link rel="stylesheet" href="maintab.css">
+    <link rel="stylesheet" href="footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #f4f8fb;
+            font-family: 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif;
+            color: #222;
+            padding-top: 0;
+        }
+        
+        /* ヘッダーの固定 */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        /* フッターの固定 */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            margin-top: 0;
+        }
+
+        /* ===== レイアウト全体 ===== */
+        .flex-container {
+            display: flex;
+            gap: 28px;
+            padding: 100px 24px 120px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 80vh;
+        }
+
+        /* ===== サイドバー（患者リスト） ===== */
+        .patient-list-panel {
+            width: 300px;
+            min-width: 220px;
+            background: #fff;
+            border: 1px solid #e3e8ef;
+            border-radius: 16px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+            height: calc(100vh - 240px);
+            padding: 20px 16px 16px 16px;
+            display: flex;
+            flex-direction: column;
+        }
+        .patient-list-panel h2 {
+            font-size: 1.13rem;
+            margin: 0 0 16px;
+            color: #1976d2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .patient-list-panel .search-box {
+            position: relative;
+            margin: 8px 0 14px 0;
+        }
+        #patientSearch {
+            width: 100%;
+            box-sizing: border-box;
+            height: 36px;
+            padding: 6px 32px 6px 10px;
+            border: 1px solid #cfd8dc;
+            border-radius: 10px;
+            outline: none;
+            font-size: 0.9em;
+            background: #f1f5f9;
+            transition: border-color 0.2s, background-color .2s;
+        }
+        #patientSearch:focus {
+            border-color: #1976d2;
+            background: #fff;
+        }
+        .patient-list-panel .search-box i {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.9em;
+            pointer-events: none;
+        }
+        .chat-list {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 2px;
+            margin-top: 2px;
+        }
+        .chat-item {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.18s;
+            margin-bottom: 2px;
+        }
+        .chat-item:hover, .chat-item.active {
+            background: #e3f2fd;
+        }
+        .doctor-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e0f7fa 60%, #bbdefb 100%);
+            color: #1976d2;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            font-size: 1.1em;
+            box-shadow: 0 2px 8px rgba(33,150,243,0.07);
+        }
+        .doctor-name {
+            font-weight: 600;
+            color: #222b45;
+            font-size: 1em;
+        }
+
+        /* ===== チャットエリア ===== */
+        .chat-area {
+            flex: 1;
+            min-width: 0;
+            background: #fff;
+            border: 1px solid #e3e8ef;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(33,150,243,0.07);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 240px);
+            position: relative;
+            overflow: hidden; /* 内側(#chatMessages)にスクロールを閉じ込める */
+        }
+        #chatInterface {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+        }
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px 12px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            background: #f8fafc;
+            border-radius: 16px 16px 0 0;
+        }
+        #chatPatientName {
+            margin: 0;
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: #1976d2;
+            letter-spacing: 0.01em;
+        }
+        #patientInfo {
+            color: #607d8b;
+            font-size: 0.98em;
+        }
+
+        /* ===== チャットボックスの中スクロールできるように修正 ===== */
+        .chat-messages {
+            flex: 1 1 0%;
+            min-height: 0;
+            max-height: 100%;
+            padding: 18px 20px 18px 20px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #f8fafc 0%, #e3f2fd 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overscroll-behavior: contain; /* ページ全体にスクロールが伝播しないように */
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 70%;
+            margin: 10px 6px;
+            display: flex;
+        }
+        .message.sent {
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+        .message.received {
+            justify-content: flex-start;
+            margin-right: auto;
+        }
+        .message-content {
+            position: relative;
+            background: #fff;
+            border-radius: 16px;
+            padding: 8px 12px;
+            box-shadow: 0 2px 8px rgba(33,150,243,0.06);
+            border: 1px solid #e3e8ef;
+            min-width: 60px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+        }
+        .message.received .message-content {
+            border-radius: 16px 16px 16px 8px;
+        }
+        .message.sent .message-content {
+            background: #e3f2fd;
+            border-color: #90caf9;
+            border-radius: 16px 16px 8px 16px;
+        }
+        .message-content:after {
+            content: "";
+            position: absolute;
+            bottom: 10px;
+            width: 12px;
+            height: 12px;
+            transform: rotate(45deg);
+        }
+        .message.received .message-content:after {
+            left: -6px;
+            background: #fff;
+            border-left: 1px solid #e3e8ef;
+            border-bottom: 1px solid #e3e8ef;
+        }
+        .message.sent .message-content:after {
+            right: -6px;
+            background: #e3f2fd;
+            border-right: 1px solid #90caf9;
+            border-bottom: 1px solid #90caf9;
+        }
+        .message-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            color: #222b45;
+            font-size: 1.02em;
+            flex: 1 1 auto;
+        }
+        .message-time {
+            font-size: .72rem;
+            color: #90a4ae;
+            margin-top: 0;
+            margin-left: 6px;
+            text-align: right;
+            flex: 0 0 auto;
+        }
+        .message-sender {
+            font-size: .82rem;
+            font-weight: 600;
+            color: #1976d2;
+            margin: 0;
+            flex: 0 0 auto;
+        }
+        .message + .message.sent,
+        .message + .message.received {
+            margin-top: 14px;
+        }
+
+        /* ===== チャット入力 ===== */
+        .chat-input-container {
+            border-top: 1px solid #e3e8ef;
+            background: #f8fafc;
+            padding: 14px 18px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            position: sticky;
+            bottom: 0;
+            border-radius: 0 0 16px 16px;
+        }
+        #messageInput {
+            flex: 1;
+            height: 42px;
+            border: 1px solid #cfd8dc;
+            border-radius: 10px;
+            padding: 10px 14px;
+            outline: none;
+            font-size: 1em;
+            background: #fff;
+            box-shadow: inset 0 1px 2px rgba(33,150,243,0.04);
+            transition: border-color 0.2s;
+        }
+        #messageInput:focus {
+            border-color: #1976d2;
+        }
+        .chat-input-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .send-btn {
+            background: linear-gradient(90deg, #1976d2 60%, #42a5f5 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1em;
+            box-shadow: 0 2px 8px rgba(33,150,243,0.10);
+            transition: transform .07s, filter .15s;
+        }
+        .send-btn:active {
+            transform: translateY(1px);
+            filter: brightness(.97);
+        }
+        .send-btn[disabled] {
+            background: #b0b8c1;
+            cursor: not-allowed;
+        }
+        #newlineBtn {
+            background: #26c6da;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        #clearBtn {
+            background: #90a4ae;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        /* ===== ガイド表示 ===== */
+        #chatGuide {
+            color: #90a4ae;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+        #chatGuide p {
+            margin: 0;
+            font-size: 1.15em;
+            color: #607d8b;
+        }
+
+        /* ===== レスポンシブ ===== */
+        @media (max-width: 1100px) {
+            .flex-container {
+                gap: 12px;
+                padding: 100px 6px 120px 6px;
+            }
+            .patient-list-panel {
+                width: 210px;
+                min-width: 160px;
+                padding: 12px 6px 8px 6px;
+            }
+            .chat-area {
+                height: calc(100vh - 240px);
+            }
+        }
+        @media (max-width: 900px) {
+            .flex-container {
+                flex-direction: column;
+                gap: 18px;
+                padding: 90px 2vw 120px 2vw;
+            }
+            .patient-list-panel {
+                width: 100%;
+                min-width: 0;
+                height: auto;
+                margin-bottom: 8px;
+            }
+            .chat-area {
+                height: 60vh;
+                min-height: 340px;
+            }
+        }
+        @media (max-width: 600px) {
+            .flex-container {
+                padding: 90px 2vw 120px 2vw;
+            }
+            .chat-area {
+                border-radius: 0;
+                box-shadow: none;
+                height: 54vh;
+            }
+            .patient-list-panel {
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .chat-header, .chat-messages, .chat-input-container {
+                padding-left: 6px;
+                padding-right: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 💚 ヘッダー -->
+    <header class="top-bar">
+        <div class="header-inner">
+            <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3;">
+                <span data-translate="site_title">医療管理アプリ</span>
+            </div>
+            <nav>
+                <ul class="tab-menu">
+                    <li><a href="home.html">🏥 HOME</a></li>
+                    <li><a href="list.html">👥 患者診療記録</a></li>
+                    <li><a href="chat.html" class="active">📅 チャット</a></li>
+                    <li><a href="docterprofile.html">👤 プロフィール</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="flex-container" style="margin-top:32px;">
+        <!-- サイドバー：患者リスト -->
+        <aside class="patient-list-panel">
+            <h2><i class="fas fa-user-injured"></i> 担当患者一覧</h2>
+            <div class="search-box">
+                <input type="text" id="patientSearch" placeholder="患者を検索...">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="chat-list" id="chatList"></div>
+        </aside>
+
+        <!-- メイン：チャットエリア -->
+        <main class="chat-area" id="chatArea">
+            <!-- 案内 -->
+            <div id="chatGuide" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+                <i class="fas fa-comment-dots" style="font-size:3em;color:#2196F3;margin-bottom:18px;"></i>
+                <p style="font-size:1.15em;color:#555;text-align:center;">
+                    左の患者リストから<br>チャットしたい患者を選択してください。
+                </p>
+            </div>
+
+            <!-- チャット画面 -->
+            <div id="chatInterface" style="display:none;height:100%;flex-direction:column;">
+                <div class="chat-header">
+                    <h3 id="chatPatientName">患者名</h3>
+                    <div class="patient-info" id="patientInfo"></div>
+                </div>
+
+                <!-- チャットボックスの中をスクロールできるようにするため、flex:1, min-height:0, max-height:100%を適用 -->
+                <div class="chat-messages" id="chatMessages"></div>
+
+                <!-- AIクイズ結果 -->
+                <div class="quiz-results-section" id="quizResultsSection" style="display:none;">
+                    <h4><i class="fas fa-brain"></i> AIクイズ結果</h4>
+                    <div id="quizResults" class="quiz-results"></div>
+                </div>
+
+                <!-- 入力 -->
+                <div class="chat-input-container">
+                    <input id="messageInput" type="text" placeholder="メッセージを入力..." />
+                    <button id="sendBtn" class="send-btn">
+                        <i class="fas fa-paper-plane"></i> 送信
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" data-translate="terms">利用規約</a>
+                    <a href="#" data-translate="privacy">プライバシーポリシー</a>
+                </div>
+                <div class="footer-copyright">
+                    <small>&copy; <span data-translate="copyright_name">スマート医療ポータル</span></small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK (v9 compat のみ使用) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    
+    <!-- 多言語対応 -->
+    <script src="multilang.js"></script>
+
+    <script>
+        // ================= Firebase 初期化 =================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+            authDomain: "web01-2484d.firebaseapp.com",
+            projectId: "web01-2484d",
+            storageBucket: "web01-2484d.appspot.com",
+            messagingSenderId: "90159472898",
+            appId: "1:90159472898:web:261ec71f9919611011e21b"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        let userLanguage = 'ja';
+
+        const chatListDiv = document.getElementById('chatList');
+
+        // ================= ユーザーログインチェック =================
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) {
+                alert('ログインしてください');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            if (!userDoc.exists || userDoc.data().role !== 'staff') {
+                alert('医療者以外はアクセスできません');
+                window.location.href = 'patient_home.html';
+                return;
+            }
+            // 医師側は常に日本語へ翻訳
+            userLanguage = 'ja';
+
+            // 担当患者取得
+            const patientsSnapshot = await db.collection('users')
+                .where('role', '==', 'patient')
+                .where('assignedDoctor', '==', user.uid)
+                .get();
+
+            if (patientsSnapshot.empty) {
+                chatListDiv.innerHTML = '<p style="color:#888;text-align:center;">担当患者がいません</p>';
+                return;
+            }
+
+            patientsSnapshot.forEach(doc => {
+                const patient = doc.data();
+                const chatItem = document.createElement('div');
+                chatItem.className = 'chat-item';
+                chatItem.innerHTML = `
+                    <div class="doctor-avatar">${patient.name ? patient.name[0] : '?'}</div>
+                    <div class="chat-info">
+                        <div class="doctor-name">${patient.name || '名無し'}</div>
+                    </div>`;
+                chatItem.onclick = () => openChat(doc.id, patient.name);
+                chatListDiv.appendChild(chatItem);
+            });
+        });
+
+        // ================= 患者選択 =================
+        function openChat(patientId, patientName) {
+            document.getElementById('chatGuide').style.display = 'none';
+            document.getElementById('chatInterface').style.display = 'flex';
+
+            document.getElementById('chatPatientName').textContent = patientName;
+            document.getElementById('patientInfo').innerHTML =
+                `<span style="color:#666;font-size:0.9em;"><i class="fas fa-user"></i> ID: ${patientId}</span>`;
+
+            loadChatHistory(patientId);
+            setupChatInput(patientId);
+            setupRealtimeChat(patientId);
+            // スクロール位置監視（手動スクロール中は自動で最下部へ飛ばさない）
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages) {
+                window.__chatUserAtBottom = true;
+                chatMessages.addEventListener('scroll', () => {
+                    const nearBottom = (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight) < 24;
+                    window.__chatUserAtBottom = nearBottom;
+                });
+            }
+        }
+
+        // ================= チャット履歴 =================
+        async function loadChatHistory(patientId) {
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+            chatMessages.innerHTML = '読み込み中...';
+
+            const currentUser = firebase.auth().currentUser;
+            if (!currentUser) return;
+            
+            const chatRoomId = [currentUser.uid, patientId].sort().join('_');
+            const snapshot = await db.collection('chats').doc(chatRoomId).collection('messages')
+                .orderBy('timestamp', 'asc').get();
+
+            chatMessages.innerHTML = '';
+            if (snapshot.empty) {
+                chatMessages.innerHTML = '<p style="color:#888;text-align:center;">メッセージなし</p>';
+                return;
+            }
+            snapshot.forEach(doc => displayMessage(doc.data(), currentUser.uid));
+            // 初期表示時は最下部へ
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            window.__chatUserAtBottom = true;
+        }
+
+        function displayMessage(message, currentUserId) {
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+
+            const div = document.createElement('div');
+            div.className = `message ${message.senderId === currentUserId ? 'sent' : 'received'}`;
+            // Firestore Timestamp 互換（toMillis or seconds 両対応）
+            const ts = message.timestamp;
+            const dateObj = ts?.toMillis ? new Date(ts.toMillis())
+                          : (typeof ts?.seconds === 'number' ? new Date(ts.seconds * 1000)
+                          : (typeof message.clientTimeMs === 'number' ? new Date(message.clientTimeMs) : null));
+            const time = dateObj
+                ? dateObj.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })
+                : '--:--';
+            
+            const messageTextDiv = document.createElement('div');
+            messageTextDiv.className = 'message-text';
+            messageTextDiv.textContent = escapeHTML(message.text || ''); // 初期は原文
+
+            div.innerHTML = `<div class="message-content">
+                ${messageTextDiv.outerHTML}
+                <div class="message-time">${time}</div>
+            </div>`;
+            chatMessages.appendChild(div);
+
+            // 受信メッセージのみ翻訳（医師側は常に日本語）
+            if (message.senderId !== currentUserId) {
+                const textEl = div.querySelector('.message-text');
+                textEl.textContent = '...'; // 翻訳中表示
+                translateTextOpenAI(message.text || '', 'ja').then(translatedText => {
+                    if (textEl) textEl.textContent = translatedText || (message.text || '');
+                }).catch(e => {
+                    console.error("Translation failed:", e);
+                    if (textEl) textEl.textContent = escapeHTML(message.text || ''); // 失敗時は原文に戻す
+                });
+            }
+
+            // 近くにいる時だけ最下部へ自動スクロール
+            if (window.__chatUserAtBottom !== false) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        const TRANSLATE_ENDPOINT = (location.protocol === 'file:')
+            ? 'https://my-html-site-git-main-yyyuk16s-projects.vercel.app/api/translate'
+            : '/api/translate';
+
+        async function translateTextOpenAI(text, targetLang) {
+            if (!text) return '';
+            try {
+                const res = await fetch(TRANSLATE_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, targetLang })
+                });
+                if (!res.ok) return '';
+                const data = await res.json();
+                return (data.translated || '').trim();
+            } catch (e) {
+                console.error('translate error', e);
+                return '';
+            }
+        }
+
+        function escapeHTML(str) {
+            return str ? str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) : '';
+        }
+
+        // ================= 入力と送信 =================
+        function setupChatInput(patientId) {
+            const input = document.getElementById('messageInput');
+            const btn = document.getElementById('sendBtn');
+            if (!input || !btn) return;
+
+            btn.onclick = () => sendMessage(patientId);
+            input.onkeypress = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage(patientId);
+                }
+            };
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage(patientId);
+                }
+            });
+        }
+
+        async function sendMessage(patientId) {
+            const input = document.getElementById('messageInput');
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+
+            const currentUser = firebase.auth().currentUser;
+            if (!currentUser) return;
+            
+            const chatRoomId = [currentUser.uid, patientId].sort().join('_');
+            const msg = {
+                text,
+                senderId: currentUser.uid,
+                senderName: currentUser.displayName || '医師',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                clientTimeMs: Date.now()
+            };
+            await db.collection('chats').doc(chatRoomId).collection('messages').add(msg);
+            input.value = '';
+        }
+
+
+        // ================= リアルタイム =================
+        function setupRealtimeChat(patientId) {
+            const currentUser = firebase.auth().currentUser;
+            if (!currentUser) return;
+            
+            const chatRoomId = [currentUser.uid, patientId].sort().join('_');
+
+            if (window.chatListener) window.chatListener();
+            window.chatListener = db.collection('chats').doc(chatRoomId).collection('messages')
+                .orderBy('timestamp','asc')
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const msg = change.doc.data();
+                            // 重複チェック: 既に表示されているメッセージかチェック
+                            const chatMessages = document.getElementById('chatMessages');
+                            if (chatMessages) {
+                                const existingMessages = chatMessages.querySelectorAll('.message');
+                                let isDuplicate = false;
+                                existingMessages.forEach(existingMsg => {
+                                    const existingText = existingMsg.querySelector('.message-text')?.textContent;
+                                    const existingTime = existingMsg.querySelector('.message-time')?.textContent;
+                                    if (existingText === (msg.text || '') && existingTime === (msg.timestamp ? new Date(msg.timestamp.toMillis ? msg.timestamp.toMillis() : msg.timestamp.seconds * 1000).toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' }) : '--:--')) {
+                                        isDuplicate = true;
+                                    }
+                                });
+                                if (!isDuplicate) {
+                                    displayMessage(msg, currentUser.uid);
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+        
+        // 翻訳を適用
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                try { window.multiLang.updateUI(); } catch (_) {}
+            }
+        });
+    </script>
+</body>
+</html>
