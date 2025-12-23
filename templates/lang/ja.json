@@ -6,6 +6,8 @@
   "realtime": "リアルタイム",
   "realtime_desc": "先生と会話ができます",
   "quiz_results": "クイズ結果",
+  "quiz": "Q&A",
+  "chat": "チャット",
   "quiz_progress": "クイズ成績推移",
   "start_quiz": "クイズを開始する",
   "learning_progress": "学習進捗",

@@ -7,6 +7,8 @@
   "realtime_desc": "与医生对话",
   "quiz_results": "测验结果",
   "quiz_progress": "测验进度",
+  "quiz": "问答",
+  "chat": "聊天",
   "start_quiz": "开始测验",
   "learning_progress": "学习进度",
   "learning_days": "学习天数",
