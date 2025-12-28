@@ -1,4 +1,4 @@
-// /api/chat.js (Vercel)
+// /api/chat.js (Vercel) - OpenAI API使用
 
 module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -11,75 +11,88 @@ module.exports = async (req, res) => {
     const url = require("url");
     const q = url.parse(req.url, true).query || {};
     if (q.diag === "1") {
-      const hasKey = !!process.env.GEMINI_API_KEY;
+      const hasKey = !!process.env.OPENAI_API_KEY;
       return res.status(200).json({
         ok: true,
         diag: {
-          hasGeminiKey: hasKey,
+          hasOpenAIKey: hasKey,
           runtime: process.version,
         },
       });
     }
-    return res.status(200).json({ ok: true, message: "Gemini endpoint ready" });
+    return res.status(200).json({ ok: true, message: "OpenAI endpoint ready" });
   }
 
   if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
-    const { message } = req.body || {};
-    const msg = String(message || "").trim();
-    if (!msg) return res.status(400).json({ error: "message is required" });
+    let body = req.body;
+    if (typeof body === 'string') { try { body = JSON.parse(body); } catch {} }
+    const userMessage = body?.message ?? '';
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
+    if (!userMessage || typeof userMessage !== 'string' || !userMessage.trim()) {
+      return res.status(400).json({ ok: false, error: "message is required" });
+    }
 
-    const system = [
-      "あなたは学校の保健室の先生のように、やさしく丁寧に話すAIです。",
-      "医療診断はせず、安心につながる一般的な情報と受診の目安を伝えます。",
-      "日本語で100〜200字くらいを目安に簡潔に答えます。"
-    ].join("\n");
-
-    const url =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=" +
-      encodeURIComponent(apiKey);
-
-    const payload = {
-      contents: [
-        { role: "user", parts: [{ text: system + "\n\nユーザー: " + msg }] }
-      ],
-      generationConfig: { temperature: 0.6, maxOutputTokens: 256 }
-    };
-
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const raw = await r.text();
-
-    // ★ここが重要：Geminiが返したエラー本文をそのまま返す
-    if (!r.ok) {
-      let parsed = null;
-      try { parsed = JSON.parse(raw); } catch {}
-
-      const err = parsed?.error || {};
-      return res.status(r.status).json({
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({
         ok: false,
-        status: r.status,
-        error: {
-          message: err.message || raw,
-          type: err.status,
-          code: err.code
-        }
+        error: 'OPENAI_API_KEY is missing on server. Set it in Vercel (Production) and Redeploy.'
       });
     }
 
-    const data = JSON.parse(raw);
-    const out = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("")?.trim() || "";
+    const payload = {
+      model: 'gpt-4o-mini',
+      messages: [
+        { 
+          role: 'system', 
+          content: 'You are a kind medical assistant. LANGUAGE DETECTION IS CRITICAL.\n\nMANDATORY LANGUAGE RULES:\n1. Detect the language of the user\'s message\n2. Respond in the EXACT same language\n3. If user writes "Hello" → Respond in English\n4. If user writes "こんにちは" → Respond in Japanese\n5. If user writes "你好" → Respond in Chinese\n6. If user writes "안녕하세요" → Respond in Korean\n\nNEVER translate or change languages. Match exactly.\nKeep responses under 100 characters.\n\nMedical restrictions:\n- No diagnosis\n- No medication advice\n- No treatment advice\n- Only general health information' 
+        },
+        { role: 'user', content: userMessage }
+      ],
+      temperature: 0.7
+    };
 
-    return res.status(200).json({ ok: true, reply: out || "うまく生成できませんでした。別の聞き方で試してね。" });
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!r.ok) {
+      const detail = await r.text().catch(() => '');
+      if (r.status === 401) {
+        return res.status(401).json({
+          ok: false,
+          error: 'OpenAI auth failed (401). Check OPENAI_API_KEY and Redeploy.',
+          detail
+        });
+      }
+      if (r.status === 429) {
+        return res.status(429).json({
+          ok: false,
+          error: 'リクエストが多すぎます。しばらく待ってから再度お試しください。',
+          detail: 'Rate limit exceeded. Please wait a moment before trying again.'
+        });
+      }
+      let errorMsg = 'OpenAI API error';
+      try {
+        const errorData = JSON.parse(detail);
+        if (errorData.error && errorData.error.message) {
+          errorMsg = errorData.error.message;
+        }
+      } catch {}
+      return res.status(r.status).json({ ok: false, error: errorMsg, detail });
+    }
+
+    const data = await r.json();
+    const reply = (data.choices && data.choices[0]?.message?.content) || '';
+    return res.status(200).json({ ok: true, reply: reply || "うまく応答できませんでした。別の聞き方で試してね。" });
   } catch (e) {
-    return res.status(500).json({ error: "Server error", detail: String(e?.message || e) });
+    return res.status(500).json({ ok: false, error: "Server error", detail: String(e?.message || e) });
   }
 };
