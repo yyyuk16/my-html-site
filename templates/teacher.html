@@ -32,7 +32,39 @@
   </div>
 
   <script>
-    const OPENAI_ENDPOINT = "/api/chat"; // 同一ドメインのVercel関数を叩く
+    // OpenAI API設定
+    const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+    const OPENAI_MODEL = "gpt-4o-mini";
+    const OPENAI_SYSTEM_PROMPT = `You are a kind medical assistant. LANGUAGE DETECTION IS CRITICAL.
+
+MANDATORY LANGUAGE RULES:
+1. Detect the language of the user's message
+2. Respond in the EXACT same language
+3. If user writes "Hello" → Respond in English
+4. If user writes "こんにちは" → Respond in Japanese
+5. If user writes "你好" → Respond in Chinese
+6. If user writes "안녕하세요" → Respond in Korean
+
+NEVER translate or change languages. Match exactly.
+Keep responses under 100 characters.
+
+Medical restrictions:
+- No diagnosis
+- No medication advice
+- No treatment advice
+- Only general health information`;
+
+    // APIキーをローカルストレージから取得、なければ入力してもらう
+    function getApiKey() {
+      let apiKey = localStorage.getItem('openai_api_key');
+      if (!apiKey) {
+        apiKey = prompt('OpenAI APIキーを入力してください:');
+        if (apiKey) {
+          localStorage.setItem('openai_api_key', apiKey);
+        }
+      }
+      return apiKey;
+    }
 
     const chatContainer = document.getElementById("chatContainer");
     const userInput = document.getElementById("userInput");
@@ -153,10 +185,29 @@
       setSendingState(true);
 
       try{
-        const r = await fetch(OPENAI_ENDPOINT, {
+        const apiKey = getApiKey();
+        if (!apiKey) {
+          stopLoading(id);
+          appendMessage('ai', t('api_key_required', 'APIキーが必要です。ページを再読み込みしてください。'));
+          setSendingState(false);
+          return;
+        }
+
+        // OpenAI APIを直接呼び出す
+        const r = await fetch(OPENAI_API_URL, {
           method: "POST",
-          headers: { "Content-Type":"application/json" },
-          body: JSON.stringify({ message: msg })
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: OPENAI_MODEL,
+            messages: [
+              { role: "system", content: OPENAI_SYSTEM_PROMPT },
+              { role: "user", content: msg }
+            ],
+            temperature: 0.7
+          })
         });
 
         let data = null;
@@ -165,14 +216,20 @@
         stopLoading(id);
 
         if(!r.ok){
+          // 401エラー（認証失敗）の場合、APIキーを削除して再入力してもらう
+          if(r.status === 401){
+            localStorage.removeItem('openai_api_key');
+            appendMessage('ai', t('api_key_invalid', 'APIキーが無効です。ページを再読み込みして、正しいAPIキーを入力してください。'));
+          } 
           // 429はクールダウン（3秒）してから再送可能にする
-          if(r.status === 429){
+          else if(r.status === 429){
             cooldownUntil = Date.now() + 3000;
             appendMessage('ai', t('rate_limited', '混み合っています。3秒ほど待ってからもう一度送ってください。'));
           } else {
             const errMsg =
-              (data && typeof data.error === 'string' && data.error) ||
-              (data && data.error && (data.error.message || data.error.error)) ||
+              (data && data.error && typeof data.error === 'string' && data.error) ||
+              (data && data.error && data.error.message) ||
+              (data && data.error && data.error.error) ||
               (data && data.detail) ||
               `通信エラー (${r.status})`;
             appendMessage('ai', t('ai_sorry', '申し訳ありません。') + errMsg);
@@ -181,7 +238,7 @@
           return;
         }
 
-        const aiReply = data?.reply ?? t('ai_error', "うまく応答できませんでした。");
+        const aiReply = (data?.choices?.[0]?.message?.content) ?? t('ai_error', "うまく応答できませんでした。");
         appendMessage('ai', aiReply);
         setSendingState(false);
 
