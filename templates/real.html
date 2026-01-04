@@ -8,18 +8,18 @@
   <link rel="stylesheet" href="chat.css">
     
   <style>
-    /* 左右で配置を分ける簡易スタイル */
-    .chat-messages { padding: 12px; overflow-y: auto; height: 60vh; background: #f8fafc; }
-    /* 既存chat.cssの.messageスタイルを打ち消し */
-    .message { max-width: 78%; margin: 8px 6px; display: flex; background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
-    .message.self { justify-content: flex-end; margin-left: auto; }
-    .bubble { position: relative; background: #fff; border: 1px solid #e3e8ef; border-radius: 14px 14px 14px 8px; padding: 8px 12px; display: inline-flex; gap: 8px; align-items: center; }
-    .message.self .bubble { background: #e3f2fd; border-color: #90caf9; border-radius: 14px 14px 8px 14px; }
-    .bubble:after { content: ""; position: absolute; bottom: 8px; width: 10px; height: 10px; transform: rotate(45deg); background: #fff; border-left: 1px solid #e3e8ef; border-bottom: 1px solid #e3e8ef; left: -5px; }
-    .message.self .bubble:after { right: -5px; left: auto; background: #e3f2fd; border-left: none; border-bottom: 1px solid #90caf9; border-right: 1px solid #90caf9; }
-    .msg-text { white-space: pre-wrap; color: #222b45; transition: opacity 0.3s ease; }
-    .msg-time { font-size: .75rem; color: #90a4ae; }
-    .msg-text[style*="opacity: 0.6"] { font-style: italic; }
+    /* メッセージバブルのレイアウト調整 */
+    .bubble {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    
+    .msg-text[style*="opacity: 0.6"] {
+      font-style: italic;
+      opacity: 0.6;
+    }
   </style>
     
   <!-- Firebase SDK (compat) -->
@@ -35,15 +35,18 @@
 <body>
   <div class="chat-container">
     <div class="chat-header">
-      <h2 data-translate="realtime_chat">リアルタイムチャット（患者用）</h2>
       <div id="assignedDoctorContainer">
-        <span data-translate="assigned_doctor">担当医師</span>: <span id="assignedDoctorName">読み込み中...</span>
+        <span data-translate="assigned_doctor" class="doctor-label">担当医師</span>
+        <span id="assignedDoctorName" class="doctor-name">読み込み中...</span>
       </div>
     </div>
 
     <div id="chat" class="chat-messages"></div>
 
     <div class="input-container">
+      <button id="voiceBtn" title="音声入力">
+        <img src="8549.png" alt="音声入力" id="voiceIcon" />
+      </button>
       <input type="text" id="messageInput" placeholder="メッセージを入力" autocomplete="off" data-translate="message_input" />
       <button id="sendBtn" data-translate="send">送信</button>
       <button onclick="window.location.href='ai.html'" class="back-btn" data-translate="back">戻る</button>
@@ -71,6 +74,7 @@
     const chatDiv = document.getElementById('chat');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
+    const voiceBtn = document.getElementById('voiceBtn');
     const assignedDoctorNameElem = document.getElementById('assignedDoctorName');
 
     function appendMessageBubble(text, isSelf, timestamp, messageId) {
@@ -248,6 +252,110 @@
         sendBtn.click();
       }
     });
+
+    // ===== 音声入力機能 =====
+    let recognition = null;
+    let isListening = false;
+
+    // SpeechRecognition APIの初期化
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        voiceBtn.style.display = 'none';
+        console.warn('音声認識APIがサポートされていません');
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ja-JP';
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        isListening = true;
+        voiceBtn.classList.add('active');
+        const voiceIcon = document.getElementById('voiceIcon');
+        if (voiceIcon) {
+          voiceIcon.style.opacity = '0.6';
+        }
+      };
+
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        if (finalTranscript) {
+          messageInput.value = (messageInput.value + ' ' + finalTranscript).trim();
+        } else if (interimTranscript) {
+          const currentValue = messageInput.value.trim();
+          messageInput.value = currentValue ? currentValue + ' ' + interimTranscript : interimTranscript;
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('音声認識エラー:', event.error);
+        if (event.error === 'no-speech') {
+          // 音声が検出されなかった場合は自動的に再開しない
+        } else if (event.error === 'not-allowed') {
+          alert('マイクの使用が許可されていません。ブラウザの設定を確認してください。');
+        }
+        stopListening();
+      };
+
+      recognition.onend = () => {
+        stopListening();
+      };
+    }
+
+    function startListening() {
+      if (!recognition) {
+        initSpeechRecognition();
+      }
+      if (recognition && !isListening) {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error('音声認識の開始に失敗:', e);
+          stopListening();
+        }
+      }
+    }
+
+    function stopListening() {
+      if (recognition && isListening) {
+        try {
+          recognition.stop();
+        } catch (e) {
+          console.error('音声認識の停止に失敗:', e);
+        }
+      }
+      isListening = false;
+      voiceBtn.classList.remove('active');
+      const voiceIcon = document.getElementById('voiceIcon');
+      if (voiceIcon) {
+        voiceIcon.style.opacity = '1';
+      }
+    }
+
+    voiceBtn.addEventListener('click', () => {
+      if (isListening) {
+        stopListening();
+      } else {
+        startListening();
+      }
+    });
+
+    // ページ読み込み時に初期化
+    initSpeechRecognition();
 
     firebase.auth().onAuthStateChanged(async (user) => {
       if (!user) {
