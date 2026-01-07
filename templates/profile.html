@@ -77,6 +77,7 @@
             let currentUser = null;
             let currentData = {};
             let isEditing = false;
+            let doctorList = []; // 医師リストを保持
 
             function setLoading(message){
                 listDiv.innerHTML = `<div class='profile-row'><div class='profile-label'><i class="fas fa-circle-notch fa-spin"></i><span>読み込み中</span></div><span class='profile-value'>${message||''}</span></div>`;
@@ -91,6 +92,51 @@
                     return window.multiLang.translations[window.multiLang.currentLanguage]?.[key] || fallback;
                 }
                 return fallback;
+            }
+
+            // 医師リストを取得してセレクトボックスに追加
+            async function loadDoctorsForSelect(selectedUid = '') {
+                const select = document.getElementById('editInput_assignedDoctor');
+                if (!select) return;
+
+                try {
+                    const db = firebase.firestore();
+                    // role が 'staff' または 'doct' のユーザーを取得
+                    const snapshot1 = await db.collection('users').where('role', '==', 'staff').get();
+                    const snapshot2 = await db.collection('users').where('role', '==', 'doct').get();
+                    
+                    doctorList = [];
+                    snapshot1.forEach(doc => {
+                        const data = doc.data();
+                        doctorList.push({
+                            uid: doc.id,
+                            name: data.name || data.displayName || data.userName || data.email || '医師'
+                        });
+                    });
+                    snapshot2.forEach(doc => {
+                        const data = doc.data();
+                        // 重複チェック
+                        if (!doctorList.find(d => d.uid === doc.id)) {
+                            doctorList.push({
+                                uid: doc.id,
+                                name: data.name || data.displayName || data.userName || data.email || '医師'
+                            });
+                        }
+                    });
+
+                    // セレクトボックスに追加
+                    doctorList.forEach(doctor => {
+                        const option = document.createElement('option');
+                        option.value = doctor.uid;
+                        option.textContent = doctor.name;
+                        if (doctor.uid === selectedUid) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('医師リストの取得に失敗しました:', error);
+                }
             }
 
             // 編集可能なフィールド（翻訳対応）
@@ -179,7 +225,7 @@
                                 } else {
                                     value = '-';
                                 }
-                                isEditable = false; // 担当医は編集不可
+                                isEditable = true; // 担当医は編集可能
                                 break;
                             default: skip = true; break;
                         }
@@ -233,15 +279,21 @@
                         
                         if (skip) continue;
 
-                        // 担当医は編集不可
+                        // 担当医は特別な処理（動的に医師リストを取得）
                         if (key === 'assignedDoctor') {
-                            let doctorName = data['assignedDoctorName'] || '-';
+                            const currentDoctorUid = data['assignedDoctor'] || data['assignedDoctorUid'] || '';
                             form.innerHTML += `
                                 <div class='profile-row'>
                                     <div class='profile-label'>${icon}<span>${label}</span></div>
-                                    <span class='profile-value'>${doctorName}</span>
+                                    <span class='profile-value'>
+                                        <select class="profile-edit-input" name="assignedDoctor" id="editInput_assignedDoctor" style="width: 200px;">
+                                            <option value="">${getTranslation('no_doctor', '担当医なし')}</option>
+                                        </select>
+                                    </span>
                                 </div>
                             `;
+                            // 医師リストを読み込んでセレクトボックスに追加
+                            loadDoctorsForSelect(currentDoctorUid);
                             continue;
                         }
 
@@ -296,6 +348,27 @@
                         e.preventDefault();
                         let updateObj = {};
                         let newEmail = null;
+                        
+                        // 担当医の処理（editableFieldsに含まれていないため個別処理）
+                        const assignedDoctorInput = form.querySelector('[name="assignedDoctor"]');
+                        if (assignedDoctorInput) {
+                            const selectedDoctorUid = assignedDoctorInput.value;
+                            if (selectedDoctorUid) {
+                                updateObj.assignedDoctor = selectedDoctorUid;
+                                updateObj.assignedDoctorUid = selectedDoctorUid;
+                                // 担当医の名前も取得して保存
+                                const selectedDoctor = doctorList.find(d => d.uid === selectedDoctorUid);
+                                if (selectedDoctor) {
+                                    updateObj.assignedDoctorName = selectedDoctor.name;
+                                }
+                            } else {
+                                // 担当医を解除
+                                updateObj.assignedDoctor = null;
+                                updateObj.assignedDoctorUid = null;
+                                updateObj.assignedDoctorName = null;
+                            }
+                        }
+                        
                         for (const key of Object.keys(editableFields)) {
                             let field = editableFields[key];
                             let input = form.querySelector(`[name="${key}"]`);
@@ -332,8 +405,25 @@
                             if (newEmail && newEmail !== currentUser.email) {
                                 await currentUser.updateEmail(newEmail);
                             }
-                            // 上書き保存（merge: false で完全上書き、merge: true で部分上書き）
-                            await db.collection('users').doc(currentUser.uid).set(updateObj, { merge: false });
+                            // 部分更新（merge: true で既存データを保持）
+                            await db.collection('users').doc(currentUser.uid).update(updateObj);
+                            
+                            // 担当医の名前を再取得（必要に応じて）
+                            if (updateObj.assignedDoctor || updateObj.assignedDoctorUid) {
+                                const doctorUid = updateObj.assignedDoctor || updateObj.assignedDoctorUid;
+                                if (doctorUid) {
+                                    try {
+                                        const doctorDoc = await db.collection('users').doc(doctorUid).get();
+                                        if (doctorDoc.exists) {
+                                            const doctorData = doctorDoc.data();
+                                            updateObj.assignedDoctorName = doctorData.name || doctorData.displayName || doctorData.userName || '';
+                                        }
+                                    } catch (e) {
+                                        console.error('担当医の名前取得に失敗:', e);
+                                    }
+                                }
+                            }
+                            
                             // 画面上のcurrentDataも更新
                             Object.assign(currentData, updateObj);
                             isEditing = false;
