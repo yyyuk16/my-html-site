@@ -154,7 +154,19 @@
       try {
         const docSnap = await db.collection('users').doc(uid).get();
         const data = docSnap.exists ? docSnap.data() : null;
-        assignedDoctorNameElem.textContent = data?.displayName || data?.userName || data?.name || '担当医師';
+        const rawName = data?.displayName || data?.userName || data?.name || '担当医師';
+
+        // ユーザーの言語に合わせて担当医の名前も翻訳（必要な場合のみ）
+        if (userLanguage && userLanguage !== 'ja') {
+          try {
+            const translatedName = await translateTextOpenAI(rawName, userLanguage);
+            assignedDoctorNameElem.textContent = translatedName || rawName;
+          } catch (e) {
+            assignedDoctorNameElem.textContent = rawName;
+          }
+        } else {
+          assignedDoctorNameElem.textContent = rawName;
+        }
       } catch (e) {
         assignedDoctorNameElem.textContent = '情報取得エラー';
       }
