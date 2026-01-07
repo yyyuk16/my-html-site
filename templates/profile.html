@@ -125,12 +125,19 @@
                         icon: '<i class="fas fa-envelope"></i>',
                         type: 'email',
                         placeholder: getTranslation('email_placeholder', 'メールアドレス')
+                    },
+                    language: {
+                        label: getTranslation('language', '表示言語'),
+                        icon: '<i class="fas fa-language"></i>',
+                        type: 'select',
+                        // Firestore には言語コード（ja/en/zh/ko）を保存
+                        options: ['ja', 'en', 'zh', 'ko']
                     }
                 };
             }
 
             // 表示順
-            const order = ['name','gender','age','email','assignedDoctor'];
+            const order = ['name','gender','age','language','email','assignedDoctor'];
 
             function renderProfile(data, editing = false) {
                 listDiv.innerHTML = '';
@@ -155,6 +162,16 @@
                             case 'gender': label = getTranslation('gender', '性別'); icon='<i class="fas fa-venus-mars"></i>'; break;
                             case 'age': label = getTranslation('age', '年齢'); value = value ? value + getTranslation('years_old', '歳') : ''; icon='<i class="fas fa-birthday-cake"></i>'; break;
                             case 'email': label = getTranslation('email', 'メール'); icon='<i class="fas fa-envelope"></i>'; break;
+                            case 'language':
+                                label = getTranslation('language', '表示言語'); icon = '<i class="fas fa-language"></i>';
+                                const langLabels = {
+                                    ja: getTranslation('lang_ja', '日本語'),
+                                    en: getTranslation('lang_en', 'English'),
+                                    zh: getTranslation('lang_zh', '中文'),
+                                    ko: getTranslation('lang_ko', '한국語')
+                                };
+                                value = langLabels[value] || value || '';
+                                break;
                             case 'assignedDoctor':
                                 label = getTranslation('assigned_doctor', '担当医'); icon='<i class="fas fa-user-md"></i>';
                                 if (value) {
@@ -231,8 +248,23 @@
                         let inputHtml = '';
                         if (field) {
                             if (field.type === 'select') {
+                                // セレクトボックス（性別・言語など）
                                 inputHtml = `<select class="profile-edit-input" name="${key}" id="editInput_${key}">
-                                    ${field.options.map(opt => `<option value="${opt}"${(value===opt)?' selected':''}>${opt}</option>`).join('')}
+                                    ${field.options.map(opt => {
+                                        const optValue = opt;
+                                        let optLabel = opt;
+                                        if (key === 'language') {
+                                            const langLabels = {
+                                                ja: getTranslation('lang_ja', '日本語'),
+                                                en: getTranslation('lang_en', 'English'),
+                                                zh: getTranslation('lang_zh', '中文'),
+                                                ko: getTranslation('lang_ko', '한국語')
+                                            };
+                                            optLabel = langLabels[opt] || opt;
+                                        }
+                                        const selected = (value === optValue) ? ' selected' : '';
+                                        return `<option value="${optValue}"${selected}>${optLabel}</option>`;
+                                    }).join('')}
                                 </select>`;
                             } else {
                                 inputHtml = `<input class="profile-edit-input" name="${key}" id="editInput_${key}" type="${field.type}" value="${value!==undefined?value:''}" 
@@ -306,6 +338,13 @@
                             Object.assign(currentData, updateObj);
                             isEditing = false;
                             alert(getTranslation('update_success', '更新しました'));
+                            // 言語変更があれば即時反映
+                            if (updateObj.language && window.multiLang && typeof window.multiLang.switchLanguage === 'function') {
+                                try {
+                                    window.multiLang.switchLanguage(updateObj.language);
+                                    document.documentElement.lang = updateObj.language;
+                                } catch (_) {}
+                            }
                             renderProfile(currentData, false);
                         } catch (e) {
                             alert(getTranslation('save_failed', '保存に失敗しました: ') + e.message);
