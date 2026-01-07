@@ -97,17 +97,28 @@
             // 医師リストを取得してセレクトボックスに追加
             async function loadDoctorsForSelect(selectedUid = '') {
                 const select = document.getElementById('editInput_assignedDoctor');
-                if (!select) return;
+                if (!select) {
+                    console.error('担当医のセレクトボックスが見つかりません');
+                    return;
+                }
 
                 try {
                     const db = firebase.firestore();
+                    console.log('医師リストを取得中...');
+                    
                     // role が 'staff' または 'doct' のユーザーを取得
-                    const snapshot1 = await db.collection('users').where('role', '==', 'staff').get();
-                    const snapshot2 = await db.collection('users').where('role', '==', 'doct').get();
+                    const [snapshot1, snapshot2] = await Promise.all([
+                        db.collection('users').where('role', '==', 'staff').get(),
+                        db.collection('users').where('role', '==', 'doct').get()
+                    ]);
+                    
+                    console.log('staff:', snapshot1.size, '件');
+                    console.log('doct:', snapshot2.size, '件');
                     
                     doctorList = [];
                     snapshot1.forEach(doc => {
                         const data = doc.data();
+                        console.log('医師(staff)を発見:', doc.id, data.name || data.displayName || data.email);
                         doctorList.push({
                             uid: doc.id,
                             name: data.name || data.displayName || data.userName || data.email || '医師'
@@ -117,6 +128,7 @@
                         const data = doc.data();
                         // 重複チェック
                         if (!doctorList.find(d => d.uid === doc.id)) {
+                            console.log('医師(doct)を発見:', doc.id, data.name || data.displayName || data.email);
                             doctorList.push({
                                 uid: doc.id,
                                 name: data.name || data.displayName || data.userName || data.email || '医師'
@@ -124,18 +136,33 @@
                         }
                     });
 
+                    console.log('取得した医師数:', doctorList.length);
+
                     // セレクトボックスに追加
-                    doctorList.forEach(doctor => {
+                    if (doctorList.length === 0) {
                         const option = document.createElement('option');
-                        option.value = doctor.uid;
-                        option.textContent = doctor.name;
-                        if (doctor.uid === selectedUid) {
-                            option.selected = true;
-                        }
+                        option.value = '';
+                        option.textContent = getTranslation('no_doctors_available', '医師が登録されていません');
+                        option.disabled = true;
                         select.appendChild(option);
-                    });
+                    } else {
+                        doctorList.forEach(doctor => {
+                            const option = document.createElement('option');
+                            option.value = doctor.uid;
+                            option.textContent = doctor.name;
+                            if (doctor.uid === selectedUid) {
+                                option.selected = true;
+                            }
+                            select.appendChild(option);
+                        });
+                    }
                 } catch (error) {
                     console.error('医師リストの取得に失敗しました:', error);
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'エラー: ' + error.message;
+                    option.disabled = true;
+                    select.appendChild(option);
                 }
             }
 
@@ -258,6 +285,8 @@
                     // 編集フォーム
                     listDiv.innerHTML = `<form id="profileEditForm" autocomplete="off"></form>`;
                     const form = document.getElementById('profileEditForm');
+                    let assignedDoctorUid = ''; // 担当医のUIDを保持
+                    
                     for (const key of order) {
                         let field = editableFields[key];
                         let value = data[key];
@@ -273,6 +302,7 @@
                             // 担当医はeditableFieldsに含まれていないので個別に処理
                             label = getTranslation('assigned_doctor', '担当医');
                             icon = '<i class="fas fa-user-md"></i>';
+                            assignedDoctorUid = data['assignedDoctor'] || data['assignedDoctorUid'] || '';
                         } else {
                             skip = true;
                         }
@@ -281,7 +311,6 @@
 
                         // 担当医は特別な処理（動的に医師リストを取得）
                         if (key === 'assignedDoctor') {
-                            const currentDoctorUid = data['assignedDoctor'] || data['assignedDoctorUid'] || '';
                             form.innerHTML += `
                                 <div class='profile-row'>
                                     <div class='profile-label'>${icon}<span>${label}</span></div>
@@ -292,8 +321,6 @@
                                     </span>
                                 </div>
                             `;
-                            // 医師リストを読み込んでセレクトボックスに追加
-                            loadDoctorsForSelect(currentDoctorUid);
                             continue;
                         }
 
@@ -342,6 +369,11 @@
                             <button type="button" class="cancel-btn" id="cancelAllBtn"><i class="fas fa-times"></i> <span data-translate="cancel">キャンセル</span></button>
                         </div>
                     `;
+
+                    // フォーム全体が構築された後に医師リストを読み込む
+                    setTimeout(() => {
+                        loadDoctorsForSelect(assignedDoctorUid);
+                    }, 0);
 
                     // 保存処理
                     form.onsubmit = async function(e) {
