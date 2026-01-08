@@ -383,6 +383,8 @@
                         
                         // 担当医の処理（editableFieldsに含まれていないため個別処理）
                         const assignedDoctorInput = form.querySelector('[name="assignedDoctor"]');
+                        const oldAssignedDoctorUid = currentData['assignedDoctor'] || currentData['assignedDoctorUid'] || null;
+                        
                         if (assignedDoctorInput) {
                             const selectedDoctorUid = assignedDoctorInput.value;
                             if (selectedDoctorUid) {
@@ -394,10 +396,10 @@
                                     updateObj.assignedDoctorName = selectedDoctor.name;
                                 }
                             } else {
-                                // 担当医を解除
-                                updateObj.assignedDoctor = null;
-                                updateObj.assignedDoctorUid = null;
-                                updateObj.assignedDoctorName = null;
+                                // 担当医を解除（FieldValue.delete()でフィールドを削除）
+                                updateObj.assignedDoctor = firebase.firestore.FieldValue.delete();
+                                updateObj.assignedDoctorUid = firebase.firestore.FieldValue.delete();
+                                updateObj.assignedDoctorName = firebase.firestore.FieldValue.delete();
                             }
                         }
                         
@@ -437,27 +439,36 @@
                             if (newEmail && newEmail !== currentUser.email) {
                                 await currentUser.updateEmail(newEmail);
                             }
-                            // 部分更新（merge: true で既存データを保持）
-                            await db.collection('users').doc(currentUser.uid).update(updateObj);
                             
-                            // 担当医の名前を再取得（必要に応じて）
-                            if (updateObj.assignedDoctor || updateObj.assignedDoctorUid) {
-                                const doctorUid = updateObj.assignedDoctor || updateObj.assignedDoctorUid;
-                                if (doctorUid) {
-                                    try {
-                                        const doctorDoc = await db.collection('users').doc(doctorUid).get();
-                                        if (doctorDoc.exists) {
-                                            const doctorData = doctorDoc.data();
-                                            updateObj.assignedDoctorName = doctorData.name || doctorData.displayName || doctorData.userName || '';
-                                        }
-                                    } catch (e) {
-                                        console.error('担当医の名前取得に失敗:', e);
+                            // 担当医の名前を事前に取得（必要に応じて）
+                            if (updateObj.assignedDoctor && typeof updateObj.assignedDoctor === 'string') {
+                                const doctorUid = updateObj.assignedDoctor;
+                                try {
+                                    const doctorDoc = await db.collection('users').doc(doctorUid).get();
+                                    if (doctorDoc.exists) {
+                                        const doctorData = doctorDoc.data();
+                                        updateObj.assignedDoctorName = doctorData.name || doctorData.displayName || doctorData.userName || '';
                                     }
+                                } catch (e) {
+                                    console.error('担当医の名前取得に失敗:', e);
                                 }
                             }
                             
-                            // 画面上のcurrentDataも更新
-                            Object.assign(currentData, updateObj);
+                            // 部分更新（merge: true で既存データを保持）
+                            await db.collection('users').doc(currentUser.uid).update(updateObj);
+                            
+                            // 画面上のcurrentDataも更新（FieldValue.delete()は除外）
+                            const cleanUpdateObj = {};
+                            for (const key in updateObj) {
+                                if (updateObj[key] !== firebase.firestore.FieldValue.delete()) {
+                                    cleanUpdateObj[key] = updateObj[key];
+                                } else {
+                                    // フィールドを削除する場合は、currentDataからも削除
+                                    delete currentData[key];
+                                }
+                            }
+                            Object.assign(currentData, cleanUpdateObj);
+                            
                             isEditing = false;
                             alert(getTranslation('update_success', '更新しました'));
                             // 言語変更があれば即時反映
