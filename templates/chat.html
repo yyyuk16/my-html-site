@@ -5,20 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-translate="患者診療記録">患者診療記録</title>
     <link rel="stylesheet" href="maintab.css">
+    <link rel="stylesheet" href="footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
         body {
             background: #f4f8fb;
             font-family: 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif;
             color: #222;
+            padding-top: 0;
+        }
+        
+        /* ヘッダーの固定 */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        /* フッターの固定 */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            margin-top: 0;
         }
 
         /* ===== レイアウト全体 ===== */
         .flex-container {
             display: flex;
             gap: 28px;
-            padding: 28px 24px 0 24px;
+            padding: 100px 24px 120px 24px;
             max-width: 1200px;
             margin: 0 auto;
             min-height: 80vh;
@@ -32,7 +59,7 @@
             border: 1px solid #e3e8ef;
             border-radius: 16px;
             box-shadow: 0 6px 24px rgba(0,0,0,0.07);
-            height: calc(100vh - 140px);
+            height: calc(100vh - 240px);
             padding: 20px 16px 16px 16px;
             display: flex;
             flex-direction: column;
@@ -123,7 +150,7 @@
             box-shadow: 0 8px 32px rgba(33,150,243,0.07);
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 140px);
+            height: calc(100vh - 240px);
             position: relative;
             overflow: hidden; /* 内側(#chatMessages)にスクロールを閉じ込める */
         }
@@ -342,7 +369,7 @@
         @media (max-width: 1100px) {
             .flex-container {
                 gap: 12px;
-                padding: 12px 6px 0 6px;
+                padding: 100px 6px 120px 6px;
             }
             .patient-list-panel {
                 width: 210px;
@@ -350,14 +377,14 @@
                 padding: 12px 6px 8px 6px;
             }
             .chat-area {
-                height: calc(100vh - 120px);
+                height: calc(100vh - 240px);
             }
         }
         @media (max-width: 900px) {
             .flex-container {
                 flex-direction: column;
                 gap: 18px;
-                padding: 10px 2vw 0 2vw;
+                padding: 90px 2vw 120px 2vw;
             }
             .patient-list-panel {
                 width: 100%;
@@ -372,7 +399,7 @@
         }
         @media (max-width: 600px) {
             .flex-container {
-                padding: 2vw 0 0 0;
+                padding: 90px 2vw 120px 2vw;
             }
             .chat-area {
                 border-radius: 0;
@@ -461,11 +488,11 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-links">
-                    <a href="#">利用規約</a>
-                    <a href="#">プライバシーポリシー</a>
+                    <a href="#" data-translate="terms">利用規約</a>
+                    <a href="#" data-translate="privacy">プライバシーポリシー</a>
                 </div>
                 <div class="footer-copyright">
-                    <small>© 2024 医療管理アプリ. All rights reserved.</small>
+                    <small>&copy; <span data-translate="copyright_name">スマート医療ポータル</span></small>
                 </div>
             </div>
         </div>
@@ -475,6 +502,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    
+    <!-- 多言語対応 -->
+    <script src="multilang.js"></script>
 
     <script>
         // ================= Firebase 初期化 =================
@@ -509,28 +539,52 @@
             // 医師側は常に日本語へ翻訳
             userLanguage = 'ja';
 
-            // 担当患者取得
-            const patientsSnapshot = await db.collection('users')
-                .where('role', '==', 'patient')
-                .where('assignedDoctor', '==', user.uid)
-                .get();
+            // 担当患者をリアルタイムで監視
+            function renderPatientList(patients) {
+                chatListDiv.innerHTML = '';
+                
+                if (patients.length === 0) {
+                    chatListDiv.innerHTML = '<p style="color:#888;text-align:center;">担当患者がいません</p>';
+                    return;
+                }
 
-            if (patientsSnapshot.empty) {
-                chatListDiv.innerHTML = '<p style="color:#888;text-align:center;">担当患者がいません</p>';
-                return;
+                patients.forEach(patient => {
+                    const chatItem = document.createElement('div');
+                    chatItem.className = 'chat-item';
+                    chatItem.dataset.patientId = patient.id;
+                    chatItem.innerHTML = `
+                        <div class="doctor-avatar">${patient.name ? patient.name[0] : '?'}</div>
+                        <div class="chat-info">
+                            <div class="doctor-name">${patient.name || '名無し'}</div>
+                        </div>`;
+                    chatItem.onclick = () => openChat(patient.id, patient.name);
+                    chatListDiv.appendChild(chatItem);
+                });
             }
 
-            patientsSnapshot.forEach(doc => {
-                const patient = doc.data();
-                const chatItem = document.createElement('div');
-                chatItem.className = 'chat-item';
-                chatItem.innerHTML = `
-                    <div class="doctor-avatar">${patient.name ? patient.name[0] : '?'}</div>
-                    <div class="chat-info">
-                        <div class="doctor-name">${patient.name || '名無し'}</div>
-                    </div>`;
-                chatItem.onclick = () => openChat(doc.id, patient.name);
-                chatListDiv.appendChild(chatItem);
+            // リアルタイムリスナーで担当患者を監視
+            const unsubscribePatients = db.collection('users')
+                .where('role', '==', 'patient')
+                .where('assignedDoctor', '==', user.uid)
+                .onSnapshot((snapshot) => {
+                    const patients = [];
+                    snapshot.forEach(doc => {
+                        patients.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                    renderPatientList(patients);
+                }, (error) => {
+                    console.error('担当患者リストの取得エラー:', error);
+                    chatListDiv.innerHTML = '<p style="color:#888;text-align:center;">エラーが発生しました</p>';
+                });
+
+            // ページを離れるときにリスナーを解除
+            window.addEventListener('beforeunload', () => {
+                if (unsubscribePatients) {
+                    unsubscribePatients();
+                }
             });
         });
 
@@ -726,6 +780,13 @@
                     });
                 });
         }
+        
+        // 翻訳を適用
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                try { window.multiLang.updateUI(); } catch (_) {}
+            }
+        });
     </script>
 </body>
 </html>
