@@ -281,6 +281,33 @@
     .rank-b { background: linear-gradient(135deg, #cd7f32, #daa520); color: #8b4513; }
     .rank-c { background: linear-gradient(135deg, #ff6b6b, #ff8e8e); color: #c41e3a; }
     .rank-d { background: linear-gradient(135deg, #6c757d, #868e96); color: #495057; }
+    
+    /* ユーザーランク表示用のスタイル */
+    #user-rank-display.rank-s { 
+      background: linear-gradient(135deg, #ffd700, #ffed4e); 
+      color: #b8860b; 
+      border: 3px solid #ffd700;
+    }
+    #user-rank-display.rank-a { 
+      background: linear-gradient(135deg, #c0c0c0, #e5e5e5); 
+      color: #666; 
+      border: 3px solid #c0c0c0;
+    }
+    #user-rank-display.rank-b { 
+      background: linear-gradient(135deg, #cd7f32, #daa520); 
+      color: #8b4513; 
+      border: 3px solid #cd7f32;
+    }
+    #user-rank-display.rank-c { 
+      background: linear-gradient(135deg, #ff6b6b, #ff8e8e); 
+      color: #c41e3a; 
+      border: 3px solid #ff6b6b;
+    }
+    #user-rank-display.rank-d { 
+      background: linear-gradient(135deg, #6c757d, #868e96); 
+      color: #495057; 
+      border: 3px solid #6c757d;
+    }
     .score-card-body {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -414,6 +441,14 @@
       .chat-quiz-section, .scores-section {
         padding: 20px 14px;
       }
+      .stats-bar-content {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .stat-pill {
+        justify-content: space-between;
+        width: 100%;
+      }
     }
   </style>
 
@@ -450,6 +485,26 @@
     </div>
   </header>
 
+  <!-- 統計情報バー（ヘッダーの下） -->
+  <div class="stats-bar" style="background: #fff; padding: 16px 0; border-bottom: 1px solid #e3e8ee;">
+    <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 0 16px;">
+      <div class="stats-bar-content" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+        <div class="stat-pill" style="background: #f8fafc; border-radius: 24px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; border: 1px solid #e3e8ee;">
+          <span style="color: #666; font-size: 0.9em; white-space: nowrap;" data-translate="learning_days">学習継続日数</span>
+          <span id="header-learning-days" style="color: #6c63ff; font-weight: bold; font-size: 1em;">0日</span>
+        </div>
+        <div class="stat-pill" style="background: #f8fafc; border-radius: 24px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; border: 1px solid #e3e8ee;">
+          <span style="color: #666; font-size: 0.9em; white-space: nowrap;" data-translate="goal_achievement">目標達成率</span>
+          <span id="header-goal-achievement" style="color: #6c63ff; font-weight: bold; font-size: 1em;">0%</span>
+        </div>
+        <div class="stat-pill" style="background: #f8fafc; border-radius: 24px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; border: 1px solid #e3e8ee;">
+          <span style="color: #666; font-size: 0.9em; white-space: nowrap;" data-translate="level">レベル</span>
+          <span id="header-level" style="color: #6c63ff; font-weight: bold; font-size: 1em;" data-translate="beginner_level">初心者</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
     <!-- クイズ生成とスコア表示を横並びに（一番上に配置） -->
     <div class="quiz-score-layout">
@@ -465,6 +520,15 @@
         </div>
         
         <div id="quiz-generation-status" style="text-align: center; color: #888; margin-bottom: 20px; font-size: 0.9em; min-height: 24px;"></div>
+        
+        <!-- ランク表示セクション -->
+        <div id="user-rank-section" style="margin-top: 24px; padding: 20px; background: rgba(255, 255, 255, 0.6); border-radius: 12px; text-align: center; display: none;">
+          <div style="color: #558B2F; font-size: 0.9em; margin-bottom: 12px; font-weight: 500;" data-translate="your_current_rank">あなたの今のランク</div>
+          <div id="user-rank-display" style="display: inline-block; padding: 16px 32px; border-radius: 16px; font-size: 2.5em; font-weight: bold; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+            <span id="rank-label" style="display: block; margin-bottom: 4px;">-</span>
+            <span id="rank-accuracy" style="display: block; font-size: 0.4em; font-weight: 500; opacity: 0.9; margin-top: 4px;">-</span>
+          </div>
+        </div>
         
         <div id="personalized-quiz-container" style="max-height: 600px; overflow-y: auto;"></div>
       </div>
@@ -841,11 +905,19 @@
 
     // 統計情報を更新
     function updateStatistics(scores) {
-      if (!scores || scores.length === 0) return;
+      if (!scores || scores.length === 0) {
+        // スコアがない場合はランク表示を非表示
+        const rankSection = document.getElementById('user-rank-section');
+        if (rankSection) rankSection.style.display = 'none';
+        return;
+      }
       const totalQuizzes = scores.length;
       const totalCorrect = scores.reduce((sum, score) => sum + (score.correct || 0), 0);
       const totalQuestions = scores.reduce((sum, score) => sum + (score.total || 0), 0);
       const averageAccuracy = scores.reduce((sum, score) => sum + (parseFloat(score.accuracy) || 0), 0) / totalQuizzes;
+      
+      // ランクを更新
+      updateUserRank(averageAccuracy);
 
       const statsContainer = document.querySelector('.stats-container');
       if (statsContainer) {
@@ -886,8 +958,47 @@
       updateLearningProgress(scores);
     }
 
+    // ユーザーのランクを更新
+    function updateUserRank(averageAccuracy) {
+      const rankSection = document.getElementById('user-rank-section');
+      const rankLabel = document.getElementById('rank-label');
+      const rankAccuracy = document.getElementById('rank-accuracy');
+      const rankDisplay = document.getElementById('user-rank-display');
+      
+      if (!rankSection || !rankLabel || !rankAccuracy || !rankDisplay) return;
+      
+      const rank = getRank(averageAccuracy);
+      
+      // ランク表示を更新
+      rankLabel.textContent = rank.label;
+      rankAccuracy.textContent = `${averageAccuracy.toFixed(1)}%`;
+      
+      // ランクに応じたクラスを適用（既存のクラスを削除してから追加）
+      rankDisplay.className = '';
+      rankDisplay.classList.add('rank-badge', rank.class);
+      
+      // 基本スタイルを適用
+      rankDisplay.style.cssText = `
+        display: inline-block;
+        padding: 16px 32px;
+        border-radius: 16px;
+        font-size: 2.5em;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        min-width: 120px;
+      `;
+      
+      // ランクセクションを表示
+      rankSection.style.display = 'block';
+    }
+
     function updateLearningProgress(scores) {
-      if (!scores || scores.length === 0) return;
+      if (!scores || scores.length === 0) {
+        // スコアがない場合はデフォルト値を表示
+        updateHeaderStats(0, 0, t('beginner_level', '初心者'));
+        return;
+      }
 
       const uniqueDates = [...new Set(scores.map(score => {
         let date;
@@ -930,12 +1041,32 @@
         levelProgress = Math.min(100, (scores.length / 5) * 100);
       }
 
+      // ヘッダーの統計情報を更新
+      updateHeaderStats(learningDays, goalAchievement, level);
+
       updateProgressBar('learning-days', learningDays, 30, '日');
       updateProgressBar('goal-achievement', goalAchievement, 100, '%');
       updateProgressBar('streak', maxStreak, 20, '問');
       updateProgressBar('level', levelProgress, 100, '%');
 
       document.getElementById('level').textContent = level;
+    }
+
+    // ヘッダーの統計情報を更新
+    function updateHeaderStats(learningDays, goalAchievement, level) {
+      const headerLearningDays = document.getElementById('header-learning-days');
+      const headerGoalAchievement = document.getElementById('header-goal-achievement');
+      const headerLevel = document.getElementById('header-level');
+      
+      if (headerLearningDays) {
+        headerLearningDays.textContent = learningDays + t('days_unit', '日');
+      }
+      if (headerGoalAchievement) {
+        headerGoalAchievement.textContent = goalAchievement + '%';
+      }
+      if (headerLevel) {
+        headerLevel.textContent = level;
+      }
     }
 
     function updateProgressBar(elementId, current, max, unit) {
@@ -1121,6 +1252,8 @@
           }
         }, 500);
       } else {
+        // ログアウト時はデフォルト値を表示
+        updateHeaderStats(0, 0, t('beginner_level', '初心者'));
         const scoresContainer = document.getElementById('scores-container');
         if (scoresContainer) {
           scoresContainer.innerHTML = `
@@ -1360,25 +1493,23 @@ ${patientText}
       }
     }
 
-    // パーソナライズドクイズを表示
+    // パーソナライズドクイズを表示（1問ずつ表示）
     function displayPersonalizedQuiz(question, container, totalQuestions) {
       const questionIndex = currentQuizIndex;
       const existingAnswer = quizAnswers[questionIndex];
       const isAnswered = existingAnswer && existingAnswer.answered;
       
-      // 既存の問題カードを探す（なければ新規作成）
-      let quizCard = container.querySelector(`[data-question-index="${questionIndex}"]`);
+      // コンテナをクリアして、現在の問題のみを表示
+      container.innerHTML = '';
       
-      if (!quizCard) {
-        // 新しい問題カードを作成
-        quizCard = document.createElement('div');
-        quizCard.className = 'quiz-card';
-        quizCard.setAttribute('data-question-index', questionIndex);
-        quizCard.style.cssText = 'background: #fff; border-radius: 12px; padding: 24px; border: 2px solid #fff; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(46, 125, 50, 0.1);';
-        container.appendChild(quizCard);
-      }
+      // 新しい問題カードを作成
+      const quizCard = document.createElement('div');
+      quizCard.className = 'quiz-card';
+      quizCard.setAttribute('data-question-index', questionIndex);
+      quizCard.style.cssText = 'background: #fff; border-radius: 12px; padding: 24px; border: 2px solid #fff; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(46, 125, 50, 0.1);';
+      container.appendChild(quizCard);
       
-      // 問題カードの内容を更新
+      // 問題カードの内容を設定
       quizCard.innerHTML = `
         <div style="text-align: center; margin-bottom: 16px; color: #2E7D32; font-weight: 600;">
           問題 ${questionIndex + 1} / ${totalQuestions}
