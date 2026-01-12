@@ -34,22 +34,22 @@
     .container {
       max-width: 1400px;
       margin: 0 auto;
-      padding: 32px 16px 40px 16px;
+      padding: 16px 16px 24px 16px;
     }
 
     /* クイズ生成とスコア表示のレイアウト */
     .quiz-score-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      margin: 40px 0;
+      gap: 16px;
+      margin: 20px 0;
     }
 
     .chat-quiz-section {
-      padding: 28px 18px;
-      background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+      padding: 20px 16px;
+      background: #E8F5E9;
       border-radius: 18px;
-      box-shadow: 0 4px 24px rgba(46, 125, 50, 0.15);
+      box-shadow: 0 4px 16px rgba(46, 125, 50, 0.2);
       border: 2px solid #fff;
     }
     
@@ -65,7 +65,7 @@
     }
 
     .stats-container {
-      margin-bottom: 32px;
+      margin-bottom: 20px;
     }
     .stats-card {
       background: #fff;
@@ -79,7 +79,7 @@
       font-size: 1.5em;
       font-weight: 600;
       color: #4f4f4f;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
       letter-spacing: 0.05em;
     }
     .chart-container {
@@ -101,45 +101,55 @@
     }
     .stats-summary .stat-box {
       background: #f8fafc;
-      border-radius: 10px;
-      border: 1px solid #e3e8ee;
-      padding: 18px 10px;
+      border-radius: 12px;
+      border: 2px solid #e3e8ee;
+      padding: 20px 12px;
       text-align: center;
+      box-shadow: 0 4px 12px rgba(60, 72, 88, 0.1);
+      transition: all 0.3s ease;
+    }
+    .stats-summary .stat-box:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(60, 72, 88, 0.15);
+      border-color: #6c63ff;
     }
     .stats-summary .stat-title {
       color: #6c63ff;
       font-size: 1em;
-      margin-bottom: 6px;
-      font-weight: 500;
+      margin-bottom: 8px;
+      font-weight: 600;
     }
     .stats-summary .stat-value {
-      font-size: 1.7em;
+      font-size: 2em;
       font-weight: bold;
-      color: #222;
+      color: #6c63ff;
     }
 
     .quiz-btn {
-      background: linear-gradient(90deg, #4CAF50 0%, #2E7D32 100%);
+      background: #4CAF50;
       color: #fff;
       border: none;
       padding: 15px 36px;
       font-size: 1.15em;
       border-radius: 28px;
       cursor: pointer;
-      box-shadow: 0 2px 12px rgba(46, 125, 50, 0.25);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
       font-weight: bold;
-      transition: all 0.2s;
+      transition: all 0.3s ease;
     }
     .quiz-btn:hover {
-      transform: translateY(-2px) scale(1.03);
-      box-shadow: 0 6px 24px rgba(46, 125, 50, 0.35);
-      background: linear-gradient(90deg, #2E7D32 0%, #4CAF50 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+      background: #2E7D32;
+    }
+    .quiz-btn:active {
+      transform: translateY(0);
     }
 
     /* Progress Section */
     .progress-section {
-      margin: 40px 0;
-      padding: 28px 18px;
+      margin: 24px 0;
+      padding: 20px 16px;
       background: #fff;
       border-radius: 18px;
       box-shadow: 0 4px 24px rgba(60, 72, 88, 0.08);
@@ -148,7 +158,7 @@
     }
     .progress-section h2 {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
       font-size: 1.3em;
       font-weight: 600;
       color: #4f4f4f;
@@ -162,20 +172,28 @@
     }
     .progress-card {
       background: #f8fafc;
-      border-radius: 12px;
-      padding: 18px 10px;
+      border-radius: 16px;
+      padding: 20px 12px;
       text-align: center;
-      border: 1px solid #e3e8ee;
-      transition: box-shadow 0.2s, transform 0.2s;
+      border: 2px solid #e3e8ee;
+      box-shadow: 0 4px 12px rgba(60, 72, 88, 0.1);
+      transition: all 0.3s ease;
     }
     .progress-card:hover {
-      box-shadow: 0 6px 18px rgba(76, 110, 245, 0.10);
-      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 20px rgba(60, 72, 88, 0.15);
+      transform: translateY(-3px);
+      border-color: #6c63ff;
     }
     .progress-icon {
-      font-size: 2.2em;
-      margin-bottom: 10px;
+      font-size: 2.5em;
+      margin-bottom: 12px;
       display: block;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      animation: bounce 2s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
     }
     .progress-card h3 {
       margin: 0 0 10px 0;
@@ -185,10 +203,10 @@
       opacity: 0.95;
     }
     .progress-value {
-      font-size: 1.7em;
+      font-size: 2em;
       font-weight: bold;
       margin-bottom: 12px;
-      color: #222;
+      color: #6c63ff;
     }
     .progress-bar {
       width: 100%;
@@ -199,7 +217,7 @@
     }
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #6c63ff, #48c6ef);
+      background: #6c63ff;
       border-radius: 4px;
       transition: width 1s cubic-bezier(.4,2,.6,1), background-color 0.5s;
       width: 0%;
@@ -208,15 +226,15 @@
     /* Scores Section */
     .scores-section {
       margin: 0;
-      padding: 28px 18px;
-      background: linear-gradient(135deg, #FFEBEE 0%, #FFF3E0 100%);
+      padding: 20px 16px;
+      background: #FFEBEE;
       border-radius: 18px;
-      box-shadow: 0 4px 24px rgba(255, 107, 53, 0.15);
+      box-shadow: 0 4px 16px rgba(255, 107, 53, 0.2);
       border: 2px solid #fff;
     }
     .scores-section h2 {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
       color: #D84315;
       font-size: 1.3em;
       font-weight: 600;
@@ -276,37 +294,42 @@
       background: #e3e8ee;
       color: #6c63ff;
     }
-    .rank-s { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #b8860b; }
-    .rank-a { background: linear-gradient(135deg, #c0c0c0, #e5e5e5); color: #666; }
-    .rank-b { background: linear-gradient(135deg, #cd7f32, #daa520); color: #8b4513; }
-    .rank-c { background: linear-gradient(135deg, #ff6b6b, #ff8e8e); color: #c41e3a; }
-    .rank-d { background: linear-gradient(135deg, #6c757d, #868e96); color: #495057; }
+    .rank-s { background: #ffd700; color: #b8860b; }
+    .rank-a { background: #c0c0c0; color: #666; }
+    .rank-b { background: #cd7f32; color: #8b4513; }
+    .rank-c { background: #ff6b6b; color: #c41e3a; }
+    .rank-d { background: #6c757d; color: #495057; }
     
     /* ユーザーランク表示用のスタイル */
     #user-rank-display.rank-s { 
-      background: linear-gradient(135deg, #ffd700, #ffed4e); 
-      color: #b8860b; 
-      border: 3px solid #ffd700;
+      background: #FFD700; 
+      color: #8B6914; 
+      border: 4px solid #FFA500;
+      box-shadow: 0 4px 16px rgba(255, 215, 0, 0.4);
     }
     #user-rank-display.rank-a { 
-      background: linear-gradient(135deg, #c0c0c0, #e5e5e5); 
-      color: #666; 
-      border: 3px solid #c0c0c0;
+      background: #C0C0C0; 
+      color: #4A4A4A; 
+      border: 4px solid #A0A0A0;
+      box-shadow: 0 4px 16px rgba(192, 192, 192, 0.3);
     }
     #user-rank-display.rank-b { 
-      background: linear-gradient(135deg, #cd7f32, #daa520); 
-      color: #8b4513; 
-      border: 3px solid #cd7f32;
+      background: #CD7F32; 
+      color: #5C3A1A; 
+      border: 4px solid #B8860B;
+      box-shadow: 0 4px 16px rgba(205, 127, 50, 0.3);
     }
     #user-rank-display.rank-c { 
-      background: linear-gradient(135deg, #ff6b6b, #ff8e8e); 
-      color: #c41e3a; 
-      border: 3px solid #ff6b6b;
+      background: #FF6B6B; 
+      color: #8B1A1A; 
+      border: 4px solid #FF8E8E;
+      box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
     }
     #user-rank-display.rank-d { 
-      background: linear-gradient(135deg, #6c757d, #868e96); 
-      color: #495057; 
-      border: 3px solid #6c757d;
+      background: #6c757d; 
+      color: #2C2C2C; 
+      border: 4px solid #868e96;
+      box-shadow: 0 4px 16px rgba(108, 117, 125, 0.2);
     }
     .score-card-body {
       display: grid;
@@ -449,6 +472,10 @@
         justify-content: space-between;
         width: 100%;
       }
+      .stat-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+      }
     }
   </style>
 
@@ -486,20 +513,23 @@
   </header>
 
   <!-- 統計情報バー（ヘッダーの下） -->
-  <div class="stats-bar" style="background: #fff; padding: 16px 0; border-bottom: 1px solid #e3e8ee;">
+  <div class="stats-bar" style="background: #fff; padding: 12px 0; border-bottom: 1px solid #e3e8ee;">
     <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 0 16px;">
-      <div class="stats-bar-content" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-        <div class="stat-pill" style="background: #f8fafc; border-radius: 24px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; border: 1px solid #e3e8ee;">
-          <span style="color: #666; font-size: 0.9em; white-space: nowrap;" data-translate="learning_days">学習継続日数</span>
-          <span id="header-learning-days" style="color: #6c63ff; font-weight: bold; font-size: 1em;">0日</span>
+      <div class="stats-bar-content" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <div class="stat-pill" style="background: #E3F2FD; border-radius: 24px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; border: 2px solid #BBDEFB; box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15); transition: all 0.3s ease;">
+          <span style="font-size: 1.2em; margin-right: 4px;">📅</span>
+          <span style="color: #1976D2; font-size: 0.9em; white-space: nowrap; font-weight: 600;" data-translate="learning_days">学習継続日数</span>
+          <span id="header-learning-days" style="color: #2196F3; font-weight: bold; font-size: 1.1em;">0日</span>
         </div>
-        <div class="stat-pill" style="background: #f8fafc; border-radius: 24px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; border: 1px solid #e3e8ee;">
-          <span style="color: #666; font-size: 0.9em; white-space: nowrap;" data-translate="goal_achievement">目標達成率</span>
-          <span id="header-goal-achievement" style="color: #6c63ff; font-weight: bold; font-size: 1em;">0%</span>
+        <div class="stat-pill" style="background: #FFEBEE; border-radius: 24px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; border: 2px solid #FFCDD2; box-shadow: 0 2px 8px rgba(244, 67, 54, 0.15); transition: all 0.3s ease;">
+          <span style="font-size: 1.2em; margin-right: 4px;">🔥</span>
+          <span style="color: #C62828; font-size: 0.9em; white-space: nowrap; font-weight: 600;" data-translate="streak">連続正解記録</span>
+          <span id="header-streak" style="color: #F44336; font-weight: bold; font-size: 1.1em;">0問</span>
         </div>
-        <div class="stat-pill" style="background: #f8fafc; border-radius: 24px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; border: 1px solid #e3e8ee;">
-          <span style="color: #666; font-size: 0.9em; white-space: nowrap;" data-translate="level">レベル</span>
-          <span id="header-level" style="color: #6c63ff; font-weight: bold; font-size: 1em;" data-translate="beginner_level">初心者</span>
+        <div class="stat-pill" style="background: #E8F5E9; border-radius: 24px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; border: 2px solid #C8E6C9; box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15); transition: all 0.3s ease;">
+          <span style="font-size: 1.2em; margin-right: 4px;">📊</span>
+          <span style="color: #2E7D32; font-size: 0.9em; white-space: nowrap; font-weight: 600;" data-translate="weekly_quizzes">今週のクイズ数</span>
+          <span id="header-weekly-quizzes" style="color: #4CAF50; font-weight: bold; font-size: 1.1em;">0回</span>
         </div>
       </div>
     </div>
@@ -510,7 +540,7 @@
     <div class="quiz-score-layout">
       <!-- 左：チャット履歴に基づくクイズ生成セクション -->
       <div class="chat-quiz-section">
-        <h2 style="text-align: center; margin-bottom: 24px; color: #2E7D32; font-size: 1.3em; font-weight: 600; letter-spacing: 0.04em;" data-translate="personalized_quiz">🎯 あなたに合わせたクイズ</h2>
+        <h2 style="text-align: center; margin-bottom: 16px; color: #2E7D32; font-size: 1.3em; font-weight: 600; letter-spacing: 0.04em;" data-translate="personalized_quiz">🎯 あなたに合わせたクイズ</h2>
         
         <div style="text-align: center; margin-bottom: 20px;">
           <p style="color: #558B2F; margin-bottom: 15px; font-size: 0.95em;" data-translate="chat_quiz_description">
@@ -522,7 +552,7 @@
         <div id="quiz-generation-status" style="text-align: center; color: #888; margin-bottom: 20px; font-size: 0.9em; min-height: 24px;"></div>
         
         <!-- ランク表示セクション -->
-        <div id="user-rank-section" style="margin-top: 24px; padding: 20px; background: rgba(255, 255, 255, 0.6); border-radius: 12px; text-align: center; display: none;">
+        <div id="user-rank-section" style="margin-top: 16px; padding: 16px; background: rgba(255, 255, 255, 0.6); border-radius: 12px; text-align: center; display: none;">
           <div style="color: #558B2F; font-size: 0.9em; margin-bottom: 12px; font-weight: 500;" data-translate="your_current_rank">あなたの今のランク</div>
           <div id="user-rank-display" style="display: inline-block; padding: 16px 32px; border-radius: 16px; font-size: 2.5em; font-weight: bold; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
             <span id="rank-label" style="display: block; margin-bottom: 4px;">-</span>
@@ -535,56 +565,8 @@
 
       <!-- 右：スコア表示エリア -->
       <div class="scores-section">
-        <h2 style="text-align: center; margin-bottom: 24px; color: #D84315; font-size: 1.3em; font-weight: 600; letter-spacing: 0.04em;" data-translate="quiz_history">📊 クイズ履歴</h2>
+        <h2 style="text-align: center; margin-bottom: 16px; color: #D84315; font-size: 1.3em; font-weight: 600; letter-spacing: 0.04em;" data-translate="quiz_history">📊 クイズ履歴</h2>
         <div id="scores-container" style="max-height: 600px; overflow-y: auto;"></div>
-      </div>
-    </div>
-
-    <div class="stats-container">
-      <div class="stats-card">
-        <h2 data-translate="quiz_progress">📊 クイズ成績推移</h2>
-        <div class="chart-container">
-          <canvas id="movieScoreChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- 学習進捗セクション -->
-    <div class="progress-section">
-      <h2 data-translate="learning_progress">学習進捗</h2>
-      <div class="progress-grid">
-        <div class="progress-card">
-          <div class="progress-icon">📚</div>
-          <h3 data-translate="learning_days">学習継続日数</h3>
-          <div class="progress-value" id="learning-days" data-translate="days_unit">0日</div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="learning-days-bar"></div>
-          </div>
-        </div>
-        <div class="progress-card">
-          <div class="progress-icon">🎯</div>
-          <h3 data-translate="goal_achievement">目標達成率</h3>
-          <div class="progress-value" id="goal-achievement" data-translate="percentage_unit">0%</div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="goal-achievement-bar"></div>
-          </div>
-        </div>
-        <div class="progress-card">
-          <div class="progress-icon">🔥</div>
-          <h3 data-translate="streak">連続正解</h3>
-          <div class="progress-value" id="streak" data-translate="questions_unit">0問</div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="streak-bar"></div>
-          </div>
-        </div>
-        <div class="progress-card">
-          <div class="progress-icon">⭐</div>
-          <h3 data-translate="level">レベル</h3>
-          <div class="progress-value" id="level" data-translate="beginner_level">初心者</div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="level-bar"></div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -996,7 +978,7 @@
     function updateLearningProgress(scores) {
       if (!scores || scores.length === 0) {
         // スコアがない場合はデフォルト値を表示
-        updateHeaderStats(0, 0, t('beginner_level', '初心者'));
+        updateHeaderStats(0, 0, 0);
         return;
       }
 
@@ -1013,9 +995,7 @@
       }))];
       const learningDays = uniqueDates.length;
 
-      const highAccuracyQuizzes = scores.filter(score => (parseFloat(score.accuracy) || 0) >= 80);
-      const goalAchievement = Math.round((highAccuracyQuizzes.length / scores.length) * 100);
-
+      // 連続正解記録を計算（正答率60%以上を正解とみなす）
       let currentStreak = 0;
       let maxStreak = 0;
       for (let i = scores.length - 1; i >= 0; i--) {
@@ -1026,6 +1006,24 @@
           currentStreak = 0;
         }
       }
+
+      // 今週のクイズ数を計算（日曜日を週の開始とする）
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - dayOfWeek);
+      startOfWeek.setHours(0, 0, 0, 0);
+      const weeklyQuizzes = scores.filter(score => {
+        let date;
+        if (score.timestamp && typeof score.timestamp.toDate === "function") {
+          date = score.timestamp.toDate();
+        } else if (score.timestamp) {
+          date = new Date(score.timestamp);
+        } else {
+          return false;
+        }
+        return date >= startOfWeek;
+      }).length;
 
       let level = t('beginner_level', '初心者');
       let levelProgress = 0;
@@ -1042,7 +1040,7 @@
       }
 
       // ヘッダーの統計情報を更新
-      updateHeaderStats(learningDays, goalAchievement, level);
+      updateHeaderStats(learningDays, maxStreak, weeklyQuizzes);
 
       updateProgressBar('learning-days', learningDays, 30, '日');
       updateProgressBar('goal-achievement', goalAchievement, 100, '%');
@@ -1053,19 +1051,19 @@
     }
 
     // ヘッダーの統計情報を更新
-    function updateHeaderStats(learningDays, goalAchievement, level) {
+    function updateHeaderStats(learningDays, streak, weeklyQuizzes) {
       const headerLearningDays = document.getElementById('header-learning-days');
-      const headerGoalAchievement = document.getElementById('header-goal-achievement');
-      const headerLevel = document.getElementById('header-level');
+      const headerStreak = document.getElementById('header-streak');
+      const headerWeeklyQuizzes = document.getElementById('header-weekly-quizzes');
       
       if (headerLearningDays) {
         headerLearningDays.textContent = learningDays + t('days_unit', '日');
       }
-      if (headerGoalAchievement) {
-        headerGoalAchievement.textContent = goalAchievement + '%';
+      if (headerStreak) {
+        headerStreak.textContent = streak + t('questions_unit', '問');
       }
-      if (headerLevel) {
-        headerLevel.textContent = level;
+      if (headerWeeklyQuizzes) {
+        headerWeeklyQuizzes.textContent = weeklyQuizzes + t('times_unit', '回');
       }
     }
 
@@ -1253,7 +1251,7 @@
         }, 500);
       } else {
         // ログアウト時はデフォルト値を表示
-        updateHeaderStats(0, 0, t('beginner_level', '初心者'));
+        updateHeaderStats(0, 0, 0);
         const scoresContainer = document.getElementById('scores-container');
         if (scoresContainer) {
           scoresContainer.innerHTML = `
