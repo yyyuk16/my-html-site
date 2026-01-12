@@ -124,6 +124,9 @@
   "other": "その他",
   "years_old": "歳",
   "email_placeholder": "メールアドレス",
+  "password_placeholder": "パスワード",
+  "show_password": "表示",
+  "hide_password": "非表示",
   "saving": "保存中...",
   "update_success": "更新しました",
   "save_failed": "保存に失敗しました: ",
@@ -135,5 +138,7 @@
   "logging-in": "ログイン中...",
   "signup": "新規登録はこちら",
   "doctor-login-link": "← 医者の方はこちら",
-  "language": "言語"
+  "language": "言語",
+  "login_error": "ログインエラー",
+  "login_failed": "ログインに失敗しました"
 }

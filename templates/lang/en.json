@@ -123,6 +123,10 @@
   "other": "Other",
   "years_old": " years old",
   "email_placeholder": "Email Address",
+  "email_placeholder": "Email",
+  "password_placeholder": "Password",
+  "show_password": "Show",
+  "hide_password": "Hide",
   "saving": "Saving...",
   "update_success": "Updated successfully",
   "save_failed": "Failed to save: ",
@@ -134,5 +138,7 @@
   "logging-in": "Logging in...",
   "signup": "Sign up here",
   "doctor-login-link": "← For doctors",
-  "language": "Language"
+  "language": "Language",
+  "login_error": "Login Error",
+  "login_failed": "Login failed"
 }

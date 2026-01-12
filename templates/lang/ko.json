@@ -124,6 +124,9 @@
   "other": "기타",
   "years_old": "세",
   "email_placeholder": "이메일 주소",
+  "password_placeholder": "비밀번호",
+  "show_password": "표시",
+  "hide_password": "숨기기",
   "saving": "저장 중...",
   "update_success": "업데이트되었습니다",
   "save_failed": "저장에 실패했습니다: ",
@@ -135,5 +138,7 @@
   "logging-in": "로그인 중...",
   "signup": "회원가입",
   "doctor-login-link": "← 의사 로그인",
-  "language": "언어"
+  "language": "언어",
+  "login_error": "로그인 오류",
+  "login_failed": "로그인에 실패했습니다"
 }
