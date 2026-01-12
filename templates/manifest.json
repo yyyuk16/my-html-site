@@ -1,0 +1,26 @@
+{
+    "name": "結核治療アプリ",
+    "short_name": "結核治療アプリ",
+    "description": "結核治療アプリ",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4e73df",
+    "icons": [
+      {
+        "src": "icons/android-icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "icons/android-icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      },
+      {
+        "src": "icons/apple-icon-180x180.png",
+        "sizes": "180x180",
+        "type": "image/png"
+      }
+    ]
+  }
