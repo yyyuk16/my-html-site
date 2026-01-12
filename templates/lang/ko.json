@@ -129,5 +129,11 @@
   "save_failed": "저장에 실패했습니다: ",
   "validation_number_range": "{label}은(는) {min}에서 {max} 사이의 숫자로 입력해 주세요",
   "validation_email": "올바른 이메일 주소를 입력해 주세요",
-  "validation_required": "{label}을(를) 입력해 주세요"
+  "validation_required": "{label}을(를) 입력해 주세요",
+  "patient-login": "환자 로그인",
+  "password": "비밀번호",
+  "logging-in": "로그인 중...",
+  "signup": "회원가입",
+  "doctor-login-link": "← 의사 로그인",
+  "language": "언어"
 }

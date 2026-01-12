@@ -129,5 +129,11 @@
   "save_failed": "保存失败: ",
   "validation_number_range": "请输入{label}，范围在{min}到{max}之间",
   "validation_email": "请输入有效的邮箱地址",
-  "validation_required": "请输入{label}"
+  "validation_required": "请输入{label}",
+  "patient-login": "患者登录",
+  "password": "密码",
+  "logging-in": "登录中...",
+  "signup": "注册新账号",
+  "doctor-login-link": "← 医生登录",
+  "language": "语言"
 }

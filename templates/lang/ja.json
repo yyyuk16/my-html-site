@@ -129,5 +129,11 @@
   "save_failed": "保存に失敗しました: ",
   "validation_number_range": "{label}は{min}～{max}の数値で入力してください",
   "validation_email": "正しいメールアドレスを入力してください",
-  "validation_required": "{label}を入力してください"
+  "validation_required": "{label}を入力してください",
+  "patient-login": "患者ログイン",
+  "password": "パスワード",
+  "logging-in": "ログイン中...",
+  "signup": "新規登録はこちら",
+  "doctor-login-link": "← 医者の方はこちら",
+  "language": "言語"
 }

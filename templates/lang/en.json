@@ -128,5 +128,11 @@
   "save_failed": "Failed to save: ",
   "validation_number_range": "Please enter {label} as a number between {min} and {max}",
   "validation_email": "Please enter a valid email address",
-  "validation_required": "Please enter {label}"
+  "validation_required": "Please enter {label}",
+  "patient-login": "Patient Login",
+  "password": "Password",
+  "logging-in": "Logging in...",
+  "signup": "Sign up here",
+  "doctor-login-link": "← For doctors",
+  "language": "Language"
 }
