@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title data-i18n="patient-login">患者ログイン</title>
+  <title data-translate="patient-login">患者ログイン</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -27,7 +27,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   
   <!-- 多言語対応スクリプト -->
-  <script src="translation.js"></script>
+  <script src="multilang.js"></script>
   
   <!-- タブ固有認証管理 -->
   <script src="tab-auth.js"></script>
@@ -57,12 +57,7 @@ body {
   font-family: 'Noto Sans JP', 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
   margin: 0;
   padding: 0;
-  background:
-    url('./phote/S__9011216.jpg') center/cover no-repeat,
-    linear-gradient(135deg, var(--color-green-light) 0%, var(--color-green-accent) 100%);
-  background-attachment: fixed;
-  background-size: cover;
-  background-position: center;
+  background: #ffffff;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -71,21 +66,19 @@ body {
   color: var(--text-color);
   line-height: 1.7;
   letter-spacing: 0.02em;
-  transition: background 0.5s;
 }
 
 .container {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   padding: 2.5rem 2rem 2rem 2rem;
-  border-radius: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border-radius: 1rem;
+  box-shadow: none;
   width: 95%;
-  max-width: 410px;
+  max-width: 480px;
   text-align: center;
   position: relative;
   overflow: hidden;
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #e0e0e0;
   animation: fadeIn 1s;
 }
 
@@ -95,12 +88,12 @@ body {
 }
 
 h1 {
-  color: var(--secondary-color);
+  color: #1A1A1A;
   margin-bottom: 2.2rem;
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  text-shadow: 0 2px 8px #a5d6a7;
+  text-shadow: none;
 }
 
 .form-group {
@@ -111,23 +104,28 @@ h1 {
 label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: var(--secondary-color);
+  font-weight: 500;
+  color: #666666;
   letter-spacing: 0.02em;
+  font-size: 0.95rem;
 }
 
 input {
   width: 100%;
   padding: 0.85rem 1rem;
-  border: 1.5px solid var(--input-border);
-  border-radius: 0.7rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.5rem;
   font-size: 1.05rem;
-  background: var(--input-bg);
+  background: #ffffff;
   box-sizing: border-box;
   transition: border 0.2s, box-shadow 0.2s;
   outline: none;
-  color: var(--text-color);
+  color: #1A1A1A;
   margin-top: 0.1rem;
+}
+
+input::placeholder {
+  color: #9e9e9e;
 }
 
 .password-wrapper {
@@ -167,32 +165,25 @@ input {
   color: #9e9e9e;
 }
 
-.password-toggle-text {
-  display: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--secondary-color);
-}
-
 input:focus {
-  border-color: var(--input-focus);
-  box-shadow: 0 0 0 3px #a5d6a7;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
   background: #fff;
 }
 
 button, .signup-button {
-  background: var(--button-gradient);
+  background: #4CAF50;
   color: #fff;
   border: none;
   padding: 1rem 2rem;
-  border-radius: 0.7rem;
+  border-radius: 0.5rem;
   font-size: 1.08rem;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
   margin-top: 1.1rem;
-  box-shadow: var(--button-shadow);
-  transition: background 0.25s, box-shadow 0.25s, transform 0.15s;
+  box-shadow: none;
+  transition: background 0.25s, opacity 0.25s;
   letter-spacing: 0.03em;
   outline: none;
   position: relative;
@@ -200,35 +191,37 @@ button, .signup-button {
 }
 
 button:hover, .signup-button:hover {
-  background: linear-gradient(90deg, #388e3c 0%, #a5d6a7 100%);
-  box-shadow: 0 4px 18px 0 rgba(56,142,60,0.25);
-  transform: translateY(-2px) scale(1.02);
+  background: #45a049;
+  opacity: 0.9;
 }
 
 .signup-button {
   margin-top: 1.5rem;
-  background: linear-gradient(90deg, #c8e6c9 0%, #a5d6a7 100%);
-  color: var(--secondary-color);
-  border: 1.5px solid #a5d6a7;
-  font-weight: 700;
+  background: #81C784;
+  color: #fff;
+  border: none;
+  font-weight: 600;
   box-shadow: none;
-  transition: background 0.25s, color 0.25s, border 0.25s;
+  transition: background 0.25s, opacity 0.25s;
 }
 .signup-button:hover {
-  background: linear-gradient(90deg, #a5d6a7 0%, #c8e6c9 100%);
-  color: #fff;
-  border: 1.5px solid #388e3c;
+  background: #66BB6A;
+  opacity: 0.9;
 }
 
 .back-link {
   display: block;
   margin-top: 1.3rem;
-  color: var(--secondary-color);
+  color: #81C784;
   text-decoration: none;
   font-weight: 500;
   font-size: 1rem;
   letter-spacing: 0.01em;
   transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: #4CAF50;
 }
 
 h2 {
@@ -296,70 +289,11 @@ h2 {
 }
 
 @media (max-width: 600px) {
-  body {
-    background-attachment: scroll;
-  }
-
   .container {
-    padding: 2rem 1.5rem;
+    padding: 10px 2vw 24px 2vw;
     border-radius: 0;
     box-shadow: none;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
   }
-
-  h1 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .form-group {
-    margin-bottom: 1.2rem;
-  }
-
-  input {
-    padding: 0.9rem 1rem;
-    font-size: 1rem;
-  }
-
-  .password-wrapper input {
-    padding-right: 4.5rem;
-  }
-
-  .password-toggle {
-    width: auto;
-    height: auto;
-    padding: 0;
-    right: 0.8rem;
-  }
-
-  .password-toggle-icon {
-    display: none;
-  }
-
-  .password-toggle-text {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--secondary-color);
-  }
-
-  button, .signup-button {
-    padding: 0.9rem 1.5rem;
-    font-size: 1rem;
-    margin-top: 0.8rem;
-  }
-
-  .signup-button {
-    margin-top: 1rem;
-  }
-
-  .back-link {
-    margin-top: 1rem;
-    font-size: 0.9rem;
-  }
-
   .header {
     border-radius: 0;
     padding: 14px 0 10px 0;
@@ -445,31 +379,30 @@ h2 {
   </div>
 
   <div class="container">
-    <h1 data-i18n="patient-login">患者ログイン</h1>
+    <h1 data-translate="patient-login">患者ログイン</h1>
     <form id="patientLoginForm">
       <div class="form-group">
-        <label for="email" data-i18n="email">メールアドレス</label>
+        <label for="email" data-translate="email">メールアドレス</label>
         <input type="email" id="email" required>
       </div>
       <div class="form-group">
-        <label for="password" data-i18n="password">パスワード</label>
+        <label for="password" data-translate="password">パスワード</label>
         <div class="password-wrapper">
           <input type="password" id="password" required>
           <button type="button" id="togglePassword" class="password-toggle" aria-label="パスワードを表示/非表示">
             <span id="view" class="password-toggle-icon">
               <i class="far fa-eye-slash"></i>
             </span>
-            <span id="toggleText" class="password-toggle-text">Show</span>
           </button>
         </div>
       </div>
       <button type="submit" id="loginButton">
-        <span id="loginButtonText" data-i18n="login">ログイン</span>
-        <span id="loginButtonLoading" style="display: none;" data-i18n="logging-in">ログイン中...</span>
+        <span id="loginButtonText" data-translate="login">ログイン</span>
+        <span id="loginButtonLoading" style="display: none;" data-translate="logging-in">ログイン中...</span>
       </button>
     </form>
-    <button onclick="location.href='signup.html'" class="signup-button" data-i18n="signup">新規登録はこちら</button>
-    <a href="doctor.html" class="back-link" data-i18n="doctor-login-link">← 医者の方はこちら</a>
+    <button onclick="location.href='signup.html'" class="signup-button" data-translate="signup">新規登録はこちら</button>
+    <a href="doctor.html" class="back-link" data-translate="doctor-login-link">← 医者の方はこちら</a>
   </div>
 
   <script>
@@ -485,21 +418,92 @@ h2 {
       appId: "1:90159472898:web:261ec71f9919611011e21b",
       measurementId: "G-9TGR07ZSY9"
     };
-    firebase.initializeApp(firebaseConfig);
+    
+    // Firebaseが既に初期化されていない場合のみ初期化
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    // 言語選択ボタンのイベントリスナーを追加
+    const langBtnJa = document.getElementById('langBtnJa');
+    const langBtnEn = document.getElementById('langBtnEn');
+    const langBtnZh = document.getElementById('langBtnZh');
+
+    // 言語切り替え関数
+    async function switchLanguage(lang) {
+      if (window.multiLang) {
+        await window.multiLang.switchLanguage(lang);
+        // アクティブなボタンのスタイルを更新
+        updateButtonStyles(lang);
+      } else {
+        // multilang.jsがまだ読み込まれていない場合、少し待ってから再試行
+        setTimeout(() => switchLanguage(lang), 100);
+      }
+    }
+
+    // ボタンスタイルを更新する関数
+    function updateButtonStyles(activeLang) {
+      [langBtnJa, langBtnEn, langBtnZh].forEach(btn => {
+        if (btn) {
+          btn.style.background = '#fff';
+          btn.style.color = '#333';
+          btn.style.borderColor = '#A5D6B5';
+        }
+      });
+      
+      // 選択されたボタンのスタイルを更新
+      const activeBtn = activeLang === 'ja' ? langBtnJa : (activeLang === 'en' ? langBtnEn : langBtnZh);
+      if (activeBtn) {
+        activeBtn.style.background = '#2E7D32';
+        activeBtn.style.color = '#fff';
+        activeBtn.style.borderColor = '#2E7D32';
+      }
+    }
+
+    // 各言語ボタンにイベントリスナーを追加
+    if (langBtnJa) {
+      langBtnJa.addEventListener('click', () => switchLanguage('ja'));
+    }
+    if (langBtnEn) {
+      langBtnEn.addEventListener('click', () => switchLanguage('en'));
+    }
+    if (langBtnZh) {
+      langBtnZh.addEventListener('click', () => switchLanguage('zh'));
+    }
+
+    // 初期表示時に現在の言語に応じてボタンスタイルを設定
+    // multilang.jsの初期化完了を待つ
+    const initLanguageButtons = async () => {
+      if (window.multiLang) {
+        const currentLang = window.multiLang.currentLanguage || 'ja';
+        updateButtonStyles(currentLang);
+        // 翻訳データが読み込まれていない場合、読み込んでからUIを更新
+        if (!window.multiLang.translations[currentLang]) {
+          await window.multiLang.loadLanguage(currentLang);
+        }
+        // 初期翻訳を適用
+        window.multiLang.updateUI();
+      } else {
+        // まだ初期化されていない場合、少し待ってから再試行
+        setTimeout(initLanguageButtons, 100);
+      }
+    };
+    
+    // 初期化を開始
+    setTimeout(initLanguageButtons, 300);
 
     const passwordInput = document.getElementById('password');
     const togglePassword = document.getElementById('togglePassword');
     const viewIcon = document.getElementById('view');
-    const toggleText = document.getElementById('toggleText');
 
-    if (passwordInput && togglePassword) {
-      const iconElement = viewIcon ? viewIcon.querySelector('i') : null;
+    if (passwordInput && togglePassword && viewIcon) {
+      const iconElement = viewIcon.querySelector('i');
 
       const togglePasswordVisibility = () => {
         const isPassword = passwordInput.type === 'password';
         passwordInput.type = isPassword ? 'text' : 'password';
         
-        // アイコンを切り替え（デスクトップ表示時）
+        // アイコンを切り替え
         if (iconElement) {
           if (isPassword) {
             // パスワード表示時は fa-eye
@@ -510,11 +514,6 @@ h2 {
             iconElement.classList.remove('fa-eye');
             iconElement.classList.add('fa-eye-slash');
           }
-        }
-
-        // テキストを切り替え（モバイル表示時）
-        if (toggleText) {
-          toggleText.textContent = isPassword ? 'Show' : 'Hide';
         }
       };
 
