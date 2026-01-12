@@ -6,42 +6,106 @@
   <title data-translate="ai_chat">AI先生チャット</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="chat.css">
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
+    
+  <style>
+    /* メッセージバブルのレイアウト調整 */
+    .bubble {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    
+    .msg-text[style*="opacity: 0.6"] {
+      font-style: italic;
+      opacity: 0.6;
+    }
+    
+    /* 緑色に変更 */
+    :root {
+      --primary: #8bc34a;
+      --primary-hover: #8bc34a;
+      --primary-light: #d1fae5;
+    }
+    
+    .message.self .bubble {
+      background: #8bc34a !important;
+    }
+    
+    #sendBtn {
+      background: #8bc34a !important;
+    }
+    
+    #sendBtn:hover {
+      background: #8bc34a !important;
+    }
+    
+    #voiceBtn.active {
+      background: #8bc34a !important;
+      border-color: #8bc34a !important;
+    }
+    
+    #voiceBtn:hover {
+      border-color: #8bc34a !important;
+      color: #8bc34a !important;
+    }
+    
+    #messageInput:focus {
+      border-color: #8bc34a !important;
+      box-shadow: 0 0 0 3px #d1fae5 !important;
+    }
+    
+    #voiceBtn.active {
+      animation: pulse-green 2s infinite;
+    }
+    
+    @keyframes pulse-green {
+      0%, 100% {
+        box-shadow: var(--shadow-md);
+      }
+      50% {
+        box-shadow: 0 0 0 4px #d1fae5;
+      }
+    }
+  </style>
+    
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  
   <!-- 多言語対応 -->
   <script src="multilang.js"></script>
+  
+
 </head>
 
 <body>
   <div class="chat-container">
     <div class="chat-header">
       <div id="aiTeacherContainer">
-        <span data-translate="ai_teacher" class="doctor-label">AI先生</span>
+        <span data-translate="ai_teacher" class="doctor-label" style="font-weight: bold;">AI先生</span>
       </div>
     </div>
 
-    <div id="chatContainer" class="chat-messages"></div>
+    <div id="chat" class="chat-messages"></div>
 
     <div class="input-container">
       <button id="voiceBtn" title="音声入力">
         <img src="8549.png" alt="音声入力" id="voiceIcon" />
       </button>
-      <input type="text" id="userInput" placeholder="健康について何でもお聞きください..." autocomplete="off" data-translate="health_consultation" />
-      <button id="sendButton" data-translate="send">送信</button>
-      <button onclick="history.back()" class="back-btn" data-translate="back">戻る</button>
+      <input type="text" id="messageInput" placeholder="メッセージを入力" autocomplete="off" data-translate="message_input" />
+      <button id="sendBtn" data-translate="send">送信</button>
+      <button onclick="window.location.href='ai.html'" class="back-btn" data-translate="back">戻る</button>
     </div>
   </div>
 
   <script>
     const OPENAI_ENDPOINT = "/api/chat"; // VercelのAPIエンドポイント
 
-    const chatContainer = document.getElementById("chatContainer");
-    const userInput = document.getElementById("userInput");
-    const sendButton = document.getElementById("sendButton");
+    const chatDiv = document.getElementById("chat");
+    const messageInput = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
     const voiceBtn = document.getElementById("voiceBtn");
 
     function escapeHtml(s){
@@ -81,8 +145,8 @@
         `;
       }
 
-      chatContainer.appendChild(messageDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+      chatDiv.appendChild(messageDiv);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
     }
 
     function loading(){
@@ -102,8 +166,8 @@
           </div>
         </div>
       `;
-      chatContainer.appendChild(messageDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+      chatDiv.appendChild(messageDiv);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
       return id;
     }
 
@@ -119,17 +183,17 @@
 
     function setSendingState(sending){
       isSending = sending;
-      sendButton.disabled = sending;
-      userInput.disabled = false; // 入力自体は許可してOK（好みでtrueでも）
+      sendBtn.disabled = sending;
+      messageInput.disabled = false; // 入力自体は許可してOK（好みでtrueでも）
       if(sending){
-        sendButton.textContent = t('sending', '送信中…');
+        sendBtn.textContent = t('sending', '送信中…');
       }else{
-        sendButton.textContent = t('send', '送信');
+        sendBtn.textContent = t('send', '送信');
       }
     }
 
     async function send(){
-      const msg = (userInput.value || "").trim();
+      const msg = (messageInput.value || "").trim();
       if(!msg) return;
 
       const now = Date.now();
@@ -154,7 +218,7 @@
 
       // UI反映
       appendMessage('user', msg);
-      userInput.value = "";
+      messageInput.value = "";
       const id = loading();
       setSendingState(true);
 
@@ -222,14 +286,17 @@
       waitForTranslation();
 
       // Enter送信
-      userInput.addEventListener("keypress", (e) => {
-        if(e.key === "Enter") send();
+      messageInput.addEventListener("keypress", (e) => {
+        if(e.key === "Enter") {
+          e.preventDefault();
+          sendBtn.click();
+        }
       });
 
       // ボタン送信
-      sendButton.addEventListener("click", send);
+      sendBtn.addEventListener("click", send);
 
-      userInput.focus();
+      messageInput.focus();
 
       // ===== 音声入力機能 =====
       let recognition = null;
@@ -272,10 +339,10 @@
           }
 
           if (finalTranscript) {
-            userInput.value = (userInput.value + ' ' + finalTranscript).trim();
+            messageInput.value = (messageInput.value + ' ' + finalTranscript).trim();
           } else if (interimTranscript) {
-            const currentValue = userInput.value.trim();
-            userInput.value = currentValue ? currentValue + ' ' + interimTranscript : interimTranscript;
+            const currentValue = messageInput.value.trim();
+            messageInput.value = currentValue ? currentValue + ' ' + interimTranscript : interimTranscript;
           }
         };
 
@@ -340,9 +407,9 @@
         if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
           try {
             window.multiLang.updateUI();
-            const input = document.getElementById('userInput');
+            const input = document.getElementById('messageInput');
             if (input && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
-              const translation = window.multiLang.translations[window.multiLang.currentLanguage]['health_consultation'];
+              const translation = window.multiLang.translations[window.multiLang.currentLanguage]['message_input'];
               if (translation) input.placeholder = translation;
             }
           } catch (_) {}

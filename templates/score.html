@@ -566,6 +566,10 @@
       <!-- 右：スコア表示エリア -->
       <div class="scores-section">
         <h2 style="text-align: center; margin-bottom: 16px; color: #D84315; font-size: 1.3em; font-weight: 600; letter-spacing: 0.04em;" data-translate="quiz_history">📊 クイズ履歴</h2>
+        <!-- グラフ表示セクション -->
+        <div class="chart-container" style="margin-bottom: 20px;">
+          <canvas id="movieScoreChart"></canvas>
+        </div>
         <div id="scores-container" style="max-height: 600px; overflow-y: auto;"></div>
       </div>
     </div>
@@ -705,7 +709,12 @@
 
     // クイズ成績推移グラフ
     function updateMovieScoreChart(scores) {
-      const ctx = document.getElementById('movieScoreChart').getContext('2d');
+      const canvasElement = document.getElementById('movieScoreChart');
+      if (!canvasElement) {
+        console.warn('Canvas要素 movieScoreChart が見つかりません。グラフを表示できません。');
+        return;
+      }
+      const ctx = canvasElement.getContext('2d');
       if (movieScoreChart) movieScoreChart.destroy();
 
       if (!scores || scores.length === 0) {
@@ -1615,7 +1624,7 @@ ${patientText}
       container.innerHTML = `
         <div class="quiz-result-card" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%); 
                                            border-radius: 18px; padding: 40px; text-align: center; color: #fff; box-shadow: 0 4px 24px rgba(46, 125, 50, 0.3);">
-          <h2 style="font-size: 2em; margin-bottom: 20px;">🎉 クイズ完了！</h2>
+          <h2 style="font-size: 2em; margin-bottom: 20px; color: #fff;">🎉 クイズ完了！</h2>
           <div style="font-size: 3em; margin: 20px 0; font-weight: bold;">
             ${personalizedQuizScore} / ${totalQuestions}
           </div>

@@ -15,6 +15,9 @@
     
     <!-- 多言語対応 -->
     <script src="multilang.js"></script>
+
+    <!-- YouTube IFrame API（視聴完了検知用） -->
+    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
     <!-- 💚 ヘッダー -->
@@ -48,7 +51,7 @@
       }
       .movie-page {
         max-width: 1100px;
-        margin: 90px auto 40px;
+        margin: 20px auto 40px;
         padding: 0 1.0rem 2.0rem;
         font-family: 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       }
@@ -291,6 +294,17 @@
         background: #FFFFFF;
         transform: translateY(-1px);
       }
+
+      /* 視聴済み動画カード */
+      .video-card.watched {
+        background: #ffe0b2;
+        border-color: #ff9800;
+        box-shadow: 0 3px 10px rgba(255, 152, 0, 0.35);
+      }
+      .video-card.watched .video-lang {
+        color: #f57c00;
+        font-weight: 700;
+      }
       .video-title {
         font-size: 0.95rem;
         font-weight: 600;
@@ -328,7 +342,7 @@
       }
       @media (max-width: 640px) {
         .movie-page {
-          margin-top: 80px;
+          margin-top: 20px;
           padding: 0 0.9rem 1.8rem;
         }
         .movie-header {
@@ -838,6 +852,15 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
         let currentLang = 'ja';
         let currentTopic = 'basic';
 
+        // YouTubeプレイヤーと現在のカードを保持
+        let ytPlayer = null;
+        let currentVideoCard = null;
+
+        // YouTube IFrame API から呼ばれる（必要に応じて利用）
+        window.onYouTubeIframeAPIReady = function() {
+          // 初回ロード時に特別な処理は不要。プレイヤー生成はクリック時に行う。
+        };
+
         // Firebase認証状態を監視して、ユーザーの言語設定を取得
         if (window.multiLang && window.multiLang.auth) {
           window.multiLang.auth.onAuthStateChanged(async (user) => {
@@ -908,14 +931,22 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
           videoGrid.addEventListener('click', function(e) {
             const card = e.target.closest('.video-card');
             if (!card) return;
-            const url = card.dataset.url || '';
+            let url = card.dataset.url || '';
             if (!url) {
               alert('この動画にはまだURLが設定されていません。YouTube のURLを data-url 属性に設定してください。');
               return;
             }
+
+            // 現在のカードを保存（視聴完了時にスタイル変更するため）
+            currentVideoCard = card;
             
             const langText = card.querySelector('.video-lang')?.textContent || '';
             const titleText = card.querySelector('.video-title')?.textContent || '';
+
+            // enablejsapi=1 を付与（すでに付いていなければ）
+            if (!url.includes('enablejsapi=1')) {
+              url += (url.includes('?') ? '&' : '?') + 'enablejsapi=1';
+            }
             
             // 動画リストを非表示にして、プレーヤーのみを表示
             if (movieLayout) {
@@ -931,12 +962,7 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
                   <div class="player-label-sub">${titleText}${langText ? '（' + langText + '）' : ''}</div>
                 </div>
                 <div class="player-wrapper">
-                  <iframe id="videoPlayer"
-                          src="${url}"
-                          title="結核学習動画プレーヤー"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowfullscreen>
-                  </iframe>
+                  <div id="videoPlayer"></div>
                 </div>
               `;
               
@@ -947,6 +973,32 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
               }
               
               movieLayout.appendChild(playerArea);
+
+              // YouTube プレイヤーを生成（API 利用可能な場合）
+              if (window.YT && YT.Player) {
+                if (ytPlayer) {
+                  ytPlayer.destroy();
+                }
+                ytPlayer = new YT.Player('videoPlayer', {
+                  videoId: extractVideoId(url),
+                  events: {
+                    'onStateChange': onPlayerStateChange
+                  }
+                });
+              } else {
+                // API がまだなら通常の iframe をフォールバックとして表示
+                const container = document.getElementById('videoPlayer');
+                if (container) {
+                  container.innerHTML = `
+                    <iframe
+                      src="${url}"
+                      title="結核学習動画プレーヤー"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowfullscreen
+                    ></iframe>
+                  `;
+                }
+              }
               
               // 戻るボタンのイベントリスナーを設定
               const backBtn = playerArea.querySelector('#backButton');
@@ -963,6 +1015,21 @@ data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
               }
             }
           });
+        }
+
+        // YouTube URL から videoId を抽出
+        function extractVideoId(url) {
+          const match = url.match(/\/embed\/([^?&]+)/);
+          return match ? match[1] : url;
+        }
+
+        // 再生状態の変化を監視し、終了したらカードを「視聴済み」にする
+        function onPlayerStateChange(event) {
+          if (event.data === YT.PlayerState.ENDED) {
+            if (currentVideoCard) {
+              currentVideoCard.classList.add('watched');
+            }
+          }
         }
 
         // 初期表示：現在の条件に合う動画だけを表示

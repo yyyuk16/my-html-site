@@ -20,6 +20,53 @@
       font-style: italic;
       opacity: 0.6;
     }
+    
+    /* 緑色を#d12b02ccに変更 */
+    :root {
+      --primary: #d12b02;
+      --primary-hover: #b02402;
+      --primary-light: #ffe5e0;
+    }
+    
+    .message.self .bubble {
+      background: #d12b02 !important;
+    }
+    
+    #sendBtn {
+      background: #d12b02 !important;
+    }
+    
+    #sendBtn:hover {
+      background: #b02402 !important;
+    }
+    
+    #voiceBtn.active {
+      background: #d12b02 !important;
+      border-color: #d12b02 !important;
+    }
+    
+    #voiceBtn:hover {
+      border-color: #d12b02 !important;
+      color: #d12b02 !important;
+    }
+    
+    #messageInput:focus {
+      border-color: #d12b02 !important;
+      box-shadow: 0 0 0 3px #ffe5e0 !important;
+    }
+    
+    #voiceBtn.active {
+      animation: pulse-red 2s infinite;
+    }
+    
+    @keyframes pulse-red {
+      0%, 100% {
+        box-shadow: var(--shadow-md);
+      }
+      50% {
+        box-shadow: 0 0 0 4px #ffe5e0;
+      }
+    }
   </style>
     
   <!-- Firebase SDK (compat) -->
