@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-translate="ai_chat">AI先生チャット</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="chat.css">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- 多言語対応 -->
+  <script src="multilang.js"></script>
+</head>
+
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2 data-translate="ai_chat">👨‍⚕️ AI先生チャット</h2>
+    </div>
+
+    <div id="chatContainer" class="chat-messages"></div>
+
+    <div class="input-container">
+      <input type="text" id="userInput" placeholder="健康について何でもお聞きください..." autocomplete="off" data-translate="health_consultation" />
+      <button id="sendButton" data-translate="send">送信</button>
+      <button onclick="history.back()" class="back-btn" data-translate="back">← 戻る</button>
+    </div>
+  </div>
+
+  <script>
+    const OPENAI_ENDPOINT = "/api/chat"; // VercelのAPIエンドポイント
+
+    const chatContainer = document.getElementById("chatContainer");
+    const userInput = document.getElementById("userInput");
+    const sendButton = document.getElementById("sendButton");
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[m]));
+    }
+
+    function t(key, fallback){
+      try{
+        const lang = (window.multiLang && window.multiLang.currentLanguage) || 'ja';
+        const dict = (window.multiLang && window.multiLang.translations && window.multiLang.translations[lang]) || {};
+        return (dict && dict[key]) || fallback;
+      }catch(_){
+        return fallback;
+      }
+    }
+
+    // who: 'user' | 'ai'
+    function appendMessage(who, text){
+      const messageDiv = document.createElement("div");
+      messageDiv.className = "message";
+
+      if(who === 'user'){
+        messageDiv.className += " user-message";
+        messageDiv.innerHTML = `<div class="message-content">${escapeHtml(text)}</div>`;
+      } else {
+        messageDiv.className += " ai-message";
+        messageDiv.innerHTML = `
+          <div class="message-content">
+            <div class="ai-header">
+              <span class="ai-icon">👨‍⚕️</span>
+              <span class="ai-name" data-translate="ai_teacher">${escapeHtml(t('ai_teacher','AI先生'))}</span>
+            </div>
+            <div class="ai-text">${escapeHtml(text)}</div>
+          </div>
+        `;
+      }
+
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function loading(){
+      const id = "loading-" + Date.now();
+      const messageDiv = document.createElement("div");
+      messageDiv.id = id;
+      messageDiv.className = "message ai-message";
+      messageDiv.innerHTML = `
+        <div class="message-content">
+          <div class="ai-header">
+            <span class="ai-icon">👨‍⚕️</span>
+            <span class="ai-name" data-translate="ai_teacher">${escapeHtml(t('ai_teacher','AI先生'))}</span>
+          </div>
+          <div class="loading-indicator">
+            <div class="spinner"></div>
+            <span>${escapeHtml(t('thinking','考え中...'))}</span>
+          </div>
+        </div>
+      `;
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      return id;
+    }
+
+    function stopLoading(id){
+      const el = document.getElementById(id);
+      if(el) el.remove();
+    }
+
+    // ---- 送信制御 ----
+    let isSending = false;        // 二重送信防止
+    let lastSendTime = 0;         // クライアント側の簡易レート制限（連打防止）
+    let cooldownUntil = 0;        // 429等の後にしばらく待たせる
+
+    function setSendingState(sending){
+      isSending = sending;
+      sendButton.disabled = sending;
+      userInput.disabled = false; // 入力自体は許可してOK（好みでtrueでも）
+      if(sending){
+        sendButton.textContent = t('sending', '送信中…');
+      }else{
+        sendButton.textContent = t('send', '送信');
+      }
+    }
+
+    async function send(){
+      const msg = (userInput.value || "").trim();
+      if(!msg) return;
+
+      const now = Date.now();
+
+      // クールダウン中は送らない（429後の無駄撃ちを止める）
+      if(now < cooldownUntil){
+        // 余計なAIメッセージは増やさず、軽くバイブ的に伝えるならここで
+        appendMessage('ai', t('please_wait', '少し待ってから再度お試しください。'));
+        return;
+      }
+
+      // 送信中は無視（連打でメッセージが増えるのを止める）
+      if(isSending) return;
+
+      // 1秒未満の連打を弾く
+      if(now - lastSendTime < 1000){
+        appendMessage('ai', t('please_wait', '少し待ってから再度お試しください。'));
+        return;
+      }
+
+      lastSendTime = now;
+
+      // UI反映
+      appendMessage('user', msg);
+      userInput.value = "";
+      const id = loading();
+      setSendingState(true);
+
+      try{
+        const r = await fetch(OPENAI_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({ message: msg })
+        });
+
+        let data = null;
+        try { data = await r.json(); } catch(e){ /* ignore */ }
+
+        stopLoading(id);
+
+        if(!r.ok){
+          // 429はクールダウン（3秒）してから再送可能にする
+          if(r.status === 429){
+            cooldownUntil = Date.now() + 3000;
+            appendMessage('ai', t('rate_limited', '混み合っています。3秒ほど待ってからもう一度送ってください。'));
+          } else {
+            const errMsg =
+              (data && typeof data.error === 'string' && data.error) ||
+              (data && data.error && (data.error.message || data.error.error)) ||
+              (data && data.detail) ||
+              `通信エラー (${r.status})`;
+            appendMessage('ai', t('ai_sorry', '申し訳ありません。') + errMsg);
+          }
+          setSendingState(false);
+          return;
+        }
+
+        const aiReply = data?.reply ?? t('ai_error', "うまく応答できませんでした。");
+        appendMessage('ai', aiReply);
+        setSendingState(false);
+
+      }catch(e){
+        stopLoading(id);
+        appendMessage('ai', t('network_error', "通信に問題が発生しました。時間をおいて再度お試しください。"));
+        setSendingState(false);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // 初期メッセージ
+      const showInitialMessage = () => {
+        const greeting = t('greeting','こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。');
+        appendMessage('ai', greeting);
+      };
+
+      // 翻訳準備を少し待つ
+      const waitForTranslation = () => {
+        if (window.multiLang && window.multiLang.currentLanguage && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+          showInitialMessage();
+        } else {
+          setTimeout(() => {
+            if (window.multiLang && window.multiLang.currentLanguage && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+              showInitialMessage();
+            } else {
+              appendMessage('ai', 'こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。');
+            }
+          }, 800);
+        }
+      };
+      waitForTranslation();
+
+      // Enter送信
+      userInput.addEventListener("keypress", (e) => {
+        if(e.key === "Enter") send();
+      });
+
+      // ボタン送信
+      sendButton.addEventListener("click", send);
+
+      userInput.focus();
+
+      // 翻訳UI更新
+      const updateUIWhenReady = () => {
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try {
+            window.multiLang.updateUI();
+            const input = document.getElementById('userInput');
+            if (input && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+              const translation = window.multiLang.translations[window.multiLang.currentLanguage]['health_consultation'];
+              if (translation) input.placeholder = translation;
+            }
+          } catch (_) {}
+        } else {
+          setTimeout(updateUIWhenReady, 300);
+        }
+      };
+      updateUIWhenReady();
+    });
+  </script>
+</body>
+</html>

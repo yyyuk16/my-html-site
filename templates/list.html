@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="患者診療記録">患者診療記録</title>
+    <link rel="stylesheet" href="maintab.css">
+    <link rel="stylesheet" href="footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- 翻訳機能 -->
+    <script src="translation.js"></script>
+    
+    <style>
+        /* 患者情報表示エリアのスタイル */
+        .patient-info-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .patient-header {
+            background: linear-gradient(135deg, #2196f3, #21cbf3);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .patient-name {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .patient-details {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+            border: 1px solid #e3f2fd;
+        }
+        
+        .section-title {
+            color: #2196f3;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .quiz-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2196f3;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .quiz-history {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .quiz-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .quiz-item.poor {
+            border-left-color: #f44336;
+        }
+        
+        .quiz-item.good {
+            border-left-color: #ff9800;
+        }
+        
+        .quiz-date {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .quiz-score {
+            font-weight: 600;
+            color: #2196f3;
+        }
+        
+        .memo-history {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .memo-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .memo-date {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .memo-content {
+            font-size: 0.95em;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+        
+        /* 患者リストのスタイル */
+        .flex-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            min-height: 70vh;
+        }
+        
+        .patient-list-panel {
+            flex: 0 0 300px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+            border: 1px solid #e3f2fd;
+        }
+        
+        .patient-list-panel h2 {
+            color: #2196f3;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            height: 30px;
+            padding: 3px 1px 3px 4px;
+            border: 1px solid #cfd8dc;
+            border-radius: 6px;
+            font-size: 0.8em;
+            outline: none;
+            background: #f1f5f9;
+            transition: border-color 0.2s, background-color .2s;
+        }
+        
+        .search-box input:focus {
+            border-color: #2196f3;
+            background: #fff;
+        }
+        
+        .search-box i {
+            position: absolute;
+            right: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.75em;
+        }
+        
+        .chat-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .chat-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .chat-item.selected {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .doctor-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2196f3, #21cbf3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 12px;
+            font-size: 0.9em;
+        }
+        
+        .chat-info {
+            flex: 1;
+        }
+        
+        .doctor-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .last-message {
+            font-size: 0.85em;
+            color: #666;
+        }
+        
+        .patient-info-container {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+            border: 1px solid #e3f2fd;
+        }
+
+        /* モーダルスタイル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 20px;
+            border-radius: 12px;
+            border: none;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .modal-title {
+            color: #2196f3;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #2196f3;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            min-width: 100px;
+        }
+
+        .btn-primary {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1976d2;
+        }
+
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 💚 ヘッダー -->
+    <header class="top-bar">
+        <div class="header-inner">
+            <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3; letter-spacing:0.08em; display:flex; align-items:center;">
+                <span data-translate="site_title" style="vertical-align:middle;">医療管理アプリ</span>
+            </div>
+            <nav>
+                <ul class="tab-menu">
+                    <li><a href="home.html">🏥 <span data-translate="HOME">HOME</span></a></li>
+                    <li><a href="list.html" class="active">👥 <span data-translate="患者診療記録">患者診療記録</span></a></li>
+                    <li><a href="chat.html">📅 <span data-translate="チャット">チャット</span></a></li>
+                    <li><a href="docterprofile.html">👤 <span data-translate="プロフィール">プロフィール</span></a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+        
+    <div class="flex-container">
+        <div class="patient-list-panel">
+            <h2><i class="fas fa-user-friends"></i> <span data-translate="担当患者リスト">担当患者リスト</span></h2>
+            <div class="search-box">
+                <input type="text" id="patientSearch" data-translate="患者を検索..." placeholder="患者を検索...">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="chat-list" id="patientList"></div>
+        </div>
+        <div class="patient-info-container" id="patientInfoArea">
+            <div class="no-data">
+                <i class="fas fa-user" style="font-size: 3em; color: #ccc; margin-bottom: 15px;"></i>
+                <p>患者を選択してください</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" data-translate="terms">利用規約</a>
+                    <a href="#" data-translate="privacy">プライバシーポリシー</a>
+                </div>
+                <div class="footer-copyright">
+                    <small data-translate="copyright_name">© 2024 医療管理アプリ. All rights reserved.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 診察記録追加モーダル -->
+    <div id="memoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-notes-medical"></i> 診察記録を追加
+                </h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="memoForm">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-alt"></i> 診察日
+                        </label>
+                        <input type="date" id="memoDate" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-stethoscope"></i> 病状
+                        </label>
+                        <textarea id="memoCondition" class="form-input form-textarea" placeholder="患者の症状や病状を記録してください" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-pills"></i> 処方箋
+                        </label>
+                        <textarea id="memoPrescription" class="form-input form-textarea" placeholder="処方した薬や治療内容を記録してください"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-pen"></i> その他のメモ
+                        </label>
+                        <textarea id="memoOther" class="form-input form-textarea" placeholder="その他の注意事項やメモがあれば記録してください"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeModalBtn">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="saveMemoBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const firebaseConfig = {
+  apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+  authDomain: "web01-2484d.firebaseapp.com",
+  databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+  projectId: "web01-2484d",
+  storageBucket: "web01-2484d.firebasestorage.app",
+  messagingSenderId: "90159472898",
+  appId: "1:90159472898:web:261ec71f9919611011e21b",
+  measurementId: "G-9TGR07ZSY9"
+};
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    let currentUserId = null;
+    let patients = [];
+    let selectedPatientId = null;
+
+    // 担当患者リスト取得
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) {
+        alert('ログインしてください');
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUserId = user.uid;
+      // usersコレクションから担当患者を取得
+      const patientsSnapshot = await db.collection('users')
+        .where('role', '==', 'patient')
+        .where('assignedDoctor', '==', currentUserId)
+        .get();
+      patients = patientsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderPatientList();
+    });
+
+    function renderPatientList() {
+      const listDiv = document.getElementById('patientList');
+      listDiv.innerHTML = '';
+      if (patients.length === 0) {
+        listDiv.innerHTML = '<p style="color:var(--text-color-muted,#4A4A4A);text-align:center;margin:32px 0;">担当患者が登録されていません</p>';
+        document.getElementById('memoArea').innerHTML = '';
+        return;
+      }
+      patients.forEach(patient => {
+        const item = document.createElement('div');
+        item.className = 'chat-item' + (selectedPatientId === patient.id ? ' selected' : '');
+        item.innerHTML = `
+          <div class="doctor-avatar">${patient.name ? patient.name.charAt(0) : '?'}</div>
+          <div class="chat-info">
+            <div class="doctor-name">${patient.name || '名無しの患者'}</div>
+            <div class="last-message">${patient.age ? patient.age + '歳' : ''}</div>
+          </div>
+        `;
+        item.onclick = () => {
+          selectPatient(patient.id);
+        };
+        listDiv.appendChild(item);
+      });
+      // 最初の患者を自動選択
+      if (!selectedPatientId && patients.length > 0) {
+        setTimeout(() => {
+          selectPatient(patients[0].id);
+        }, 100);
+      }
+    }
+
+    async function selectPatient(patientId) {
+      console.log('患者を選択:', patientId);
+      selectedPatientId = patientId;
+      const patient = patients.find(p => p.id === patientId);
+      if (!patient) {
+        console.log('患者が見つかりません:', patientId);
+        return;
+      }
+      console.log('選択された患者:', patient);
+      
+      // 選択状態を更新
+      document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('selected'));
+      // 患者リスト内の該当するアイテムを選択状態にする
+      const patientItems = document.querySelectorAll('.chat-item');
+      patientItems.forEach(item => {
+        if (item.onclick && item.onclick.toString().includes(patientId)) {
+          item.classList.add('selected');
+        }
+      });
+      
+      // 最新データ取得
+      const doc = await db.collection('users').doc(patientId).get();
+      const data = doc.data();
+      const memos = data.memos || [];
+      
+      // 患者情報を表示
+      await renderPatientInfo(patient, data, memos);
+    }
+
+    async function renderPatientInfo(patient, data, memos) {
+      const area = document.getElementById('patientInfoArea');
+      console.log('患者情報を表示中:', patient);
+      
+      // クイズ結果を取得
+      const quizResults = await getQuizResults(patient.email);
+      console.log('クイズ結果:', quizResults);
+      
+      area.innerHTML = `
+        <div class="patient-header">
+          <div class="patient-name">${patient.name || '名無しの患者'}</div>
+          <div class="patient-details">
+            <span><i class="fas fa-birthday-cake"></i> ${patient.age || '未登録'}歳</span>
+            <span><i class="fas fa-envelope"></i> ${patient.email || '未登録'}</span>
+            <span><i class="fas fa-calendar"></i> 登録日: ${patient.createdAt ? new Date(patient.createdAt.seconds * 1000).toLocaleDateString('ja-JP') : '不明'}</span>
+          </div>
+        </div>
+        
+        <div class="info-section">
+          <div class="section-title">
+            <i class="fas fa-chart-line"></i> クイズ統計
+          </div>
+          <div class="quiz-stats">
+            <div class="stat-card">
+              <div class="stat-value">${quizResults.totalQuizzes || 0}</div>
+              <div class="stat-label">総クイズ回数</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${quizResults.averageAccuracy || 0}%</div>
+              <div class="stat-label">平均正答率</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${quizResults.bestScore || 0}%</div>
+              <div class="stat-label">最高スコア</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${quizResults.recentQuizzes || 0}</div>
+              <div class="stat-label">最近7日間</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="info-section">
+          <div class="section-title">
+            <i class="fas fa-history"></i> 最近のクイズ結果
+          </div>
+          <div class="quiz-history">
+            ${quizResults.recentQuizzesList.length > 0 ? 
+              quizResults.recentQuizzesList.map(quiz => {
+                // Firebaseの実際のフィールド名を使用
+                const score = quiz.score || 0;
+                const total = quiz.total || 0;
+                const accuracyPercent = total > 0 ? Math.round((score / total) * 100) : 0;
+                
+                // 正答率に基づく色分け（パーセンテージ基準）
+                const itemClass = accuracyPercent >= 80 ? 'excellent' : accuracyPercent >= 60 ? 'good' : 'poor';
+                
+                return `
+                  <div class="quiz-item ${itemClass}">
+                    <div class="quiz-date">${new Date((quiz.createdAt && quiz.createdAt.seconds) ? quiz.createdAt.seconds * 1000 : Date.now()).toLocaleDateString('ja-JP')}</div>
+                    <div class="quiz-score">正答率: ${accuracyPercent}% (${score}/${total}問)</div>
+                  </div>
+                `;
+              }).join('') : 
+              '<div class="no-data">クイズ結果がありません</div>'
+            }
+          </div>
+        </div>
+        
+        <div class="info-section">
+          <div class="section-title">
+            <i class="fas fa-notes-medical"></i> 診察記録 (${memos.length}件)
+            <button id="addMemoBtn" class="add-memo-btn" style="margin-left: auto; background: #2196f3; color: white; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 0.9em;">
+              <i class="fas fa-plus"></i> 記録を追加
+            </button>
+          </div>
+          <div class="memo-history">
+            ${memos.length > 0 ? 
+              memos.slice(0, 5).map(memo => `
+                <div class="memo-item">
+                  <div class="memo-date">${memo.date} - ${memo.doctorName || '医師'}</div>
+                  <div class="memo-content">
+                    ${memo.condition ? `<strong>病状:</strong> ${memo.condition}<br>` : ''}
+                    ${memo.prescription ? `<strong>処方:</strong> ${memo.prescription}<br>` : ''}
+                    ${memo.other ? `<strong>その他:</strong> ${memo.other}` : ''}
+                  </div>
+                </div>
+              `).join('') : 
+              '<div class="no-data">診察記録がありません</div>'
+            }
+          </div>
+        </div>
+      `;
+      
+      // 診察記録追加ボタンのイベントリスナーを追加
+      const addMemoBtn = document.getElementById('addMemoBtn');
+      if (addMemoBtn) {
+        addMemoBtn.onclick = function() {
+          openMemoModal(patient);
+        };
+      }
+    }
+
+    function renderMemoArea(patient, memos) {
+      const area = document.getElementById('memoArea');
+      const currentDate = new Date().toISOString().split('T')[0];
+      
+      area.innerHTML = `
+        <h2><i class="fas fa-notes-medical"></i> ${patient.name} さんの診療メモ</h2>
+        <form id="memoForm">
+          <div class="memo-field">
+            <label><i class="fas fa-calendar-alt"></i> 診察日</label>
+            <input type="date" class="memo-input" id="memoDate" value="${currentDate}">
+          </div>
+          <div class="memo-field">
+            <label><i class="fas fa-stethoscope"></i> 病状 <span style="color:#666;font-size:0.9em;">(必須)</span></label>
+            <textarea class="memo-input" id="memoCondition" rows="3" placeholder="患者の症状や病状を記録してください"></textarea>
+          </div>
+          <div class="memo-field">
+            <label><i class="fas fa-pills"></i> 処方箋</label>
+            <textarea class="memo-input" id="memoPrescription" rows="3" placeholder="処方した薬や治療内容を記録してください"></textarea>
+          </div>
+          <div class="memo-field">
+            <label><i class="fas fa-pen"></i> その他のメモ</label>
+            <textarea class="memo-input" id="memoOther" rows="2" placeholder="その他の注意事項やメモがあれば記録してください"></textarea>
+          </div>
+          <button class="save-btn" type="submit"><i class="fas fa-save"></i> 診断メモを保存</button>
+        </form>
+        <div class="memo-history">
+          <h3><i class="fas fa-history"></i> メモ履歴 (${memos.length}件)</h3>
+          ${memos.length === 0 ? '<p style="color:var(--text-color-muted,#4A4A4A);margin:12px 0;">メモはまだありません</p>' : memos.map(memo => `
+            <div class="memo-entry">
+              <div class="memo-header">
+                <div class="memo-date"><i class="fas fa-calendar-day"></i> ${memo.date}</div>
+                <div class="memo-doctor" style="font-size:0.9em;color:#666;">
+                  <i class="fas fa-user-md"></i> ${memo.doctorName || '医師'}
+                </div>
+              </div>
+              <div class="memo-content">
+                ${memo.condition ? `<div class="memo-item"><span class="memo-label"><i class="fas fa-stethoscope"></i> 病状:</span><span>${memo.condition}</span></div>` : ''}
+                ${memo.prescription ? `<div class="memo-item"><span class="memo-label"><i class="fas fa-pills"></i> 処方箋:</span><span>${memo.prescription}</span></div>` : ''}
+                ${memo.other ? `<div class="memo-item"><span class="memo-label"><i class="fas fa-pen"></i> その他:</span><span>${memo.other}</span></div>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      document.getElementById('memoForm').onsubmit = async function(e) {
+        e.preventDefault();
+        
+        // 現在の日時を取得
+        const now = new Date();
+        const currentDate = now.toISOString().split('T')[0];
+        
+        const newMemo = {
+          date: document.getElementById('memoDate').value || currentDate,
+          condition: document.getElementById('memoCondition').value,
+          prescription: document.getElementById('memoPrescription').value,
+          other: document.getElementById('memoOther').value,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          doctorId: currentUserId,
+          doctorName: firebase.auth().currentUser?.displayName || '医師'
+        };
+        
+        if (!newMemo.condition && !newMemo.prescription && !newMemo.other) {
+          alert('少なくとも病状、処方箋、その他のいずれかを入力してください');
+          return;
+        }
+        
+        try {
+          // 既存のメモ配列を取得
+          const patientDoc = await db.collection('users').doc(patient.id).get();
+          const existingMemos = patientDoc.data().memos || [];
+          
+          // 新しいメモを配列の先頭に追加
+          existingMemos.unshift(newMemo);
+          
+          // Firebaseに保存
+          await db.collection('users').doc(patient.id).update({ 
+            memos: existingMemos,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          
+          // 成功メッセージ
+          alert('診断メモが正常に保存されました！');
+          
+          // フォームをクリア
+          document.getElementById('memoCondition').value = '';
+          document.getElementById('memoPrescription').value = '';
+          document.getElementById('memoOther').value = '';
+          document.getElementById('memoDate').value = currentDate;
+          
+          // 患者情報を再読み込み
+          await selectPatient(patient.id);
+          
+        } catch (error) {
+          console.error('メモ保存エラー:', error);
+          alert('メモの保存に失敗しました: ' + error.message);
+        }
+      };
+    }
+
+    // クイズ結果を取得する関数
+    async function getQuizResults(patientEmail) {
+      if (!patientEmail) {
+        return {
+          totalQuizzes: 0,
+          averageAccuracy: 0,
+          bestScore: 0,
+          recentQuizzes: 0,
+          recentQuizzesList: []
+        };
+      }
+      
+      try {
+        // ai_quiz_scoresコレクションから患者のクイズ結果を取得（orderByを削除してインデックスエラーを回避）
+        const quizSnapshot = await db.collection('ai_quiz_scores')
+          .where('userEmail', '==', patientEmail)
+          .get();
+        
+        if (quizSnapshot.empty) {
+          return {
+            totalQuizzes: 0,
+            averageAccuracy: 0,
+            bestScore: 0,
+            recentQuizzes: 0,
+            recentQuizzesList: []
+          };
+        }
+        
+        const quizzes = quizSnapshot.docs.map(doc => doc.data());
+        
+        // デバッグ用: 最初のクイズデータの構造を確認
+        if (quizzes.length > 0) {
+          console.log('クイズデータの例:', quizzes[0]);
+        }
+        
+        // クライアント側でタイムスタンプ順にソート（createdAtフィールドを使用）
+        quizzes.sort((a, b) => {
+          const timestampA = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
+          const timestampB = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : 0;
+          return timestampB - timestampA; // 降順（新しい順）
+        });
+        
+        const totalQuizzes = quizzes.length;
+        
+        // 平均正答率を計算（accuracyの値の範囲を確認して適切に処理）
+        let totalAccuracy = 0;
+        let maxAccuracy = 0;
+        
+        quizzes.forEach(quiz => {
+          // Firebaseの実際のフィールド名を使用: score/totalから正答率を計算
+          const score = quiz.score || 0;
+          const total = quiz.total || 0;
+          let accuracy = 0;
+          
+          if (total > 0) {
+            accuracy = (score / total) * 100;
+          }
+          
+          totalAccuracy += accuracy;
+          maxAccuracy = Math.max(maxAccuracy, accuracy);
+        });
+        
+        const averageAccuracy = Math.round(totalAccuracy / totalQuizzes);
+        const bestScore = Math.round(maxAccuracy);
+        
+        // 最近7日間のクイズ数
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const recentQuizzes = quizzes.filter(quiz => {
+          // createdAtフィールドを使用
+          const quizDate = quiz.createdAt && quiz.createdAt.seconds ? 
+            new Date(quiz.createdAt.seconds * 1000) : new Date(0);
+          return quizDate >= sevenDaysAgo;
+        }).length;
+        
+        // 最近のクイズ結果（最大5件）
+        const recentQuizzesList = quizzes.slice(0, 5);
+        
+        return {
+          totalQuizzes,
+          averageAccuracy,
+          bestScore,
+          recentQuizzes,
+          recentQuizzesList
+        };
+        
+      } catch (error) {
+        console.error('クイズ結果取得エラー:', error);
+        return {
+          totalQuizzes: 0,
+          averageAccuracy: 0,
+          bestScore: 0,
+          recentQuizzes: 0,
+          recentQuizzesList: []
+        };
+      }
+    }
+
+    document.getElementById('patientSearch').addEventListener('input', function(e) {
+        const searchText = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.chat-item');
+        items.forEach(item => {
+            const name = item.querySelector('.doctor-name').textContent.toLowerCase();
+            item.style.display = name.includes(searchText) ? 'flex' : 'none';
+        });
+    });
+
+    // モーダル機能を追加
+    let currentPatientForMemos = null;
+
+    // モーダルを開く関数
+    function openMemoModal(patient) {
+      console.log('openMemoModal called with patient:', patient);
+      
+      if (!patient || !patient.id) {
+        alert('患者情報が正しくありません');
+        return;
+      }
+      
+      currentPatientForMemos = patient;
+      const modal = document.getElementById('memoModal');
+      const memoDateInput = document.getElementById('memoDate');
+      
+      // 今日の日付をデフォルト値として設定
+      const today = new Date().toISOString().split('T')[0];
+      memoDateInput.value = today;
+      
+      // フォームをリセット
+      document.getElementById('memoCondition').value = '';
+      document.getElementById('memoPrescription').value = '';
+      document.getElementById('memoOther').value = '';
+      
+      modal.style.display = 'block';
+      
+      // モーダルが表示された後、少し待ってからスクロール位置を調整
+      setTimeout(() => {
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+          modalContent.scrollTop = 0;
+        }
+      }, 100);
+    }
+
+    // モーダルを閉じる関数
+    function closeMemoModal() {
+      const modal = document.getElementById('memoModal');
+      modal.style.display = 'none';
+      currentPatientForMemos = null;
+    }
+
+    // 診察記録を保存する関数
+    async function saveMemo() {
+      console.log('saveMemo called, currentPatientForMemos:', currentPatientForMemos);
+      
+      if (!currentPatientForMemos || !currentPatientForMemos.id) {
+        alert('患者情報が見つかりません。患者を選択し直してください。');
+        closeMemoModal();
+        return;
+      }
+
+      const condition = document.getElementById('memoCondition').value.trim();
+      const prescription = document.getElementById('memoPrescription').value.trim();
+      const other = document.getElementById('memoOther').value.trim();
+      const date = document.getElementById('memoDate').value;
+
+      if (!condition) {
+        alert('病状を入力してください');
+        return;
+      }
+
+      try {
+        console.log('Saving memo for patient:', currentPatientForMemos.id);
+        
+        // 既存の診察記録を取得
+        const patientDoc = await db.collection('users').doc(currentPatientForMemos.id).get();
+        const existingMemos = patientDoc.data().memos || [];
+
+        // 新しい診察記録を作成
+        const newMemo = {
+          date: date,
+          condition: condition,
+          prescription: prescription,
+          other: other,
+          createdAt: new Date().toISOString(),
+          doctorId: currentUserId,
+          doctorName: firebase.auth().currentUser?.displayName || '医師'
+        };
+
+        // 新しい記録を配列に追加
+        existingMemos.unshift(newMemo);
+
+        // Firebaseに保存
+        await db.collection('users').doc(currentPatientForMemos.id).update({
+          memos: existingMemos,
+          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert('診察記録が保存されました');
+        closeMemoModal();
+
+        // 患者情報を再読み込み
+        await selectPatient(currentPatientForMemos.id);
+
+      } catch (error) {
+        console.error('診察記録保存エラー:', error);
+        alert('診察記録の保存に失敗しました: ' + error.message);
+      }
+    }
+
+    // イベントリスナーを追加
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('memoModal');
+      const closeBtn = document.querySelector('.close');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const saveMemoBtn = document.getElementById('saveMemoBtn');
+
+      if (closeBtn) {
+        closeBtn.onclick = closeMemoModal;
+      }
+
+      if (closeModalBtn) {
+        closeModalBtn.onclick = closeMemoModal;
+      }
+
+      if (saveMemoBtn) {
+        saveMemoBtn.onclick = saveMemo;
+      }
+
+      // モーダル外をクリックしたら閉じる
+      window.onclick = function(event) {
+        if (event.target === modal) {
+          closeMemoModal();
+        }
+      }
+    });
+    </script>
+</body>
+</html>

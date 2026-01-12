@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="settings">設定</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="maintab.css">
+    <link rel="stylesheet" href="footer.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- 多言語対応 -->
+    <script src="multilang.js"></script>
+</head>
+<body>
+    <!-- 💚 ヘッダー -->
+    <header class="top-bar">
+      <div class="header-inner">
+        <div class="logo">
+          <div class="logo-icon"></div>
+          <span data-translate="site_title">結核対策アプリ</span>
+        </div>
+        <button class="user-name-btn" id="userNameBtn">
+          <span id="userNameDisplay">ゲスト さん</span>
+        </button>
+        <div class="header-right">
+          <nav>
+            <ul class="tab-menu">
+              <li><a href="ai.html"><span data-translate="chat">チャット</span></a></li>
+              <li><a href="score.html"><span data-translate="quiz">Q&A</span></a></li>
+              <li><a href="movie.html"><span data-translate="video_watching">動画</span></a></li>
+              <li><a href="setting.html" class="active"><span data-translate="settings">設定</span></a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="max-width: 700px; margin: 0 auto; padding-top: 3rem; padding-bottom: 3rem;">
+      <div class="setting-header" style="margin-bottom: 2.5rem; text-align:center;">
+        <h1 style="font-size:2.2rem; color:#2E7D32; font-weight:700; margin-bottom:0.5rem;" data-translate="settings">設定</h1>
+      </div>
+      <div class="setting-sections">
+
+        <!-- アカウント -->
+        <section class="setting-card">
+          <button class="setting-btn" style="width: 100%; padding: 1.2rem 0; font-size: 1.1rem; font-weight: 600;" onclick="window.location.href='profile.html'" data-translate="account_info">アカウント</button>
+        </section>
+
+        <!-- 使い方 -->
+        <section class="setting-card">
+          <h2 class="setting-title" data-translate="how_to_use">使い方</h2>
+          <ul class="setting-list">
+            <li data-translate="ai_teacher_24h">・「AI先生」では24時間いつでも健康相談ができます。</li>
+            <li data-translate="realtime_chat_desc">・「リアルタイム」では医療スタッフと直接チャットが可能です。</li>
+            <li data-translate="use_qa_video">・Q&Aや動画視聴もご活用ください。</li>
+          </ul>
+        </section>
+
+        <!-- お問い合わせ -->
+        <section class="setting-card">
+          <h2 class="setting-title" data-translate="contact">お問い合わせ</h2>
+          <ul class="setting-list">
+            <li data-translate="contact_desc">ご質問やご要望がある場合は、下記メールアドレスまでご連絡ください。</li>
+            <li><a href="mailto:info@tb-support.jp" style="color:#2E7D32;">info@tb-support.jp</a></li>
+          </ul>
+        </section>
+
+      </div>
+    </main>
+
+    <style>
+      body {
+        background: #fff;
+        min-height: 100vh;
+      }
+      .setting-header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      .setting-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 2.2rem;
+      }
+      .setting-card {
+        background: #fff;
+        border-radius: 1.2rem;
+        box-shadow: 0 4px 18px 0 rgba(46,125,50,0.10);
+        padding: 2rem 1.5rem;
+      }
+      .setting-title {
+        font-size: 1.3rem;
+        color: #2E7D32;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        letter-spacing: 0.02em;
+      }
+      .setting-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        color: #444;
+        font-size: 1.05rem;
+      }
+      .setting-list li {
+        margin-bottom: 0.8rem;
+      }
+      .setting-btn {
+        background: linear-gradient(90deg, #A5D6B5 0%, #2E7D32 100%);
+        color: #fff;
+        border: none;
+        padding: 0.6rem 1.6rem;
+        border-radius: 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 2px 12px 0 rgba(46,125,50,0.10);
+        transition: background 0.2s, box-shadow 0.2s;
+        letter-spacing: 0.01em;
+      }
+      .setting-btn[disabled] {
+        opacity: 0.7;
+        cursor: default;
+      }
+      .setting-btn:hover:not([disabled]) {
+        background: linear-gradient(90deg, #2E7D32 0%, #A5D6B5 100%);
+        box-shadow: 0 4px 18px 0 rgba(46,125,50,0.18);
+      }
+      @media (max-width: 700px) {
+        .setting-sections {
+          gap: 1.2rem;
+        }
+        .setting-card {
+          padding: 1.2rem 0.7rem;
+        }
+      }
+      /* フッターの色をai.htmlと統一 */
+      .footer {
+        background: #2E7D32;
+        color: #fff;
+      }
+      .footer small a {
+        color: #fff;
+      }
+    </style>
+
+    <script>
+      // ユーザー名を取得して表示
+      function updateUserName() {
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        if (!userNameDisplay) return;
+        
+        if (window.multiLang && window.multiLang.auth) {
+          window.multiLang.auth.onAuthStateChanged((user) => {
+            if (user) {
+              const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ユーザー');
+              userNameDisplay.textContent = displayName + ' さん';
+            } else {
+              userNameDisplay.textContent = 'ゲスト さん';
+            }
+          });
+        } else if (typeof firebase !== 'undefined' && firebase.auth) {
+          firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+              const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ユーザー');
+              userNameDisplay.textContent = displayName + ' さん';
+            } else {
+              userNameDisplay.textContent = 'ゲスト さん';
+            }
+          });
+        } else {
+          userNameDisplay.textContent = 'ゲスト さん';
+        }
+      }
+
+      // Firebase認証からユーザー情報を取得（ダミー表示）
+      document.addEventListener('DOMContentLoaded', function() {
+        updateUserName();
+        // 実際はfirebase.auth().onAuthStateChangedなどで取得
+        // ここでは例としてダミー値
+        const userNameEl = document.getElementById('userName');
+        const userEmailEl = document.getElementById('userEmail');
+        if (userNameEl) userNameEl.textContent = "ゲスト";
+        if (userEmailEl) userEmailEl.textContent = "未登録";
+        // 言語に基づく翻訳を適用
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try { window.multiLang.updateUI(); } catch (_) {}
+        }
+        // 念のためヘッダー/フッターの文字も明示的に更新
+        try {
+          const lang = (window.multiLang && window.multiLang.currentLanguage) || 'ja';
+          const dict = (window.multiLang && window.multiLang.translations && window.multiLang.translations[lang]) || {};
+          const titleEl = document.querySelector('.site-title[data-translate]');
+          if (titleEl && dict[titleEl.getAttribute('data-translate')]) {
+            titleEl.textContent = dict[titleEl.getAttribute('data-translate')];
+          }
+          const termsEl = document.querySelector('footer [data-translate="terms"]');
+          if (termsEl && dict.terms) termsEl.textContent = dict.terms;
+          const privacyEl = document.querySelector('footer [data-translate="privacy"]');
+          if (privacyEl && dict.privacy) privacyEl.textContent = dict.privacy;
+          const copyEl = document.querySelector('footer [data-translate="copyright_name"]');
+          if (copyEl && dict['copyright_name']) copyEl.textContent = dict['copyright_name'];
+        } catch(_) {}
+      });
+
+      function logout() {
+        // 実際はfirebase.auth().signOut()など
+        alert('ログアウトしました（デモ）');
+        // location.reload();
+      }
+    </script>
+
+    <!-- フッター -->
+    <footer class="footer container">
+      <small>
+        <a href="#" data-translate="terms">利用規約</a>
+        <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
+        &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
+      </small>
+    </footer>
+</body>
+</html>

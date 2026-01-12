@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title data-i18n="title">医師プロフィール</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="d_sign.css">
+  
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+ 
+  <style>
+    body {
+      background: url('./phote/S__9011216.jpg') center/cover no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+      background-position: center;
+      font-family: "Noto Sans JP", sans-serif;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #1976d2;
+    }
+    .profile-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 8px;
+    }
+    .profile-label {
+      font-weight: 600;
+      color: #1976d2;
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+    .profile-value {
+      color: #333;
+      flex: 1;
+      margin-left: 16px;
+    }
+    .profile-value input,
+    .profile-value select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .profile-value input:focus,
+    .profile-value select:focus {
+      border-color: #1976d2;
+    }
+    .logout-btn {
+      display: block;
+      margin: 16px auto 0;
+      padding: 12px 24px;
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .logout-btn:hover {
+      background: #1565c0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 data-i18n="title">医師新規登録</h1>
+    <form id="signupForm">
+      <div class="profile-row">
+        <div class="profile-label">名前</div>
+        <div class="profile-value">
+          <input type="text" id="name" name="name" required placeholder="例：高木太郎">
+        </div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-label">ローマ字の名前</div>
+        <div class="profile-value">
+          <input type="text" id="nameRomaji" name="nameRomaji" required placeholder="例：Takagi Taro">
+        </div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-label">性別</div>
+        <div class="profile-value">
+          <select id="gender" name="gender" required>
+            <option value="">選択してください</option>
+            <option value="男性">男性</option>
+            <option value="女性">女性</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-label">年齢</div>
+        <div class="profile-value">
+          <input type="number" id="age" name="age" min="18" max="120" required placeholder="例：40">
+        </div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-label">メール</div>
+        <div class="profile-value">
+          <input type="email" id="email" name="email" required placeholder="例：22rdt00@ime.demacia.jp">
+        </div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-label">勤務年数</div>
+        <div class="profile-value">
+          <input type="number" id="experience" name="experience" min="0" max="60" required placeholder="例：4">
+        </div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-label">病院</div>
+        <div class="profile-value">
+          <input type="text" id="hospital" name="hospital" required placeholder="例：〇〇病院">
+        </div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-label">専門</div>
+        <div class="profile-value">
+          <input type="text" id="specialty" name="specialty" required placeholder="例：外科">
+        </div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-label">パスワード</div>
+        <div class="profile-value">
+          <input type="password" id="password" name="password" required placeholder="パスワード">
+        </div>
+      </div>
+      <button type="submit" class="logout-btn" style="margin-top: 18px; background: #1976d2;">登録</button>
+    </form>
+    <div id="signupMessage" style="text-align:center; margin-top: 16px; color: #d32f2f;"></div>
+    <div style="text-align:center; margin-top: 18px;">
+      <button onclick="window.location.href='setting.html'" style="background: linear-gradient(#9fcef5 100%); color: #fff; border: none; border-radius: 16px; padding: 12px 36px; font-size: 1.08em; font-weight: 600; letter-spacing: .04em; cursor: pointer; box-shadow: 0 2px 8px rgba(46,125,50,0.10); transition: background .18s, box-shadow .18s;">
+        <i class="fas fa-arrow-left"></i> <span data-translate="back">戻る</span>
+      </button>
+    </div>
+  </div>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+      authDomain: "web01-2484d.firebaseapp.com",
+      databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.firebasestorage.app",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b",
+      measurementId: "G-9TGR07ZSY9"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+    document.getElementById('signupForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const nameRomaji = document.getElementById('nameRomaji').value.trim();
+      const gender = document.getElementById('gender').value;
+      const age = document.getElementById('age').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const experience = document.getElementById('experience').value.trim();
+      const hospital = document.getElementById('hospital').value.trim();
+      const specialty = document.getElementById('specialty').value.trim();
+      const password = document.getElementById('password').value;
+
+      const messageDiv = document.getElementById('signupMessage');
+      messageDiv.textContent = '';
+
+      if (!name || !nameRomaji || !gender || !age || !email || !experience || !hospital || !specialty || !password) {
+        messageDiv.textContent = '全ての項目を入力してください。';
+        return;
+      }
+
+      try {
+        // Firebase Authでユーザー作成
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        // Firestoreにプロフィール保存
+        const db = firebase.firestore();
+        await db.collection('users').doc(user.uid).set({
+          name,
+          nameRomaji,
+          gender,
+          age,
+          email,
+          experience,
+          hospital,
+          specialty,
+          createdAt: new Date(),
+          language: 'ja',
+          role: 'doct'
+        });
+        messageDiv.style.color = "#388e3c";
+        messageDiv.textContent = '登録が完了しました。ログイン画面に移動します。';
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+      } catch (error) {
+        messageDiv.style.color = "#d32f2f";
+        if (error.code === 'auth/email-already-in-use') {
+          messageDiv.textContent = 'このメールアドレスは既に使用されています。';
+        } else if (error.code === 'auth/weak-password') {
+          messageDiv.textContent = 'パスワードは6文字以上で入力してください。';
+        } else {
+          messageDiv.textContent = '登録に失敗しました: ' + error.message;
+        }
+      }
+    };
+  </script>
+</body>
+</html>

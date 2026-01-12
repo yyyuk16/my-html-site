@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="video_watching">動画視聴</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="maintab.css">
+    <link rel="stylesheet" href="footer.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- 多言語対応 -->
+    <script src="multilang.js"></script>
+</head>
+<body>
+    <!-- 💚 ヘッダー -->
+    <header class="top-bar">
+      <div class="header-inner">
+        <div class="logo">
+          <div class="logo-icon"></div>
+          <span data-translate="site_title">結核対策アプリ</span>
+        </div>
+        <button class="user-name-btn" id="userNameBtn">
+          <span id="userNameDisplay">ゲスト さん</span>
+        </button>
+        <div class="header-right">
+          <nav>
+            <ul class="tab-menu">
+              <li><a href="ai.html"><span data-translate="chat">チャット</span></a></li>
+              <li><a href="score.html"><span data-translate="quiz">Q&A</span></a></li>
+              <li><a href="movie.html" class="active"><span data-translate="video_watching">動画</span></a></li>
+              <li><a href="setting.html"><span data-translate="settings">設定</span></a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+
+    <style>
+      body {
+        background: #fff;
+        min-height: 100vh;
+      }
+      .movie-page {
+        max-width: 1100px;
+        margin: 90px auto 40px;
+        padding: 0 1.0rem 2.0rem;
+        font-family: 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      .movie-header {
+        margin-bottom: 1.8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1.5rem;
+      }
+      .movie-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #2E7D32;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.4rem;
+        flex: 1;
+      }
+      .movie-subtitle {
+        font-size: 0.98rem;
+        color: #555;
+        line-height: 1.7;
+      }
+
+      .movie-layout {
+        display: block;
+      }
+      .movie-layout.video-selected {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .movie-layout.video-selected .control-panel {
+        display: none;
+      }
+
+      /* 言語・項目のコントロール */
+      .control-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+      }
+      .panel-card {
+        background: #ffffff;
+        border-radius: 1.1rem;
+        box-shadow: 0 4px 18px rgba(46, 125, 50, 0.10);
+        padding: 1.1rem 1.3rem;
+      }
+      .panel-title {
+        font-size: 0.98rem;
+        font-weight: 600;
+        color: #2E7D32;
+        margin-bottom: 0.7rem;
+        letter-spacing: 0.06em;
+      }
+
+      .lang-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+      .lang-chip {
+        border-radius: 999px;
+        padding: 0.32rem 0.9rem;
+        font-size: 0.85rem;
+        border: 1px solid #C8E6C9;
+        background: #F1F8E9;
+        color: #33691E;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s, box-shadow 0.18s, border-color 0.18s;
+        white-space: nowrap;
+      }
+      .lang-chip.is-active {
+        background: linear-gradient(90deg, #A5D6B5 0%, #2E7D32 100%);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 3px 12px rgba(46, 125, 50, 0.20);
+      }
+
+      .topic-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .topic-tab {
+        border-radius: 0.9rem;
+        padding: 0.45rem 1rem;
+        font-size: 0.88rem;
+        border: 1px solid #E0E0E0;
+        background: #FFFFFF;
+        color: #424242;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+      }
+      .topic-tab.is-active {
+        background: #E8F5E9;
+        border-color: #81C784;
+        color: #1B5E20;
+        box-shadow: 0 3px 10px rgba(129, 199, 132, 0.35);
+      }
+
+      /* 再生エリア */
+      .player-card {
+        background: #ffffff;
+        border-radius: 1.1rem;
+        box-shadow: 0 4px 18px rgba(46, 125, 50, 0.12);
+        padding: 1.2rem 1.4rem 1.4rem;
+      }
+      .player-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 0.7rem;
+      }
+      .player-label-main {
+        font-size: 0.96rem;
+        font-weight: 600;
+        color: #2E7D32;
+      }
+      .player-label-sub {
+        font-size: 0.8rem;
+        color: #757575;
+      }
+      .watch-video-button {
+        background: linear-gradient(90deg, #A5D6B5 0%, #2E7D32 100%);
+        color: #fff;
+        border: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: 0.8rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 3px 12px rgba(46, 125, 50, 0.25);
+        transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+        margin-bottom: 1rem;
+        width: 100%;
+        letter-spacing: 0.02em;
+      }
+      .watch-video-button:hover {
+        background: linear-gradient(90deg, #2E7D32 0%, #A5D6B5 100%);
+        box-shadow: 0 4px 16px rgba(46, 125, 50, 0.35);
+        transform: translateY(-1px);
+      }
+      .watch-video-button:active {
+        transform: translateY(0);
+      }
+      .back-button {
+        background: linear-gradient(90deg, #A5D6B5 0%, #2E7D32 100%);
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1.2rem;
+        border-radius: 0.7rem;
+        font-size: 0.88rem;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(46, 125, 50, 0.20);
+        transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+        margin-bottom: 1rem;
+        display: none;
+      }
+      .movie-layout.video-selected .back-button {
+        display: inline-block;
+      }
+      .back-button:hover {
+        background: linear-gradient(90deg, #2E7D32 0%, #A5D6B5 100%);
+        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.30);
+        transform: translateY(-1px);
+      }
+      .player-wrapper {
+        position: relative;
+        width: 100%;
+        border-radius: 0.9rem;
+        overflow: hidden;
+        background: #E0E0E0;
+        aspect-ratio: 16 / 9;
+      }
+      .player-wrapper iframe {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+      .player-placeholder {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        color: #616161;
+        font-size: 0.9rem;
+      }
+
+      /* 動画リスト */
+      .video-list-card {
+        margin-top: 1.2rem;
+        background: #ffffff;
+        border-radius: 1.1rem;
+        box-shadow: 0 4px 18px rgba(46, 125, 50, 0.10);
+        padding: 1.3rem 1.5rem 1.5rem;
+      }
+      .video-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 0.8rem;
+      }
+      .video-list-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #424242;
+      }
+      .video-list-caption {
+        font-size: 0.8rem;
+        color: #9E9E9E;
+      }
+      .video-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+        justify-items: stretch;
+      }
+      .video-card {
+        border-radius: 1rem;
+        padding: 1rem 1.1rem;
+        border: 1px solid #E0E0E0;
+        background: #FAFAFA;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, transform 0.12s;
+        min-height: 90px;
+        justify-content: space-between;
+      }
+      .video-card:hover {
+        border-color: #81C784;
+        box-shadow: 0 3px 10px rgba(129, 199, 132, 0.25);
+        background: #FFFFFF;
+        transform: translateY(-1px);
+      }
+      .video-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #424242;
+        line-height: 1.4;
+        flex: 1;
+      }
+      .video-meta {
+        font-size: 0.82rem;
+        color: #757575;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-top: 0.2rem;
+      }
+      .video-lang {
+        font-size: 0.8rem;
+        color: #558B2F;
+        font-weight: 500;
+      }
+      .video-topic-label {
+        font-size: 0.78rem;
+        color: #9E9E9E;
+      }
+
+      .video-empty {
+        font-size: 0.85rem;
+        color: #9E9E9E;
+      }
+
+      @media (max-width: 900px) {
+        .movie-layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 640px) {
+        .movie-page {
+          margin-top: 80px;
+          padding: 0 0.9rem 1.8rem;
+        }
+        .movie-header {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .movie-title {
+          font-size: 1.35rem;
+        }
+        .player-card {
+          padding-inline: 1rem;
+        }
+        .video-list-card {
+          padding-inline: 1rem;
+          padding-top: 1.1rem;
+          padding-bottom: 1.3rem;
+        }
+        .video-grid {
+          grid-template-columns: 1fr;
+          gap: 0.9rem;
+        }
+        .video-card {
+          padding: 0.9rem 1rem;
+        }
+      }
+    </style>
+
+    <main class="movie-page">
+      <section class="movie-header">
+        <div>
+          <h1 class="movie-title" data-translate="movie_title">結核学習動画</h1>
+          <p class="movie-subtitle">
+            <span data-translate="movie_subtitle_line1">結核について、短い動画でわかりやすく学べるページです。</span><br>
+            <span data-translate="movie_subtitle_line2">見たい「項目」と「動画タイトル」を押すと、動画を視聴することできます。</span>
+          </p>
+        </div>
+      </section>
+
+      <section class="movie-layout">
+        <!-- 左：項目選択と動画リスト -->
+        <div class="control-panel">
+          <div class="panel-card" aria-label="学習項目の選択">
+            <div class="panel-title" data-translate="learning_topics">学習項目</div>
+            <div class="topic-tabs" id="topicTabs">
+              <button class="topic-tab is-active" data-topic="basic" data-translate="topic_basic">1.その咳、本当に風邪ですか</button>
+              <button class="topic-tab" data-topic="treatment" data-translate="topic_treatment">2.接触者健診</button>
+              <button class="topic-tab" data-topic="daily" data-translate="topic_daily">3.潜在性結核感染症</button>
+              <button class="topic-tab" data-topic="family" data-translate="topic_family">4.結核</button>
+            </div>
+          </div>
+
+          <div class="video-list-card">
+            <div class="video-list-header">
+              <div class="video-list-title" data-translate="video_list">動画一覧</div>
+            </div>
+            <div class="video-grid" id="videoGrid">
+              <!-- ▼▼ ここからテンプレート（必要に応じて複製・編集してください） ▼▼ -->
+              <!-- 項目①：結核とは -->
+              <button class="video-card"
+                      data-topic="basic"
+                      data-lang="ja"
+                      data-url="https://www.youtube.com/embed/kYTbS2Q8_mo">
+                <div class="video-title">1-1 結核とはどんな病気でしょうか</div>
+                <div class="video-meta">
+                  <span class="video-lang">日本語 / 5分</span>
+                </div>
+              </button>
+              <button class="video-card"
+                      data-topic="basic"
+                      data-lang="ja"
+                      data-url="https://www.youtube.com/embed/CYIUg0j3XgA">
+                <div class="video-title">1-2 普段から心がける事</div>
+                <div class="video-meta">
+                  <span class="video-lang">日本語 / 5分</span>
+                </div>
+              </button>
+
+              <!-- 1-1 結核とはどんな病気でしょうか - 各言語版 -->
+              <button class="video-card"
+                      data-topic="basic"
+                      data-lang="en"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_EN_1_1">
+                <div class="video-title">1-1 What is Tuberculosis?</div>
+                <div class="video-meta">
+                  <span class="video-lang">English / 5 min</span>
+                </div>
+              </button>
+              <button class="video-card"
+                      data-topic="basic"
+                      data-lang="zh"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_ZH_1_1">
+                <div class="video-title">1-1 什么是结核病？</div>
+                <div class="video-meta">
+                  <span class="video-lang">中国語 / 5分</span>
+                </div>
+              </button>
+              <button class="video-card"
+                      data-topic="basic"
+                      data-lang="ko"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_KO_1_1">
+                <div class="video-title">1-1 결핵이란 어떤 질병일까요?</div>
+                <div class="video-meta">
+                  <span class="video-lang">한국어 / 5분</span>
+                </div>
+              </button>
+              <button class="video-card"
+                      data-topic="basic"
+                      data-lang="vi"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_VI_1_1">
+                <div class="video-title">1-1 Bệnh lao là gì?</div>
+                <div class="video-meta">
+                  <span class="video-lang">ベトナム語 / 5分</span>
+                </div>
+              </button>
+
+
+              <!-- 1-2 普段から心がける事 - 各言語版 -->
+              <button class="video-card"
+                      data-topic="basic"
+                      data-lang="en"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_EN_1_2">
+                <div class="video-title">1-2 Things to Keep in Mind Daily</div>
+                <div class="video-meta">
+                  <span class="video-lang">English / 5 min</span>
+                </div>
+              </button>
+              <button class="video-card"
+                      data-topic="basic"
+                      data-lang="zh"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_ZH_1_2">
+                <div class="video-title">1-2 平时要注意的事项</div>
+                <div class="video-meta">
+                  <span class="video-lang">中国語 / 5分</span>
+                </div>
+              </button>
+              <button class="video-card"
+                      data-topic="basic"
+                      data-lang="ko"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_KO_1_2">
+                <div class="video-title">1-2 평소에 마음에 두어야 할 것</div>
+                <div class="video-meta">
+                  <span class="video-lang">한국어 / 5분</span>
+                </div>
+              </button>
+
+              <button class="video-card"
+                      data-topic="basic"
+                      data-lang="vi"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_VI_1_2">
+                <div class="video-title">1-2 Những điều cần lưu ý hàng ngày</div>
+                <div class="video-meta">
+                  <span class="video-lang">ベトナム語 / 5分</span>
+                </div>
+              </button>
+
+
+              <!-- 項目②：検査・治療・内服 -->
+              <button class="video-card"
+                      data-topic="treatment"
+                      data-lang="ja"
+                      data-url="https://www.youtube.com/embed/kYTbS2Q8_mo">
+                <div class="video-title">2-1 結核とはどんな病気でしょうか</div>
+                <div class="video-meta">
+                  <span class="video-lang">日本語 / 7分</span>
+                  <span class="video-topic-label">② 検査・治療・内服</span>
+                </div>
+              </button>
+              <button class="video-card"
+              data-topic="treatment"
+              data-lang="ja"
+              data-url="https://www.youtube.com/embed/oyT8tTqVB8c&t=1s">
+        <div class="video-title">2-2 接触者健診の必要性</div>
+        <div class="video-meta">
+          <span class="video-lang">日本語 / 7分</span>
+          <span class="video-topic-label">② 検査・治療・内服</span>
+        </div>
+      </button>
+      <button class="video-card"
+      data-topic="treatment"
+      data-lang="ja"
+      data-url="https://www.youtube.com/embed/bF3ZapXxjM0">
+<div class="video-title">2-3 接触者健診で行われる検査</div>
+<div class="video-meta">
+  <span class="video-lang">日本語 / 7分</span>
+  <span class="video-topic-label">② 検査・治療・内服</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="treatment"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/0axWN7XpYS8">
+<div class="video-title">2-4 IGRA検査の実際</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 7分</span>
+<span class="video-topic-label">② 検査・治療・内服</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="treatment"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/_BGetRCbfD4">
+<div class="video-title">2-5 IGRA検査の結果</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 7分</span>
+<span class="video-topic-label">② 検査・治療・内服</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="treatment"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/pOfcHOCOnrg">
+<div class="video-title">2-6 胸部エックス線検査</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 7分</span>
+<span class="video-topic-label">② 検査・治療・内服</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="treatment"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/FZ0PyliDGps">
+<div class="video-title">2-7 潜在性結核感染症</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 7分</span>
+<span class="video-topic-label">② 検査・治療・内服</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="treatment"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/bPyJ0OHpQnk">
+<div class="video-title">2-8 潜在性結核感染症の治療</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 7分</span>
+<span class="video-topic-label">② 検査・治療・内服</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="treatment"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/CYIUg0j3XgA">
+<div class="video-title">2-9 普段から心がける事</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 7分</span>
+<span class="video-topic-label">② 検査・治療・内服</span>
+</div>
+</button>
+
+
+              <button class="video-card"
+                      data-topic="treatment"
+                      data-lang="zh"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_ZH_2">
+                <div class="video-title">結核の検査と治療（中国語）</div>
+                <div class="video-meta">
+                  <span class="video-lang">中国語 / 7分</span>
+                  <span class="video-topic-label">② 検査・治療・内服</span>
+                </div>
+              </button>
+
+              <!-- 項目③：日常生活の注意点 -->
+              <button class="video-card"
+                      data-topic="daily"
+                      data-lang="ja"
+                      data-url="https://www.youtube.com/embed/FZ0PyliDGps">
+                <div class="video-title">3-1 潜在性結核感染症</div>
+                <div class="video-meta">
+                  <span class="video-lang">日本語 / 6分</span>
+                </div>
+              </button>
+              <button class="video-card"
+              data-topic="daily"
+              data-lang="ja"
+              data-url="https://www.youtube.com/embed/ndsp3jf5o8w">
+        <div class="video-title">3-2 結核に係る関係機関の役割</div>
+        <div class="video-meta">
+          <span class="video-lang">日本語 / 6分</span>
+        </div>
+      </button>
+      <button class="video-card"
+      data-topic="daily"
+      data-lang="ja"
+      data-url="https://www.youtube.com/embed/bPyJ0OHpQnk">
+<div class="video-title"> 3-3 潜在性結核感染症の治療</div>
+<div class="video-meta">
+  <span class="video-lang">日本語 / 6分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="daily"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/D1JEzJIIMrs">
+<div class="video-title">3-4 服薬確認(DOTS LTBI)</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 6分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="daily"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/ATqheT_XdB4">
+<div class="video-title">3-5 医療費公費負担制度</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 6分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="daily"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/NGhsdT1IBCM">
+<div class="video-title">3-6 医療費公費負担制度の手続</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 6分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="daily"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/b8YjxRcwj-g">
+<div class="video-title">3-7 経過観察(管理検診）</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 6分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="daily"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/CYIUg0j3XgA">
+<div class="video-title">3-8 普段から心がける事</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 6分</span>
+</div>
+</button>
+              <button class="video-card"
+                      data-topic="daily"
+                      data-lang="tl"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_TL_3">
+                <div class="video-title">Pamumuhay habang ginagamot ang TB (Tagalog)</div>
+                <div class="video-meta">
+                  <span class="video-lang">タガログ語 / 6分</span>
+                  <span class="video-topic-label">③ 日常生活</span>
+                </div>
+              </button>
+
+              <!-- 項目④：家族・周囲の人へ -->
+              <button class="video-card"
+                      data-topic="family"
+                      data-lang="ja"
+                      data-url="https://www.youtube.com/embed/kYTbS2Q8_mo">
+                <div class="video-title">4-1 結核とはどんな病気でしょうか？</div>
+                <div class="video-meta">
+                  <span class="video-lang">日本語 / 4分</span>
+                </div>
+              </button>
+              <button class="video-card"
+              data-topic="family"
+              data-lang="ja"
+              data-url="https://www.youtube.com/embed/ndsp3jf5o8w">
+        <div class="video-title">4-2 結核に係る関係機関の役割</div>
+        <div class="video-meta">
+          <span class="video-lang">日本語 / 4分</span>
+        </div>
+      </button>
+      <button class="video-card"
+      data-topic="family"
+      data-lang="ja"
+      data-url="https://www.youtube.com/embed/t8erc35zVhI">
+<div class="video-title">4-3 結核治療の基本</div>
+<div class="video-meta">
+  <span class="video-lang">日本語 / 4分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="family"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/eqThpAMOtzw&t=19s">
+<div class="video-title">4-4 結核菌の検査</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 4分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="family"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/I3WzCteNzE4">
+<div class="video-title">4-5 服薬確認（DOTS TB）</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 4分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="family"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/ATqheT_XdB4&t=10s">
+<div class="video-title">4-6 医療費公費負担制度</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 4分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="family"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/NGhsdT1IBCM&t=15s">
+<div class="video-title"> 4-7 医療費公費負担制度の手続</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 4分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="family"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/b8YjxRcwj-g">
+<div class="video-title">4-8 経過観察(管理検診）</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 4分</span>
+</div>
+</button>
+<button class="video-card"
+data-topic="family"
+data-lang="ja"
+data-url="https://www.youtube.com/embed/CYIUg0j3XgA&t=10s">
+<div class="video-title">4-9 普段から心がける事</div>
+<div class="video-meta">
+<span class="video-lang">日本語 / 4分</span>
+</div>
+</button>
+              <button class="video-card"
+                      data-topic="family"
+                      data-lang="my"
+                      data-url="https://www.youtube.com/embed/XXXXXXXX_MY_4">
+                <div class="video-title">သက်ရောက်သူများအတွက် TB ရှင်းလင်းချက် (မြန်မာ)</div>
+                <div class="video-meta">
+                  <span class="video-lang">ミャンマー語 / 4分</span>
+                  <span class="video-topic-label">④ 家族・周囲</span>
+                </div>
+              </button>
+              <!-- ▲▲ ここまでテンプレート ▲▲ -->
+            </div>
+            <p class="video-empty" id="videoEmptyMessage" style="display:none;">
+              選択中の言語・項目には、まだ登録された動画がありません。<br>
+              必要に応じて上のテンプレートをコピーし、言語・項目・URLを追加してください。
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // ユーザー名を取得して表示
+      function updateUserName() {
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        if (!userNameDisplay) return;
+        
+        if (window.multiLang && window.multiLang.auth) {
+          window.multiLang.auth.onAuthStateChanged((user) => {
+            if (user) {
+              const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ユーザー');
+              userNameDisplay.textContent = displayName + ' さん';
+            } else {
+              userNameDisplay.textContent = 'ゲスト さん';
+            }
+          });
+        } else if (typeof firebase !== 'undefined' && firebase.auth) {
+          firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+              const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ユーザー');
+              userNameDisplay.textContent = displayName + ' さん';
+            } else {
+              userNameDisplay.textContent = 'ゲスト さん';
+            }
+          });
+        } else {
+          userNameDisplay.textContent = 'ゲスト さん';
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        updateUserName();
+        // 多言語対応（他ページと同じ仕組みを利用）
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try { window.multiLang.updateUI(); } catch (_) {}
+        }
+
+        const topicTabs = document.querySelectorAll('.topic-tab');
+        const videoCards = document.querySelectorAll('.video-card');
+        const videoGrid = document.getElementById('videoGrid');
+        const videoEmptyMessage = document.getElementById('videoEmptyMessage');
+        const movieLayout = document.querySelector('.movie-layout');
+
+        let currentLang = 'ja';
+        let currentTopic = 'basic';
+
+        // Firebase認証状態を監視して、ユーザーの言語設定を取得
+        if (window.multiLang && window.multiLang.auth) {
+          window.multiLang.auth.onAuthStateChanged(async (user) => {
+            if (user && window.multiLang) {
+              // ユーザーの言語設定を取得
+              const userLanguage = await window.multiLang.getUserLanguage();
+              if (userLanguage) {
+                currentLang = userLanguage;
+                // 動画フィルターを更新
+                updateFilters();
+              }
+            } else if (!user) {
+              // 未ログイン時はデフォルト言語
+              currentLang = 'ja';
+              updateFilters();
+            }
+          });
+        }
+
+        // multiLangの言語変更を監視
+        if (window.multiLang) {
+          // multiLangの初期化完了を待つ
+          const checkMultiLang = setInterval(() => {
+            if (window.multiLang && window.multiLang.currentLanguage) {
+              const lang = window.multiLang.currentLanguage;
+              if (currentLang !== lang) {
+                currentLang = lang;
+                updateFilters();
+              }
+              clearInterval(checkMultiLang);
+            }
+          }, 100);
+          
+          // 5秒後にタイムアウト
+          setTimeout(() => clearInterval(checkMultiLang), 5000);
+        }
+
+        function updateFilters() {
+          let visibleCount = 0;
+          videoCards.forEach(function(card) {
+            const matchLang = card.dataset.lang === currentLang;
+            const matchTopic = card.dataset.topic === currentTopic;
+            if (matchLang && matchTopic) {
+              card.style.display = '';
+              visibleCount++;
+            } else {
+              card.style.display = 'none';
+            }
+          });
+          if (visibleCount === 0) {
+            videoEmptyMessage.style.display = '';
+          } else {
+            videoEmptyMessage.style.display = 'none';
+          }
+        }
+
+
+        topicTabs.forEach(function(tab) {
+          tab.addEventListener('click', function() {
+            topicTabs.forEach(function(t) { t.classList.remove('is-active'); });
+            this.classList.add('is-active');
+            currentTopic = this.dataset.topic;
+            updateFilters();
+          });
+        });
+
+        if (videoGrid) {
+          videoGrid.addEventListener('click', function(e) {
+            const card = e.target.closest('.video-card');
+            if (!card) return;
+            const url = card.dataset.url || '';
+            if (!url) {
+              alert('この動画にはまだURLが設定されていません。YouTube のURLを data-url 属性に設定してください。');
+              return;
+            }
+            
+            const langText = card.querySelector('.video-lang')?.textContent || '';
+            const titleText = card.querySelector('.video-title')?.textContent || '';
+            
+            // 動画リストを非表示にして、プレーヤーのみを表示
+            if (movieLayout) {
+              movieLayout.classList.add('video-selected');
+              
+              // 動画プレーヤーエリアを動的に作成
+              const playerArea = document.createElement('div');
+              playerArea.className = 'player-card';
+              playerArea.innerHTML = `
+                <button class="back-button" id="backButton" data-translate="back_to_video_list">← 動画一覧に戻る</button>
+                <div class="player-label">
+                  <div class="player-label-main">選択中の動画</div>
+                  <div class="player-label-sub">${titleText}${langText ? '（' + langText + '）' : ''}</div>
+                </div>
+                <div class="player-wrapper">
+                  <iframe id="videoPlayer"
+                          src="${url}"
+                          title="結核学習動画プレーヤー"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowfullscreen>
+                  </iframe>
+                </div>
+              `;
+              
+              // 既存のプレーヤーエリアがあれば削除
+              const existingPlayer = movieLayout.querySelector('.player-card');
+              if (existingPlayer) {
+                existingPlayer.remove();
+              }
+              
+              movieLayout.appendChild(playerArea);
+              
+              // 戻るボタンのイベントリスナーを設定
+              const backBtn = playerArea.querySelector('#backButton');
+              if (backBtn) {
+                backBtn.addEventListener('click', function() {
+                  if (movieLayout) {
+                    movieLayout.classList.remove('video-selected');
+                    const playerCard = movieLayout.querySelector('.player-card');
+                    if (playerCard) {
+                      playerCard.remove();
+                    }
+                  }
+                });
+              }
+            }
+          });
+        }
+
+        // 初期表示：現在の条件に合う動画だけを表示
+        // multiLangの初期化を待ってから初期フィルターを適用
+        setTimeout(() => {
+          if (window.multiLang && window.multiLang.currentLanguage) {
+            currentLang = window.multiLang.currentLanguage;
+          }
+        updateFilters();
+        }, 300);
+      });
+    </script>
+
+    <!-- フッター -->
+    <footer class="footer container">
+      <small>
+        <a href="#" data-translate="terms">利用規約</a>
+        <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
+        &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
+      </small>
+    </footer>
+</body>
+</html>

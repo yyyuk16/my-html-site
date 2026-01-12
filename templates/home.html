@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="医療情報管理アプリ - 医師用ダッシュボード">医療情報管理アプリ - 医師用ダッシュボード</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="maintab.css">
+    <link rel="stylesheet" href="footer.css">
+  
+</head>
+<body>
+    <!-- 💚 ヘッダー -->
+    <header class="top-bar">
+        <div class="header-inner">
+            <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3; letter-spacing:0.08em; display:flex; align-items:center;">
+                <span data-translate="site_title" style="vertical-align:middle;">医療管理アプリ</span>
+            </div>
+            <nav>
+                <ul class="tab-menu">
+                    <li><a href="home.html" class="active">🏥 <span data-translate="HOME">HOME</span></a></li>
+                    <li><a href="list.html">👥 <span data-translate="患者診療記録">患者診療記録</span></a></li>
+                    <li><a href="chat.html">📅 <span data-translate="チャット">チャット</span></a></li>
+                    <li><a href="docterprofile.html">👤 <span data-translate="プロフィール">プロフィール</span></a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" data-translate="terms">利用規約</a>
+                    <a href="#" data-translate="privacy">プライバシーポリシー</a>
+                </div>
+                <div class="footer-copyright">
+                    <small data-translate="copyright_name">© 2024 医療管理アプリ. All rights reserved.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+        <!-- Firebase SDKの読み込み -->
+        <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js"></script>
+        
+        <!-- 多言語対応スクリプト -->
+        <script src="multilang.js"></script>
+        <script>
+        document.addEventListener("DOMContentLoaded", async function() {
+            // 多言語対応の初期化
+            if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                try { 
+                    window.multiLang.updateUI(); 
+                } catch (_) {}
+            }
+            
+            // Firebaseの初期化
+            const firebaseConfig = {
+                apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+                authDomain: "web01-2484d.firebaseapp.com",
+                databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+                projectId: "web01-2484d",
+                storageBucket: "web01-2484d.firebasestorage.app",
+                messagingSenderId: "90159472898",
+                appId: "1:90159472898:web:261ec71f9919611011e21b",
+                measurementId: "G-9TGR07ZSY9"
+            };
+
+            // Firebase AppとDatabaseの初期化
+            if (!window.firebaseApp) {
+                window.firebaseApp = firebase.initializeApp(firebaseConfig);
+            }
+            const database = firebase.database();
+            const firestore = firebase.firestore();
+
+            // 現在のユーザーを取得
+            let currentUser = null;
+            firebase.auth().onAuthStateChanged(function(user) {
+                if (user) {
+                    currentUser = user;
+                    loadNewMessageCount();
+                } else {
+                    document.getElementById("patientMessageCount").textContent = "ログインしてください";
+                    document.getElementById("messageDetails").innerHTML = "";
+                }
+            });
+
+            // 新着メッセージ数を取得する関数
+            async function loadNewMessageCount() {
+                try {
+                    // 現在の医師が担当している患者を取得
+                    const patientsSnapshot = await firestore.collection('users')
+                        .where('role', '==', 'patient')
+                        .where('assignedDoctor', '==', currentUser.uid)
+                        .get();
+
+                    if (patientsSnapshot.empty) {
+                        document.getElementById("patientMessageCount").textContent = "0 件";
+                        document.getElementById("messageDetails").innerHTML = "担当患者が登録されていません";
+                        return;
+                    }
+
+                    let totalNewMessages = 0;
+                    let patientMessageDetails = [];
+                    const now = new Date();
+                    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24時間前
+
+                    // 各患者とのチャット履歴を確認
+                    for (const patientDoc of patientsSnapshot.docs) {
+                        const patient = patientDoc.data();
+                        const chatRoomId = [currentUser.uid, patientDoc.id].sort().join('_');
+                        
+                        try {
+                            // Firestoreからチャット履歴を取得
+                            const chatRef = firestore.collection('chats').doc(chatRoomId).collection('messages');
+                            const messagesSnapshot = await chatRef
+                                .where('timestamp', '>=', oneDayAgo)
+                                .where('senderId', '==', patientDoc.id) // 患者からのメッセージのみ
+                                .orderBy('timestamp', 'desc')
+                                .get();
+
+                            const newMessageCount = messagesSnapshot.size;
+                            totalNewMessages += newMessageCount;
+
+                            if (newMessageCount > 0) {
+                                patientMessageDetails.push({
+                                    name: patient.name || '名無しの患者',
+                                    count: newMessageCount,
+                                    lastMessage: messagesSnapshot.docs[0]?.data()?.text || 'メッセージなし'
+                                });
+                            }
+                        } catch (error) {
+                            console.error(`患者 ${patient.name} のチャット履歴取得エラー:`, error);
+                        }
+                    }
+
+                    // 結果を表示
+                    document.getElementById("patientMessageCount").textContent = totalNewMessages + " 件";
+                    
+                    if (totalNewMessages > 0) {
+                        const detailsHTML = patientMessageDetails.map(detail => 
+                            `<div style="margin: 8px 0; padding: 8px; background: #f5f5f5; border-radius: 8px;">
+                                <strong>${detail.name}</strong>: ${detail.count}件
+                                <div style="font-size: 0.9em; color: #888; margin-top: 4px;">
+                                    最新: ${detail.lastMessage.substring(0, 50)}${detail.lastMessage.length > 50 ? '...' : ''}
+                                </div>
+                            </div>`
+                        ).join('');
+                        document.getElementById("messageDetails").innerHTML = detailsHTML;
+                    } else {
+                        document.getElementById("messageDetails").innerHTML = "過去24時間に新着メッセージはありません";
+                    }
+
+                } catch (error) {
+                    console.error("新着メッセージ数取得エラー:", error);
+                    document.getElementById("patientMessageCount").textContent = "取得失敗";
+                    document.getElementById("messageDetails").innerHTML = "エラーが発生しました: " + error.message;
+                }
+            }
+
+            // 励ましメッセージの表示
+            function showEncouragementMessage() {
+                const encouragements = [
+                    { start: 5, end: 10, msg: "おはようございます！今日も素敵な一日になりますように。" },
+                    { start: 10, end: 12, msg: "午前中もあと少し、頑張ってください！" },
+                    { start: 12, end: 14, msg: "お昼休憩も忘れずに、しっかりリフレッシュしましょう。" },
+                    { start: 14, end: 18, msg: "午後も引き続き、無理せず頑張りましょう！" },
+                    { start: 18, end: 22, msg: "今日もお疲れ様です。あと少し、ファイトです！" },
+                    { start: 22, end: 24, msg: "遅くまでお疲れ様です。しっかり休んでくださいね。" },
+                    { start: 0, end: 5, msg: "夜遅くまでお仕事お疲れ様です。体調に気をつけてください。" }
+                ];
+                const now = new Date();
+                const hour = now.getHours();
+                let encouragement = "今日も頑張りましょう！";
+                for (const e of encouragements) {
+                    if (hour >= e.start && hour < e.end) {
+                        encouragement = e.msg;
+                        break;
+                    }
+                }
+                document.getElementById("encouragementMessage").textContent = encouragement;
+            }
+
+            // 初回表示
+            showEncouragementMessage();
+
+            // 1分ごとに励ましメッセージを更新
+            setInterval(showEncouragementMessage, 60000);
+
+            // 5分ごとに新着メッセージ数を更新
+            setInterval(loadNewMessageCount, 5 * 60 * 1000);
+        });
+        </script>
+</body>
+</html>
