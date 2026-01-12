@@ -167,6 +167,13 @@ input {
   color: #9e9e9e;
 }
 
+.password-toggle-text {
+  display: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--secondary-color);
+}
+
 input:focus {
   border-color: var(--input-focus);
   box-shadow: 0 0 0 3px #a5d6a7;
@@ -289,11 +296,70 @@ h2 {
 }
 
 @media (max-width: 600px) {
+  body {
+    background-attachment: scroll;
+  }
+
   .container {
-    padding: 10px 2vw 24px 2vw;
+    padding: 2rem 1.5rem;
     border-radius: 0;
     box-shadow: none;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
   }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+
+  input {
+    padding: 0.9rem 1rem;
+    font-size: 1rem;
+  }
+
+  .password-wrapper input {
+    padding-right: 4.5rem;
+  }
+
+  .password-toggle {
+    width: auto;
+    height: auto;
+    padding: 0;
+    right: 0.8rem;
+  }
+
+  .password-toggle-icon {
+    display: none;
+  }
+
+  .password-toggle-text {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--secondary-color);
+  }
+
+  button, .signup-button {
+    padding: 0.9rem 1.5rem;
+    font-size: 1rem;
+    margin-top: 0.8rem;
+  }
+
+  .signup-button {
+    margin-top: 1rem;
+  }
+
+  .back-link {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+
   .header {
     border-radius: 0;
     padding: 14px 0 10px 0;
@@ -393,6 +459,7 @@ h2 {
             <span id="view" class="password-toggle-icon">
               <i class="far fa-eye-slash"></i>
             </span>
+            <span id="toggleText" class="password-toggle-text">Show</span>
           </button>
         </div>
       </div>
@@ -423,15 +490,16 @@ h2 {
     const passwordInput = document.getElementById('password');
     const togglePassword = document.getElementById('togglePassword');
     const viewIcon = document.getElementById('view');
+    const toggleText = document.getElementById('toggleText');
 
-    if (passwordInput && togglePassword && viewIcon) {
-      const iconElement = viewIcon.querySelector('i');
+    if (passwordInput && togglePassword) {
+      const iconElement = viewIcon ? viewIcon.querySelector('i') : null;
 
       const togglePasswordVisibility = () => {
         const isPassword = passwordInput.type === 'password';
         passwordInput.type = isPassword ? 'text' : 'password';
         
-        // アイコンを切り替え
+        // アイコンを切り替え（デスクトップ表示時）
         if (iconElement) {
           if (isPassword) {
             // パスワード表示時は fa-eye
@@ -442,6 +510,11 @@ h2 {
             iconElement.classList.remove('fa-eye');
             iconElement.classList.add('fa-eye-slash');
           }
+        }
+
+        // テキストを切り替え（モバイル表示時）
+        if (toggleText) {
+          toggleText.textContent = isPassword ? 'Show' : 'Hide';
         }
       };
 
