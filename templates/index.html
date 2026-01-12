@@ -5,6 +5,7 @@
   <title data-i18n="patient-login">患者ログイン</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="manifest" href="manifest.json">
 
 <meta name="theme-color" content="#4e73df">
@@ -140,20 +141,30 @@ input {
 .password-toggle {
   position: absolute;
   top: 50%;
-  right: 0.75rem;
+  right: 0.6rem;
   transform: translateY(-50%);
   border: none;
   background: transparent;
   padding: 0;
   margin: 0;
   cursor: pointer;
-  font-size: 1.1rem;
-  line-height: 1;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #9e9e9e;
 }
 
 .password-toggle:focus {
   outline: none;
+}
+
+.password-toggle-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  display: block;
+  color: #9e9e9e;
 }
 
 input:focus {
@@ -379,7 +390,9 @@ h2 {
         <div class="password-wrapper">
           <input type="password" id="password" required>
           <button type="button" id="togglePassword" class="password-toggle" aria-label="パスワードを表示/非表示">
-            👁
+            <span id="view" class="password-toggle-icon">
+              <i class="far fa-eye-slash"></i>
+            </span>
           </button>
         </div>
       </div>
@@ -409,20 +422,27 @@ h2 {
 
     const passwordInput = document.getElementById('password');
     const togglePassword = document.getElementById('togglePassword');
+    const viewIcon = document.getElementById('view');
 
-    if (passwordInput && togglePassword) {
-      const updatePasswordIcon = () => {
-        if (passwordInput.type === 'password') {
-          togglePassword.textContent = '👁';
-        } else {
-          togglePassword.textContent = '🙈';
-        }
-      };
+    if (passwordInput && togglePassword && viewIcon) {
+      const iconElement = viewIcon.querySelector('i');
 
       const togglePasswordVisibility = () => {
         const isPassword = passwordInput.type === 'password';
         passwordInput.type = isPassword ? 'text' : 'password';
-        updatePasswordIcon();
+        
+        // アイコンを切り替え
+        if (iconElement) {
+          if (isPassword) {
+            // パスワード表示時は fa-eye
+            iconElement.classList.remove('fa-eye-slash');
+            iconElement.classList.add('fa-eye');
+          } else {
+            // パスワード非表示時は fa-eye-slash
+            iconElement.classList.remove('fa-eye');
+            iconElement.classList.add('fa-eye-slash');
+          }
+        }
       };
 
       togglePassword.addEventListener('click', (event) => {
