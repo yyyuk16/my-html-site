@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-translate="ai_chat">AIチャット</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="maintab.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- 多言語対応 -->
+  <script src="multilang.js"></script>
+</head>
+<body>
+     <!-- 💚 ヘッダー -->
+     <header class="top-bar">
+      <div class="header-inner">
+        <div class="logo">
+          <div class="logo-icon"></div>
+          <span data-translate="site_title">結核対策アプリ</span>
+        </div>
+      <button class="user-name-btn" id="userNameBtn">
+        <span id="userNameDisplay">ゲスト さん</span>
+      </button>
+      <div class="header-right">
+        <nav>
+          <ul class="tab-menu">
+            <li><a href="ai.html" class="active"><span data-translate="chat">チャット</span></a></li>
+            <li><a href="score.html"><span data-translate="quiz">Q&A</span></a></li>
+            <li><a href="movie.html"><span data-translate="video_watching">動画</span></a></li>
+            <li><a href="setting.html"><span data-translate="settings">設定</span></a></li>
+          </ul>
+        </nav>
+      </div>
+      </div>
+    </header>
+
+  <!-- メイン -->
+  <main class="container" style="max-width: 1000px; margin: 0 auto; padding: 3rem 1rem;">
+    <div class="section-title">
+      <span data-translate="chat">チャット</span>
+    </div>
+    <p class="section-subtitle" data-translate="ai_teacher_24h">分からないこと、不安なことは積極的に質問しましょう。</p>
+
+    <div class="cards">
+      <!-- 左のカード -->
+      <div class="card green" onclick="startChat('teacher')">
+        <h3 data-translate="ai_teacher">AI先生</h3>
+        <p data-translate="ai_teacher_24h">「AI先生」では24時間いつでも健康相談ができます。</p>
+        <button class="start-chat-btn"><span data-translate="start_chat">チャットを始める</span></button>
+      </div>
+
+      <!-- 右のカード -->
+      <div class="card blue" onclick="startChat('real')">
+        <h3 data-translate="realtime_chat">リアルタイムチャット（患者用）</h3>
+        <p data-translate="realtime_chat_desc">「リアルタイム」では保健師との直接チャットが可能<br>です。</p>
+        <button class="start-chat-btn"><span data-translate="start_chat">チャットを始める</span></button>
+      </div>
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer class="footer container">
+    <small>
+      <a href="#" data-translate="terms">利用規約</a>
+      <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
+      &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
+    </small>
+  </footer>
+
+  <style>
+    body {
+      background: #fff;
+      min-height: 100vh;
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+    }
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+    .section-subtitle {
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      color: #555;
+    }
+    .cards {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .card {
+      flex: 1;
+      min-width: 280px;
+      max-width: 450px;
+      border-radius: 18px;
+      padding: 24px;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .card.green {
+      background: #8bc34a;
+    }
+    .card.blue {
+      background: #d12b02cc;
+    }
+    .card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    .card p {
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .start-chat-btn {
+      display: inline-block;
+      background: #fff;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: inherit;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .card.green .start-chat-btn { color: #388e3c; }
+    .card.blue .start-chat-btn { color: #1565c0; }
+    .start-chat-btn:hover {
+      background: #f0f0f0;
+      transform: scale(1.05);
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    @media (max-width: 768px) {
+      .cards {
+        flex-direction: column;
+      }
+    }
+  </style>
+
+  <script>
+    function startChat(type) {
+      if (type === 'teacher') {
+        window.location.href = 'teacher.html';
+      } else if (type === 'real') {
+        window.location.href = 'real.html';
+      }
+    }
+    
+    // ユーザー名を取得して表示（Firestoreから取得）
+    async function updateUserName() {
+      const userNameDisplay = document.getElementById('userNameDisplay');
+      if (!userNameDisplay) return;
+      
+      let auth = null;
+      if (window.multiLang && window.multiLang.auth) {
+        auth = window.multiLang.auth;
+      } else if (typeof firebase !== 'undefined' && firebase.auth) {
+        auth = firebase.auth();
+      }
+      
+      if (!auth) {
+        userNameDisplay.textContent = 'ゲスト さん';
+        return;
+      }
+      
+      auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+          userNameDisplay.textContent = 'ゲスト さん';
+          return;
+        }
+        
+        try {
+          // Firestoreからユーザー情報を取得
+          const db = firebase.firestore();
+          const userDoc = await db.collection('users').doc(user.uid).get();
+          
+          if (userDoc.exists) {
+            const userData = userDoc.data();
+            // displayName, userName, nameの順で取得
+            const displayName = userData.displayName || userData.userName || userData.name || 
+                               (user.email ? user.email.split('@')[0] : 'ユーザー');
+            userNameDisplay.textContent = displayName + ' さん';
+          } else {
+            // Firestoreにデータがない場合は、Authの情報を使用
+            const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ユーザー');
+            userNameDisplay.textContent = displayName + ' さん';
+          }
+        } catch (error) {
+          console.error('ユーザー名の取得に失敗しました:', error);
+          // エラー時はAuthの情報を使用
+          const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ユーザー');
+          userNameDisplay.textContent = displayName + ' さん';
+        }
+      });
+    }
+
+    // 初期レンダ後に翻訳を適用
+    document.addEventListener('DOMContentLoaded', function(){
+      updateUserName();
+      if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+        try { window.multiLang.updateUI(); } catch (_) {}
+      }
+    });
+  </script>
+</body>
+</html>

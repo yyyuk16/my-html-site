@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Firebase リアルタイムチャット</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="chat.css">
+    
+  <style>
+    /* メッセージバブルのレイアウト調整 */
+    .bubble {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    
+    .msg-text[style*="opacity: 0.6"] {
+      font-style: italic;
+      opacity: 0.6;
+    }
+  </style>
+    
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  
+  <!-- 多言語対応 -->
+  <script src="multilang.js"></script>
+  
+
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <div id="assignedDoctorContainer">
+        <span data-translate="assigned_doctor" class="doctor-label">担当医師</span>
+        <span id="assignedDoctorName" class="doctor-name">読み込み中...</span>
+      </div>
+    </div>
+
+    <div id="chat" class="chat-messages"></div>
+
+    <div class="input-container">
+      <button id="voiceBtn" title="音声入力">
+        <img src="8549.png" alt="音声入力" id="voiceIcon" />
+      </button>
+      <input type="text" id="messageInput" placeholder="メッセージを入力" autocomplete="off" data-translate="message_input" />
+      <button id="sendBtn" data-translate="send">送信</button>
+      <button onclick="window.location.href='ai.html'" class="back-btn" data-translate="back">戻る</button>
+    </div>
+  </div>
+
+  <script>
+    // ===== Firestore で医師側 chat.html と同じコレクションを使用 =====
+    const firebaseConfig = {
+             apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+      authDomain: "web01-2484d.firebaseapp.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.appspot.com",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let currentUserUid = null;
+    let assignedDoctorUid = null;
+    let chatRoomId = null;
+    let userLanguage = 'ja'; // Firestoreのユーザー設定から取得
+
+    const chatDiv = document.getElementById('chat');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const assignedDoctorNameElem = document.getElementById('assignedDoctorName');
+
+    function appendMessageBubble(text, isSelf, timestamp, messageId) {
+      const el = document.createElement('div');
+      el.className = `message${isSelf ? ' self' : ''}`;
+      el.dataset.messageId = messageId || '';
+      const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '';
+      el.innerHTML = `<div class="bubble"><span class="msg-text"></span><span class="msg-time">${timeStr}</span></div>`;
+      // 自分のメッセージは原文を表示、相手メッセージは翻訳中表示
+      const textSpan = el.querySelector('.msg-text');
+      if (isSelf) {
+        textSpan.textContent = text;
+      } else {
+        textSpan.textContent = '翻訳中...';
+        textSpan.style.opacity = '0.6';
+      }
+      chatDiv.appendChild(el);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+      return el;
+    }
+
+    // 翻訳キャッシュ
+    const translationCache = new Map();
+    
+    // OpenAI API（翻訳）- リアルタイム翻訳用
+    async function translateTextOpenAI(text, targetLang) {
+      if (!text || !text.trim()) return '';
+      
+      // キャッシュチェック
+      const cacheKey = `${text}_${targetLang}`;
+      if (translationCache.has(cacheKey)) {
+        return translationCache.get(cacheKey);
+      }
+      
+      try {
+        const res = await fetch('/api/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, targetLang })
+        });
+        
+        if (!res.ok) {
+          // 429エラー（レート制限）の場合は原文を返す
+          if (res.status === 429) {
+            console.warn('Translation rate limited, showing original text');
+            return text;
+          }
+          // その他のエラーも原文を返す
+          console.warn('Translation failed, showing original text');
+          return text;
+        }
+        
+        const data = await res.json();
+        const translated = (data.translated || '').trim();
+        
+        if (!translated) {
+          // 翻訳結果が空の場合は原文を返す
+          return text;
+        }
+        
+        // キャッシュに保存（最大200件まで）
+        if (translationCache.size >= 200) {
+          const firstKey = translationCache.keys().next().value;
+          translationCache.delete(firstKey);
+        }
+        translationCache.set(cacheKey, translated);
+        
+        return translated;
+      } catch (e) {
+        console.error('Translation error:', e);
+        // エラー時は原文を返す
+        return text;
+      }
+    }
+
+    async function loadDoctorName(uid) {
+      try {
+        const docSnap = await db.collection('users').doc(uid).get();
+        const data = docSnap.exists ? docSnap.data() : null;
+        const rawName = data?.displayName || data?.userName || data?.name || '担当医師';
+
+        // ユーザーの言語に合わせて担当医の名前も翻訳（必要な場合のみ）
+        if (userLanguage && userLanguage !== 'ja') {
+          try {
+            const translatedName = await translateTextOpenAI(rawName, userLanguage);
+            assignedDoctorNameElem.textContent = translatedName || rawName;
+          } catch (e) {
+            assignedDoctorNameElem.textContent = rawName;
+          }
+        } else {
+          assignedDoctorNameElem.textContent = rawName;
+        }
+      } catch (e) {
+        assignedDoctorNameElem.textContent = '情報取得エラー';
+      }
+    }
+
+    // 翻訳済みメッセージのIDを追跡（重複翻訳を防ぐ）
+    const translatedMessageIds = new Set();
+
+    function subscribeMessages() {
+      if (!chatRoomId) return;
+      return db.collection('chats').doc(chatRoomId).collection('messages')
+        .orderBy('timestamp','asc')
+        .onSnapshot((snapshot) => {
+          // 既存のメッセージ要素を保持するマップ
+          const existingMessages = new Map();
+          Array.from(chatDiv.children).forEach(child => {
+            const msgId = child.dataset.messageId;
+            if (msgId) existingMessages.set(msgId, child);
+          });
+
+          chatDiv.innerHTML = '';
+          
+          snapshot.forEach(doc => {
+            const m = doc.data();
+            const msgId = doc.id;
+            const ts = m.timestamp?.toMillis?.() ?? (typeof m.timestamp?.seconds === 'number' ? m.timestamp.seconds*1000 : m.clientTimeMs);
+            const isSelf = m.senderId === currentUserUid;
+            const text = m.text || '';
+            
+            // 既存の要素があれば再利用、なければ新規作成
+            let el = existingMessages.get(msgId);
+            if (!el) {
+              el = appendMessageBubble(text, isSelf, ts, msgId);
+            } else {
+              // 既存要素を再配置
+              chatDiv.appendChild(el);
+            }
+            
+            // 相手メッセージで、まだ翻訳していない場合は翻訳を実行
+            if (!isSelf && userLanguage && text && !translatedMessageIds.has(msgId)) {
+              translatedMessageIds.add(msgId);
+              
+              // リアルタイム翻訳：即座に翻訳を開始
+              translateTextOpenAI(text, userLanguage).then(translated => {
+                const textSpan = el.querySelector('.msg-text');
+                if (textSpan) {
+                  if (translated) {
+                    textSpan.textContent = translated;
+                    textSpan.style.opacity = '1';
+                  } else {
+                    // 翻訳失敗時は原文を表示
+                    textSpan.textContent = text;
+                    textSpan.style.opacity = '1';
+                  }
+                }
+              }).catch(err => {
+                console.error('Translation error:', err);
+                const textSpan = el.querySelector('.msg-text');
+                if (textSpan) {
+                  textSpan.textContent = text;
+                  textSpan.style.opacity = '1';
+                }
+              });
+            } else if (isSelf) {
+              // 自分のメッセージは常に原文を表示
+              const textSpan = el.querySelector('.msg-text');
+              if (textSpan) {
+                textSpan.textContent = text;
+                textSpan.style.opacity = '1';
+              }
+            }
+          });
+          
+          chatDiv.scrollTop = chatDiv.scrollHeight;
+        });
+    }
+
+    function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text || !chatRoomId) return;
+      const msg = {
+        text,
+        senderId: currentUserUid,
+        senderName: '患者',
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      db.collection('chats').doc(chatRoomId).collection('messages').add(msg);
+      messageInput.value = '';
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+
+    // ===== 音声入力機能 =====
+    let recognition = null;
+    let isListening = false;
+
+    // SpeechRecognition APIの初期化
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        voiceBtn.style.display = 'none';
+        console.warn('音声認識APIがサポートされていません');
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ja-JP';
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        isListening = true;
+        voiceBtn.classList.add('active');
+        const voiceIcon = document.getElementById('voiceIcon');
+        if (voiceIcon) {
+          voiceIcon.style.opacity = '0.6';
+        }
+      };
+
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        if (finalTranscript) {
+          messageInput.value = (messageInput.value + ' ' + finalTranscript).trim();
+        } else if (interimTranscript) {
+          const currentValue = messageInput.value.trim();
+          messageInput.value = currentValue ? currentValue + ' ' + interimTranscript : interimTranscript;
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('音声認識エラー:', event.error);
+        if (event.error === 'no-speech') {
+          // 音声が検出されなかった場合は自動的に再開しない
+        } else if (event.error === 'not-allowed') {
+          alert('マイクの使用が許可されていません。ブラウザの設定を確認してください。');
+        }
+        stopListening();
+      };
+
+      recognition.onend = () => {
+        stopListening();
+      };
+    }
+
+    function startListening() {
+      if (!recognition) {
+        initSpeechRecognition();
+      }
+      if (recognition && !isListening) {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error('音声認識の開始に失敗:', e);
+          stopListening();
+        }
+      }
+    }
+
+    function stopListening() {
+      if (recognition && isListening) {
+        try {
+          recognition.stop();
+        } catch (e) {
+          console.error('音声認識の停止に失敗:', e);
+        }
+      }
+      isListening = false;
+      voiceBtn.classList.remove('active');
+      const voiceIcon = document.getElementById('voiceIcon');
+      if (voiceIcon) {
+        voiceIcon.style.opacity = '1';
+      }
+    }
+
+    voiceBtn.addEventListener('click', () => {
+      if (isListening) {
+        stopListening();
+      } else {
+        startListening();
+      }
+    });
+
+    // ページ読み込み時に初期化
+    initSpeechRecognition();
+
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) {
+        alert('ログインしてください');
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUserUid = user.uid;
+
+      const userDoc = await db.collection('users').doc(currentUserUid).get();
+      const userData = userDoc.exists ? userDoc.data() : {};
+      userLanguage = userData.language || 'ja';
+      assignedDoctorUid = userData.assignedDoctorUid || userData.assignedDoctor;
+      if (!assignedDoctorUid) {
+        assignedDoctorNameElem.textContent = '担当医師未割り当て';
+        return;
+      }
+
+      await loadDoctorName(assignedDoctorUid);
+      chatRoomId = [currentUserUid, assignedDoctorUid].sort().join('_');
+      
+      // チャットルーム変更時は翻訳キャッシュとメッセージIDをリセット
+      translatedMessageIds.clear();
+      
+      if (window.unsubscribeChat) window.unsubscribeChat();
+      window.unsubscribeChat = subscribeMessages();
+    });
+  </script>
+</body>
+</html>

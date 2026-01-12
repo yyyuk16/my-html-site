@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="プロフィール設定">プロフィール設定</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="maintab.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- 多言語対応 -->
+    <script src="multilang.js"></script>
+    <style>
+        body { background: var(--background-gradient, #E8F5E9); }
+        .profile-main-content { display:flex; justify-content:center; align-items:flex-start; min-height:60vh; padding:40px 0 32px 0; }
+        .profile-card { background:var(--card-bg,#fff); border-radius:var(--border-radius-lg,32px); box-shadow:0 4px 24px var(--shadow-color,rgba(67,160,71,0.10)); padding:40px 32px 32px; min-width:340px; max-width:420px; width:100%; margin:0 auto; display:flex; flex-direction:column; align-items:center; position:relative; transition:box-shadow .2s; }
+        .profile-card:hover { box-shadow:0 8px 32px var(--shadow-color-strong,rgba(67,160,71,0.18)); }
+        .profile-header { display:flex; flex-direction:column; align-items:center; margin-bottom:28px; }
+        .profile-avatar { width:84px; height:84px; border-radius:50%; background:var(--primary-color,#43A047); display:flex; align-items:center; justify-content:center; font-size:2.6em; color:#fff; font-weight:700; margin-bottom:12px; box-shadow:0 2px 8px var(--shadow-color,rgba(67,160,71,0.10)); border:4px solid #fff; }
+        .profile-title { font-size:1.35em; color:var(--primary-color,#43A047); font-weight:600; letter-spacing:.04em; }
+        .profile-list { width:100%; margin:0 0 24px 0; }
+        .profile-row { display:flex; align-items:center; justify-content:space-between; background:var(--background-color,#E8F5E9); border-radius:var(--border-radius-md,16px); padding:14px 18px; margin-bottom:12px; box-shadow:0 1px 4px var(--shadow-color,rgba(67,160,71,0.07)); font-size:1.08em; transition:background .2s; }
+        .profile-label { display:flex; align-items:center; color:var(--secondary-color,#2E7D32); font-weight:500; gap:8px; }
+        .profile-label i { font-size:1.1em; margin-right:2px; }
+        .profile-value { color:var(--text-color,#1A1A1A); font-weight:400; word-break:break-all; }
+        .edit-btn { background:linear-gradient(90deg,#4CAF50 0%,#81C784 100%); color:#fff; border:none; border-radius:var(--border-radius-md,16px); padding:8px 18px; font-size:0.98em; font-weight:500; margin-left:10px; cursor:pointer; box-shadow:0 1px 4px rgba(67,160,71,0.10); transition:background .18s, box-shadow .18s; }
+        .edit-btn:hover { background:linear-gradient(90deg,#388E3C 0%,#66BB6A 100%); }
+        .save-btn { background:linear-gradient(90deg,#43A047 0%,#A5D6A7 100%); color:#fff; border:none; border-radius:var(--border-radius-md,16px); padding:8px 18px; font-size:0.98em; font-weight:500; margin-left:10px; cursor:pointer; box-shadow:0 1px 4px rgba(67,160,71,0.10); transition:background .18s, box-shadow .18s; }
+        .cancel-btn { background:linear-gradient(90deg,#BDBDBD 0%,#E0E0E0 100%); color:#333; border:none; border-radius:var(--border-radius-md,16px); padding:8px 18px; font-size:0.98em; font-weight:500; margin-left:10px; cursor:pointer; box-shadow:0 1px 4px rgba(158,158,158,0.10); transition:background .18s, box-shadow .18s; }
+        .delete-btn { background:linear-gradient(90deg,#f44336 0%,#e57373 100%); color:#fff; border:none; border-radius:var(--border-radius-md,16px); padding:12px 36px; font-size:1.08em; font-weight:600; letter-spacing:.04em; margin-top:8px; cursor:pointer; box-shadow:0 2px 8px var(--shadow-color,rgba(244,67,54,0.10)); transition:background .18s, box-shadow .18s; }
+        .delete-btn:hover { background:linear-gradient(90deg,#e53935 0%,#ef5350 100%); box-shadow:0 4px 16px var(--shadow-color-strong,rgba(244,67,54,0.18)); }
+        .logout-btn { background:linear-gradient(90deg,#607D8B 0%,#90A4AE 100%); color:#fff; border:none; border-radius:var(--border-radius-md,16px); padding:12px 36px; font-size:1.08em; font-weight:600; letter-spacing:.04em; margin-top:8px; cursor:pointer; box-shadow:0 2px 8px var(--shadow-color,rgba(96,125,139,0.10)); transition:background .18s, box-shadow .18s; }
+        .logout-btn:hover { background:linear-gradient(90deg,#455A64 0%,#78909C 100%); box-shadow:0 4px 16px var(--shadow-color-strong,rgba(96,125,139,0.18)); }
+        .profile-edit-input { font-size:1em; padding:6px 10px; border-radius:8px; border:1px solid #BDBDBD; width:140px; }
+        .profile-edit-form-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+        @media (max-width:600px){ .profile-card{ min-width:0; max-width:98vw; padding:24px 6vw 18px; } .profile-main-content{ padding:18px 0 12px; } }
+    </style>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => document.documentElement.lang = 'ja');
+    </script>
+</head>
+<body>
+        <div class="profile-main-content">
+            <div class="profile-card">
+                <div class="profile-header">
+                <div class="profile-avatar" id="profileAvatar"><span id="profileInitial">?</span></div>
+                    <h2 class="profile-title" data-translate="account_info">登録情報</h2>
+            </div>
+            <div class="profile-list" id="profileList"></div>
+            <button id="deleteAccountBtn" class="delete-btn" data-translate="treatment_complete"><i class="fas fa-user-slash"></i> 治療完了（退会）</button>
+            <button id="logoutBtn" class="logout-btn" style="margin-top: 12px;"><i class="fas fa-sign-out-alt"></i> <span data-translate="logout">ログアウト</span></button>
+        </div>
+    </div>
+    <div style="text-align:center; margin-top: 18px;">
+        <button onclick="window.location.href='setting.html'" style="background: linear-gradient(90deg, #A5D6B5 0%, #2E7D32 100%); color: #fff; border: none; border-radius: 16px; padding: 12px 36px; font-size: 1.08em; font-weight: 600; letter-spacing: .04em; cursor: pointer; box-shadow: 0 2px 8px rgba(46,125,50,0.10); transition: background .18s, box-shadow .18s;">
+            <i class="fas fa-arrow-left"></i> <span data-translate="back">戻る</span>
+        </button>
+    </div>
+
+        <script>
+            const firebaseConfig = {
+                apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+                authDomain: "web01-2484d.firebaseapp.com",
+                databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+                projectId: "web01-2484d",
+                storageBucket: "web01-2484d.firebasestorage.app",
+                messagingSenderId: "90159472898",
+                appId: "1:90159472898:web:261ec71f9919611011e21b",
+                measurementId: "G-9TGR07ZSY9"
+            };
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+            const listDiv = document.getElementById('profileList');
+            let currentUser = null;
+            let currentData = {};
+            let isEditing = false;
+            let doctorList = []; // 医師リストを保持
+
+            function setLoading(message){
+                listDiv.innerHTML = `<div class='profile-row'><div class='profile-label'><i class="fas fa-circle-notch fa-spin"></i><span>読み込み中</span></div><span class='profile-value'>${message||''}</span></div>`;
+            }
+            function setMessage(iconHtml,label,value){
+                listDiv.innerHTML = `<div class='profile-row'><div class='profile-label'>${iconHtml}<span>${label}</span></div><span class='profile-value'>${value}</span></div>`;
+            }
+
+            // 翻訳取得ヘルパー関数
+            function getTranslation(key, fallback) {
+                if (window.multiLang && window.multiLang.translations && window.multiLang.currentLanguage) {
+                    return window.multiLang.translations[window.multiLang.currentLanguage]?.[key] || fallback;
+                }
+                return fallback;
+            }
+
+            // 医師リストを取得してセレクトボックスに追加
+            async function loadDoctorsForSelect(selectedUid = '') {
+                const select = document.getElementById('editInput_assignedDoctor');
+                if (!select) {
+                    console.error('担当医のセレクトボックスが見つかりません');
+                    return;
+                }
+
+                try {
+                    const db = firebase.firestore();
+                    console.log('医師リストを取得中...');
+                    
+                    // role が 'staff' または 'doct' のユーザーを取得
+                    const [snapshot1, snapshot2] = await Promise.all([
+                        db.collection('users').where('role', '==', 'staff').get(),
+                        db.collection('users').where('role', '==', 'doct').get()
+                    ]);
+                    
+                    console.log('staff:', snapshot1.size, '件');
+                    console.log('doct:', snapshot2.size, '件');
+                    
+                    doctorList = [];
+                    snapshot1.forEach(doc => {
+                        const data = doc.data();
+                        console.log('医師(staff)を発見:', doc.id, data.name || data.displayName || data.email);
+                        doctorList.push({
+                            uid: doc.id,
+                            name: data.name || data.displayName || data.userName || data.email || '医師'
+                        });
+                    });
+                    snapshot2.forEach(doc => {
+                        const data = doc.data();
+                        // 重複チェック
+                        if (!doctorList.find(d => d.uid === doc.id)) {
+                            console.log('医師(doct)を発見:', doc.id, data.name || data.displayName || data.email);
+                            doctorList.push({
+                                uid: doc.id,
+                                name: data.name || data.displayName || data.userName || data.email || '医師'
+                            });
+                        }
+                    });
+
+                    console.log('取得した医師数:', doctorList.length);
+
+                    // セレクトボックスに追加
+                    if (doctorList.length === 0) {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = getTranslation('no_doctors_available', '医師が登録されていません');
+                        option.disabled = true;
+                        select.appendChild(option);
+                    } else {
+                        doctorList.forEach(doctor => {
+                            const option = document.createElement('option');
+                            option.value = doctor.uid;
+                            option.textContent = doctor.name;
+                            if (doctor.uid === selectedUid) {
+                                option.selected = true;
+                            }
+                            select.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('医師リストの取得に失敗しました:', error);
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'エラー: ' + error.message;
+                    option.disabled = true;
+                    select.appendChild(option);
+                }
+            }
+
+            // 編集可能なフィールド（翻訳対応）
+            function getEditableFields() {
+                return {
+                    name: {
+                        label: getTranslation('name', '名前'),
+                        icon: '<i class="fas fa-user"></i>',
+                        type: 'text',
+                        placeholder: getTranslation('name_placeholder', 'お名前')
+                    },
+                    gender: {
+                        label: getTranslation('gender', '性別'),
+                        icon: '<i class="fas fa-venus-mars"></i>',
+                        type: 'select',
+                        options: [
+                            getTranslation('male', '男性'),
+                            getTranslation('female', '女性'),
+                            getTranslation('other', 'その他')
+                        ]
+                    },
+                    age: {
+                        label: getTranslation('age', '年齢'),
+                        icon: '<i class="fas fa-birthday-cake"></i>',
+                        type: 'number',
+                        min: 0,
+                        max: 120,
+                        placeholder: getTranslation('age', '年齢')
+                    },
+                    email: {
+                        label: getTranslation('email', 'メール'),
+                        icon: '<i class="fas fa-envelope"></i>',
+                        type: 'email',
+                        placeholder: getTranslation('email_placeholder', 'メールアドレス')
+                    },
+                    language: {
+                        label: getTranslation('language', '表示言語'),
+                        icon: '<i class="fas fa-language"></i>',
+                        type: 'select',
+                        // Firestore には言語コード（ja/en/zh/ko）を保存
+                        options: ['ja', 'en', 'zh', 'ko']
+                    }
+                };
+            }
+
+            // 表示順
+            const order = ['name','gender','age','language','email','assignedDoctor'];
+
+            function renderProfile(data, editing = false) {
+                listDiv.innerHTML = '';
+                let initial = '？';
+                if (data.name && typeof data.name === 'string' && data.name.length > 0) initial = data.name[0];
+                document.getElementById('profileInitial').textContent = initial;
+
+                const editableFields = getEditableFields();
+
+                if (!editing) {
+                    // 通常表示
+                    for (const key of order) {
+                        let value = data[key];
+                        let label = key;
+                        let icon = '';
+                        let skip = false;
+                        let isEditable = !!editableFields[key];
+                        let field = editableFields[key];
+
+                        switch(key){
+                            case 'name': label = getTranslation('name', '名前'); icon='<i class="fas fa-user"></i>'; break;
+                            case 'gender': label = getTranslation('gender', '性別'); icon='<i class="fas fa-venus-mars"></i>'; break;
+                            case 'age': label = getTranslation('age', '年齢'); value = value ? value + getTranslation('years_old', '歳') : ''; icon='<i class="fas fa-birthday-cake"></i>'; break;
+                            case 'email': label = getTranslation('email', 'メール'); icon='<i class="fas fa-envelope"></i>'; break;
+                            case 'language':
+                                label = getTranslation('language', '表示言語'); icon = '<i class="fas fa-language"></i>';
+                                const langLabels = {
+                                    ja: getTranslation('lang_ja', '日本語'),
+                                    en: getTranslation('lang_en', 'English'),
+                                    zh: getTranslation('lang_zh', '中文'),
+                                    ko: getTranslation('lang_ko', '한국語')
+                                };
+                                value = langLabels[value] || value || '';
+                                break;
+                            case 'assignedDoctor':
+                                label = getTranslation('assigned_doctor', '担当医'); icon='<i class="fas fa-user-md"></i>';
+                                if (value) {
+                                    value = data['assignedDoctorName'] || '-';
+                                } else {
+                                    value = '-';
+                                }
+                                isEditable = true; // 担当医は編集可能
+                                break;
+                            default: skip = true; break;
+                        }
+                        if (skip) continue;
+
+                        listDiv.innerHTML += `
+                            <div class='profile-row'>
+                                <div class='profile-label'>${icon}<span>${label}</span></div>
+                                <span class='profile-value'>
+                                    ${value !== undefined ? value : ''}
+                                </span>
+                            </div>
+                        `;
+                    }
+                    // 一括編集ボタン
+                    listDiv.innerHTML += `
+                        <div class="profile-edit-form-btns">
+                            <button class="edit-btn" id="editAllBtn"><i class="fas fa-pen"></i> <span data-translate="edit_all">まとめて編集</span></button>
+                        </div>
+                    `;
+                    document.getElementById('editAllBtn').onclick = function() {
+                        isEditing = true;
+                        renderProfile(currentData, true);
+                        // 翻訳を更新
+                        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                            try { window.multiLang.updateUI(); } catch (_) {}
+                        }
+                    };
+                } else {
+                    // 編集フォーム
+                    listDiv.innerHTML = `<form id="profileEditForm" autocomplete="off"></form>`;
+                    const form = document.getElementById('profileEditForm');
+                    let assignedDoctorUid = ''; // 担当医のUIDを保持
+                    
+                    for (const key of order) {
+                        let field = editableFields[key];
+                        let value = data[key];
+                        let label = '';
+                        let icon = '';
+                        let skip = false;
+                        
+                        // editableFieldsから取得（翻訳済み）
+                        if (field) {
+                            label = field.label;
+                            icon = field.icon;
+                        } else if (key === 'assignedDoctor') {
+                            // 担当医はeditableFieldsに含まれていないので個別に処理
+                            label = getTranslation('assigned_doctor', '担当医');
+                            icon = '<i class="fas fa-user-md"></i>';
+                            assignedDoctorUid = data['assignedDoctor'] || data['assignedDoctorUid'] || '';
+                        } else {
+                            skip = true;
+                        }
+                        
+                        if (skip) continue;
+
+                        // 担当医は特別な処理（動的に医師リストを取得）
+                        if (key === 'assignedDoctor') {
+                            form.innerHTML += `
+                                <div class='profile-row'>
+                                    <div class='profile-label'>${icon}<span>${label}</span></div>
+                                    <span class='profile-value'>
+                                        <select class="profile-edit-input" name="assignedDoctor" id="editInput_assignedDoctor" style="width: 200px;">
+                                            <option value="">${getTranslation('no_doctor', '担当医なし')}</option>
+                                        </select>
+                                    </span>
+                                </div>
+                            `;
+                            continue;
+                        }
+
+                        let inputHtml = '';
+                        if (field) {
+                            if (field.type === 'select') {
+                                // セレクトボックス（性別・言語など）
+                                inputHtml = `<select class="profile-edit-input" name="${key}" id="editInput_${key}">
+                                    ${field.options.map(opt => {
+                                        const optValue = opt;
+                                        let optLabel = opt;
+                                        if (key === 'language') {
+                                            const langLabels = {
+                                                ja: getTranslation('lang_ja', '日本語'),
+                                                en: getTranslation('lang_en', 'English'),
+                                                zh: getTranslation('lang_zh', '中文'),
+                                                ko: getTranslation('lang_ko', '한국語')
+                                            };
+                                            optLabel = langLabels[opt] || opt;
+                                        }
+                                        const selected = (value === optValue) ? ' selected' : '';
+                                        return `<option value="${optValue}"${selected}>${optLabel}</option>`;
+                                    }).join('')}
+                                </select>`;
+                            } else {
+                                inputHtml = `<input class="profile-edit-input" name="${key}" id="editInput_${key}" type="${field.type}" value="${value!==undefined?value:''}" 
+                                    ${field.placeholder?`placeholder="${field.placeholder}"`:''}
+                                    ${field.min!==undefined?`min="${field.min}"`:''}
+                                    ${field.max!==undefined?`max="${field.max}"`:''}
+                                >`;
+                            }
+                        }
+                        form.innerHTML += `
+                            <div class='profile-row'>
+                                <div class='profile-label'>${icon}<span>${label}</span></div>
+                                <span class='profile-value'>
+                                    ${inputHtml}
+                                </span>
+                            </div>
+                        `;
+                    }
+                    // 保存・キャンセルボタン
+                    form.innerHTML += `
+                        <div class="profile-edit-form-btns">
+                            <button type="submit" class="save-btn" id="saveAllBtn"><i class="fas fa-check"></i> <span data-translate="save">保存</span></button>
+                            <button type="button" class="cancel-btn" id="cancelAllBtn"><i class="fas fa-times"></i> <span data-translate="cancel">キャンセル</span></button>
+                        </div>
+                    `;
+
+                    // フォーム全体が構築された後に医師リストを読み込む
+                    setTimeout(() => {
+                        loadDoctorsForSelect(assignedDoctorUid);
+                    }, 0);
+
+                    // 保存処理
+                    form.onsubmit = async function(e) {
+                        e.preventDefault();
+                        let updateObj = {};
+                        let newEmail = null;
+                        
+                        // 担当医の処理（editableFieldsに含まれていないため個別処理）
+                        const assignedDoctorInput = form.querySelector('[name="assignedDoctor"]');
+                        const oldAssignedDoctorUid = currentData['assignedDoctor'] || currentData['assignedDoctorUid'] || null;
+                        
+                        if (assignedDoctorInput) {
+                            const selectedDoctorUid = assignedDoctorInput.value;
+                            if (selectedDoctorUid) {
+                                updateObj.assignedDoctor = selectedDoctorUid;
+                                updateObj.assignedDoctorUid = selectedDoctorUid;
+                                // 担当医の名前も取得して保存
+                                const selectedDoctor = doctorList.find(d => d.uid === selectedDoctorUid);
+                                if (selectedDoctor) {
+                                    updateObj.assignedDoctorName = selectedDoctor.name;
+                                }
+                            } else {
+                                // 担当医を解除（FieldValue.delete()でフィールドを削除）
+                                updateObj.assignedDoctor = firebase.firestore.FieldValue.delete();
+                                updateObj.assignedDoctorUid = firebase.firestore.FieldValue.delete();
+                                updateObj.assignedDoctorName = firebase.firestore.FieldValue.delete();
+                            }
+                        }
+                        
+                        for (const key of Object.keys(editableFields)) {
+                            let field = editableFields[key];
+                            let input = form.querySelector(`[name="${key}"]`);
+                            if (!input) continue;
+                            let newValue = input.value;
+                            // バリデーション
+                            if (field.type === 'number') {
+                                newValue = Number(newValue);
+                                if (isNaN(newValue) || (field.min!==undefined && newValue<field.min) || (field.max!==undefined && newValue>field.max)) {
+                                    alert(getTranslation('validation_number_range', `${field.label}は${field.min}～${field.max}の数値で入力してください`).replace('{label}', field.label).replace('{min}', field.min).replace('{max}', field.max));
+                                    input.focus();
+                                    return;
+                                }
+                            }
+                            if (field.type === 'email') {
+                                if (!/^[^@]+@[^@]+\.[^@]+$/.test(newValue)) {
+                                    alert(getTranslation('validation_email', '正しいメールアドレスを入力してください'));
+                                    input.focus();
+                                    return;
+                                }
+                                newEmail = newValue;
+                            }
+                            if (field.type === 'text' && (!newValue || newValue.trim()==='')) {
+                                alert(getTranslation('validation_required', `${field.label}を入力してください`).replace('{label}', field.label));
+                                input.focus();
+                                return;
+                            }
+                            updateObj[key] = newValue;
+                        }
+                        setLoading(getTranslation('saving', '保存中...'));
+                        try {
+                            const db = firebase.firestore();
+                            // メールアドレス変更はauthにも反映
+                            if (newEmail && newEmail !== currentUser.email) {
+                                await currentUser.updateEmail(newEmail);
+                            }
+                            
+                            // 担当医の名前を事前に取得（必要に応じて）
+                            if (updateObj.assignedDoctor && typeof updateObj.assignedDoctor === 'string') {
+                                const doctorUid = updateObj.assignedDoctor;
+                                try {
+                                    const doctorDoc = await db.collection('users').doc(doctorUid).get();
+                                    if (doctorDoc.exists) {
+                                        const doctorData = doctorDoc.data();
+                                        updateObj.assignedDoctorName = doctorData.name || doctorData.displayName || doctorData.userName || '';
+                                    }
+                                } catch (e) {
+                                    console.error('担当医の名前取得に失敗:', e);
+                                }
+                            }
+                            
+                            // デバッグ: 更新内容を確認
+                            console.log('更新するデータ:', updateObj);
+                            if (updateObj.assignedDoctor) {
+                                console.log('担当医を更新:', updateObj.assignedDoctor);
+                            }
+                            
+                            // 部分更新（merge: true で既存データを保持）
+                            await db.collection('users').doc(currentUser.uid).update(updateObj);
+                            
+                            // 更新後のデータを確認
+                            const updatedDoc = await db.collection('users').doc(currentUser.uid).get();
+                            console.log('更新後のデータ:', updatedDoc.data());
+                            
+                            // 画面上のcurrentDataも更新（FieldValue.delete()は除外）
+                            const cleanUpdateObj = {};
+                            for (const key in updateObj) {
+                                if (updateObj[key] !== firebase.firestore.FieldValue.delete()) {
+                                    cleanUpdateObj[key] = updateObj[key];
+                                } else {
+                                    // フィールドを削除する場合は、currentDataからも削除
+                                    delete currentData[key];
+                                }
+                            }
+                            Object.assign(currentData, cleanUpdateObj);
+                            
+                            isEditing = false;
+                            alert(getTranslation('update_success', '更新しました'));
+                            // 言語変更があれば即時反映
+                            if (updateObj.language && window.multiLang && typeof window.multiLang.switchLanguage === 'function') {
+                                try {
+                                    window.multiLang.switchLanguage(updateObj.language);
+                                    document.documentElement.lang = updateObj.language;
+                                } catch (_) {}
+                            }
+                            renderProfile(currentData, false);
+                        } catch (e) {
+                            alert(getTranslation('save_failed', '保存に失敗しました: ') + e.message);
+                            renderProfile(currentData, false);
+                        }
+                    };
+                    // キャンセル
+                    document.getElementById('cancelAllBtn').onclick = function() {
+                        isEditing = false;
+                        renderProfile(currentData, false);
+                        // 翻訳を更新
+                        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                            try { window.multiLang.updateUI(); } catch (_) {}
+                        }
+                    };
+                    // 翻訳を更新
+                    if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                        try { window.multiLang.updateUI(); } catch (_) {}
+                    }
+                }
+                // 翻訳を更新
+                if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                    try { window.multiLang.updateUI(); } catch (_) {}
+                }
+            }
+
+            setLoading('プロフィールを取得しています...');
+            firebase.auth().onAuthStateChanged(async (user) => {
+                if (!user) {
+                    setMessage('<i class="fas fa-sign-in-alt"></i>','未ログイン','ログイン後にプロフィールが表示されます');
+                    if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                        try { window.multiLang.updateUI(); } catch (_) {}
+                    }
+                    return;
+                }
+                currentUser = user;
+                try {
+                    const db = firebase.firestore();
+                    const doc = await db.collection('users').doc(user.uid).get();
+                    if (!doc.exists) {
+                        setMessage('<i class="fas fa-user"></i>','データ未登録','プロフィール情報が見つかりません');
+                        return;
+                    }
+                    let data = doc.data();
+                    // 担当医の名前取得
+                    if (data.assignedDoctor) {
+                        try {
+                            const docSnap = await db.collection('users').doc(data.assignedDoctor).get();
+                            data.assignedDoctorName = docSnap.exists ? (docSnap.data().name || '-') : '-';
+                        } catch {
+                            data.assignedDoctorName = '-';
+                        }
+                    }
+                    currentData = data;
+                    renderProfile(data, false);
+                    if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                        try { window.multiLang.updateUI(); } catch (_) {}
+                    }
+                } catch (error) {
+                    console.error('Error fetching user profile:', error);
+                    setMessage('<i class="fas fa-triangle-exclamation"></i>','エラー','プロフィール取得に失敗しました');
+                    if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                        try { window.multiLang.updateUI(); } catch (_) {}
+                    }
+                }
+            });
+
+            document.getElementById('deleteAccountBtn').onclick = async function(){
+                if (!confirm('本当に退会しますか？この操作は元に戻せません。')) return;
+                const user = firebase.auth().currentUser;
+                if (!user) return alert('ログイン情報がありません');
+                const db = firebase.firestore();
+                try {
+                    await db.collection('users').doc(user.uid).delete();
+                    try {
+                        await user.delete();
+                        alert('退会が完了しました');
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        if (error.code === 'auth/requires-recent-login') {
+                            const pw = prompt('再認証のためパスワードを入力してください');
+                            if (!pw) return alert('パスワードが必要です');
+                            const cred = firebase.auth.EmailAuthProvider.credential(user.email, pw);
+                            await user.reauthenticateWithCredential(cred);
+                            await user.delete();
+                            alert('退会が完了しました');
+                            window.location.href = 'index.html';
+                        } else {
+                            alert('退会処理中にエラーが発生しました: ' + error.message);
+                        }
+                    }
+                } catch (e) {
+                    alert('退会処理中にエラーが発生しました: ' + e.message);
+                }
+            };
+
+            // ログアウトボタン処理
+            document.getElementById('logoutBtn').onclick = async function() {
+                try {
+                    await firebase.auth().signOut();
+                    window.location.href = 'index.html';
+                } catch (e) {
+                    alert('ログアウトに失敗しました: ' + e.message);
+                }
+            };
+        </script>
+    </body>
+</html>
