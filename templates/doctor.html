@@ -2,71 +2,373 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>医師ログイン</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-translate="doctor-login">医師ログイン</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="login.css">
-  <!-- Firebase CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2196F3">
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js').then(reg => console.log('SW registered')).catch(err => console.log('SW failed', err));
+      });
+    }
+  </script>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  
-  <!-- タブ固有認証管理 -->
+  <script src="multilang.js"></script>
   <script src="tab-auth.js"></script>
 
+  <style>
+    :root {
+      --primary-blue: #2196F3;
+      --secondary-blue: #64B5F6;
+      --bg-gray: #f9f9f9;
+      --text-main: #333333;
+      --input-border: #f0f0f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      color: var(--text-main);
+    }
+
+    /* 入力フォームのスタイル */
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    input {
+      width: 100%;
+      padding: 18px 16px;
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      background-color: var(--bg-gray);
+      font-size: 16px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--primary-blue);
+      background-color: #fff;
+    }
+
+    /* パスワード表示ボタン */
+    .password-toggle {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-blue);
+    }
+
+    .password-toggle:focus {
+      outline: none;
+    }
+
+    .password-toggle-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+      display: block;
+      color: var(--primary-blue);
+    }
+
+    /* ボタンのスタイル（カプセル型） */
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 35px;
+      border: none;
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 15px;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    .btn-login {
+      background-color: var(--primary-blue);
+      color: white;
+    }
+
+    .btn-signup {
+      background-color: var(--secondary-blue);
+      color: white;
+    }
+
+    /* 患者用リンク */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 25px;
+      color: var(--primary-blue);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .back-link i {
+      margin-right: 8px;
+    }
+
+    /* 言語セレクター（モバイル対応） */
+    .language-selector {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 5px;
+    }
+
+    .lang-btn {
+      padding: 5px 10px;
+      border: 1px solid var(--secondary-blue);
+      border-radius: 8px;
+      background: white;
+      font-size: 12px;
+      color: var(--primary-blue);
+      cursor: pointer;
+    }
+
+    .lang-btn.active {
+      background: var(--primary-blue);
+      color: white;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>医師ログイン</h1>
+
+  <div class="language-selector" id="languageSelector">
+    <button class="lang-btn" data-lang="ja">JP</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="zh">ZH</button>
+  </div>
+
+  <div class="login-container">
+    <h1 data-translate="doctor-login">医師ログイン</h1>
+    
     <form id="doctorLoginForm">
       <div class="form-group">
-        <label for="email">メールアドレス</label>
-        <input type="email" id="email" required>
+        <input type="email" id="email" placeholder="Email" data-translate="email_placeholder" required>
       </div>
+      
       <div class="form-group">
-        <label for="password">パスワード</label>
-        <input type="password" id="password" required>
+        <div class="input-wrapper">
+          <input type="password" id="password" placeholder="Password" data-translate="password_placeholder" required>
+          <button type="button" id="togglePassword" class="password-toggle" aria-label="パスワードを表示/非表示">
+            <span id="view" class="password-toggle-icon">
+              <i class="far fa-eye-slash"></i>
+            </span>
+          </button>
+        </div>
       </div>
-      <button type="submit" id="loginButton">ログイン</button>
+
+      <button type="submit" class="btn btn-login">
+        <span id="loginButtonText" data-translate="login">ログイン</span>
+      </button>
     </form>
-    <button onclick="location.href='doctersignup.html'" class="signup-button">新規登録はこちら</button>
-    <a href="index.html" class="back-link">← 患者の方はこちら</a>
+
+    <button onclick="location.href='doctersignup.html'" class="btn btn-signup" data-translate="signup">新規登録はこちら</button>
+    
+    <a href="index.html" class="back-link">
+      <i class="fas fa-arrow-left"></i>
+      <span data-translate="patient-login-link"> 患者の方はこちら</span>
+    </a>
   </div>
 
   <script>
+    // Firebase設定
     const firebaseConfig = {
-  apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
-  authDomain: "web01-2484d.firebaseapp.com",
-  databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
-  projectId: "web01-2484d",
-  storageBucket: "web01-2484d.firebasestorage.app",
-  messagingSenderId: "90159472898",
-  appId: "1:90159472898:web:261ec71f9919611011e21b",
-  measurementId: "G-9TGR07ZSY9"
-};
+      apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+      authDomain: "web01-2484d.firebaseapp.com",
+      databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.appspot.com",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b",
+      measurementId: "G-9TGR07ZSY9"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
 
-    firebase.initializeApp(firebaseConfig);
+    // パスワード表示切り替え
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    const viewIcon = document.getElementById('view');
 
-    // ログインフォームの処理
+    if (passwordInput && togglePassword && viewIcon) {
+      const iconElement = viewIcon.querySelector('i');
+
+      const togglePasswordVisibility = () => {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        
+        // アイコンを切り替え
+        if (iconElement) {
+          if (isPassword) {
+            // パスワード表示時は fa-eye
+            iconElement.classList.remove('fa-eye-slash');
+            iconElement.classList.add('fa-eye');
+          } else {
+            // パスワード非表示時は fa-eye-slash
+            iconElement.classList.remove('fa-eye');
+            iconElement.classList.add('fa-eye-slash');
+          }
+        }
+      };
+
+      togglePassword.addEventListener('click', (event) => {
+        event.preventDefault();
+        togglePasswordVisibility();
+      });
+
+      togglePassword.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          togglePasswordVisibility();
+        }
+      });
+    }
+
+    // ログイン処理
     document.getElementById('doctorLoginForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
+      const loginButton = document.getElementById('loginButtonText');
+      const originalText = loginButton.textContent;
+
+      loginButton.textContent = 'ログイン中...';
+      
       firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
         .then(() => {
           return firebase.auth().signInWithEmailAndPassword(email, password);
         })
         .then((userCredential) => {
           const user = userCredential.user;
-          alert('ログインに成功しました！');
+          
+          // タブ固有の認証状態を更新
+          if (window.tabAuthManager) {
+            window.tabAuthManager.setTabAuthState(user);
+          }
+          
+          let successMessage = "ログインに成功しました！";
+          if (window.multiLang && window.multiLang.translations[window.multiLang.currentLanguage]) {
+            const translations = window.multiLang.translations[window.multiLang.currentLanguage];
+            successMessage = translations.login_success || successMessage;
+          }
+          
+          alert(successMessage);
           window.location.href = 'home.html';
         })
         .catch((error) => {
-          alert('ログインに失敗しました: ' + error.message);
+          let errorMessage = "Error: " + error.message;
+          if (window.multiLang && window.multiLang.translations[window.multiLang.currentLanguage]) {
+            const translations = window.multiLang.translations[window.multiLang.currentLanguage];
+            errorMessage = translations.login_failed || errorMessage;
+          }
+          alert(errorMessage);
+          loginButton.textContent = originalText;
         });
     });
+
+    // 言語切り替えボタンの処理
+    const initLanguageSwitcher = async () => {
+      if (!window.multiLang) {
+        setTimeout(initLanguageSwitcher, 100);
+        return;
+      }
+
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const lang = btn.getAttribute('data-lang');
+          await window.multiLang.switchLanguage(lang);
+          document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      // 初期表示時に現在の言語に応じてボタンをアクティブにする
+      const currentLang = window.multiLang.currentLanguage || 'ja';
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.getAttribute('data-lang') === currentLang) {
+          btn.classList.add('active');
+        }
+      });
+    };
+
+    // 初期化を開始
+    setTimeout(initLanguageSwitcher, 200);
+    
+    // 初期翻訳を適用（multilang.jsの初期化完了を待つ）
+    const applyInitialTranslation = () => {
+      if (window.multiLang && window.multiLang.translations[window.multiLang.currentLanguage]) {
+        window.multiLang.updateUI();
+      } else {
+        setTimeout(applyInitialTranslation, 100);
+      }
+    };
+    setTimeout(applyInitialTranslation, 300);
   </script>
 </body>
 </html>
