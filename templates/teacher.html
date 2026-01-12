@@ -19,15 +19,20 @@
 <body>
   <div class="chat-container">
     <div class="chat-header">
-      <h2 data-translate="ai_chat">👨‍⚕️ AI先生チャット</h2>
+      <div id="aiTeacherContainer">
+        <span data-translate="ai_teacher" class="doctor-label">AI先生</span>
+      </div>
     </div>
 
     <div id="chatContainer" class="chat-messages"></div>
 
     <div class="input-container">
+      <button id="voiceBtn" title="音声入力">
+        <img src="8549.png" alt="音声入力" id="voiceIcon" />
+      </button>
       <input type="text" id="userInput" placeholder="健康について何でもお聞きください..." autocomplete="off" data-translate="health_consultation" />
       <button id="sendButton" data-translate="send">送信</button>
-      <button onclick="history.back()" class="back-btn" data-translate="back">← 戻る</button>
+      <button onclick="history.back()" class="back-btn" data-translate="back">戻る</button>
     </div>
   </div>
 
@@ -37,6 +42,7 @@
     const chatContainer = document.getElementById("chatContainer");
     const userInput = document.getElementById("userInput");
     const sendButton = document.getElementById("sendButton");
+    const voiceBtn = document.getElementById("voiceBtn");
 
     function escapeHtml(s){
       return String(s).replace(/[&<>"']/g, m => ({
@@ -224,6 +230,110 @@
       sendButton.addEventListener("click", send);
 
       userInput.focus();
+
+      // ===== 音声入力機能 =====
+      let recognition = null;
+      let isListening = false;
+
+      // SpeechRecognition APIの初期化
+      function initSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          voiceBtn.style.display = 'none';
+          console.warn('音声認識APIがサポートされていません');
+          return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = 'ja-JP';
+        recognition.continuous = false;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => {
+          isListening = true;
+          voiceBtn.classList.add('active');
+          const voiceIcon = document.getElementById('voiceIcon');
+          if (voiceIcon) {
+            voiceIcon.style.opacity = '0.6';
+          }
+        };
+
+        recognition.onresult = (event) => {
+          let interimTranscript = '';
+          let finalTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript;
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+
+          if (finalTranscript) {
+            userInput.value = (userInput.value + ' ' + finalTranscript).trim();
+          } else if (interimTranscript) {
+            const currentValue = userInput.value.trim();
+            userInput.value = currentValue ? currentValue + ' ' + interimTranscript : interimTranscript;
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error('音声認識エラー:', event.error);
+          if (event.error === 'no-speech') {
+            // 音声が検出されなかった場合は自動的に再開しない
+          } else if (event.error === 'not-allowed') {
+            alert('マイクの使用が許可されていません。ブラウザの設定を確認してください。');
+          }
+          stopListening();
+        };
+
+        recognition.onend = () => {
+          stopListening();
+        };
+      }
+
+      function startListening() {
+        if (!recognition) {
+          initSpeechRecognition();
+        }
+        if (recognition && !isListening) {
+          try {
+            recognition.start();
+          } catch (e) {
+            console.error('音声認識の開始に失敗:', e);
+            stopListening();
+          }
+        }
+      }
+
+      function stopListening() {
+        if (recognition && isListening) {
+          try {
+            recognition.stop();
+          } catch (e) {
+            console.error('音声認識の停止に失敗:', e);
+          }
+        }
+        isListening = false;
+        voiceBtn.classList.remove('active');
+        const voiceIcon = document.getElementById('voiceIcon');
+        if (voiceIcon) {
+          voiceIcon.style.opacity = '1';
+        }
+      }
+
+      voiceBtn.addEventListener('click', () => {
+        if (isListening) {
+          stopListening();
+        } else {
+          startListening();
+        }
+      });
+
+      // ページ読み込み時に初期化
+      initSpeechRecognition();
 
       // 翻訳UI更新
       const updateUIWhenReady = () => {

@@ -1144,6 +1144,7 @@
     let currentPersonalizedQuiz = null;
     let currentQuizIndex = 0;
     let personalizedQuizScore = 0;
+    let quizAnswers = []; // 各問題の回答状態を保持
 
     // HTMLエスケープ関数
     function escapeHtml(text) {
@@ -1342,11 +1343,13 @@ ${patientText}
         currentPersonalizedQuiz = questions;
         currentQuizIndex = 0;
         personalizedQuizScore = 0;
+        quizAnswers = []; // 回答状態をリセット
         
         if (statusDiv) {
           statusDiv.innerHTML = `<p style="color:#2E7D32;">✅ レベル ${level} に合わせたクイズを生成しました（${questions.length}問）</p>`;
         }
         
+        container.innerHTML = ''; // コンテナをクリア
         displayPersonalizedQuiz(questions[0], container, questions.length);
         
       } catch (error) {
@@ -1359,76 +1362,107 @@ ${patientText}
 
     // パーソナライズドクイズを表示
     function displayPersonalizedQuiz(question, container, totalQuestions) {
-      container.innerHTML = `
-        <div class="quiz-card" style="background: #fff; border-radius: 12px; padding: 24px; border: 2px solid #fff; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(46, 125, 50, 0.1);">
-          <div style="text-align: center; margin-bottom: 16px; color: #2E7D32; font-weight: 600;">
-            問題 ${currentQuizIndex + 1} / ${totalQuestions}
-          </div>
-          <h3 style="font-size: 1.2em; margin-bottom: 20px; color: #1B5E20; line-height: 1.6;">
-            ${escapeHtml(question.question)}
-          </h3>
-          <div class="quiz-choices" style="display: grid; gap: 12px; margin-bottom: 20px;">
-            ${question.choices.map((choice, index) => `
+      const questionIndex = currentQuizIndex;
+      const existingAnswer = quizAnswers[questionIndex];
+      const isAnswered = existingAnswer && existingAnswer.answered;
+      
+      // 既存の問題カードを探す（なければ新規作成）
+      let quizCard = container.querySelector(`[data-question-index="${questionIndex}"]`);
+      
+      if (!quizCard) {
+        // 新しい問題カードを作成
+        quizCard = document.createElement('div');
+        quizCard.className = 'quiz-card';
+        quizCard.setAttribute('data-question-index', questionIndex);
+        quizCard.style.cssText = 'background: #fff; border-radius: 12px; padding: 24px; border: 2px solid #fff; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(46, 125, 50, 0.1);';
+        container.appendChild(quizCard);
+      }
+      
+      // 問題カードの内容を更新
+      quizCard.innerHTML = `
+        <div style="text-align: center; margin-bottom: 16px; color: #2E7D32; font-weight: 600;">
+          問題 ${questionIndex + 1} / ${totalQuestions}
+        </div>
+        <h3 style="font-size: 1.2em; margin-bottom: 20px; color: #1B5E20; line-height: 1.6;">
+          ${escapeHtml(question.question)}
+        </h3>
+        <div class="quiz-choices" style="display: grid; gap: 12px; margin-bottom: 20px;">
+          ${question.choices.map((choice, index) => {
+            const isCorrect = choice === question.answer;
+            const isSelected = isAnswered && existingAnswer.selectedChoice === choice;
+            const isWrongSelected = isAnswered && isSelected && !existingAnswer.isCorrect;
+            
+            let buttonStyle = 'padding: 14px 20px; background: #fff; border: 2px solid #C8E6C9; border-radius: 10px; text-align: left; font-size: 1em; transition: all 0.2s; color: #2E7D32;';
+            let hoverStyle = '';
+            
+            if (isAnswered) {
+              // 回答済みの場合
+              if (isCorrect) {
+                // 正解は赤色
+                buttonStyle = 'padding: 14px 20px; background: #f44336; border: 2px solid #d32f2f; border-radius: 10px; text-align: left; font-size: 1em; color: #fff; cursor: default;';
+              } else if (isWrongSelected) {
+                // 選択した不正解は青色
+                buttonStyle = 'padding: 14px 20px; background: #2196F3; border: 2px solid #1976D2; border-radius: 10px; text-align: left; font-size: 1em; color: #fff; cursor: default;';
+              } else {
+                // その他の選択肢はグレーアウト
+                buttonStyle = 'padding: 14px 20px; background: #f5f5f5; border: 2px solid #e0e0e0; border-radius: 10px; text-align: left; font-size: 1em; color: #999; cursor: default;';
+              }
+            } else {
+              // 未回答の場合はホバー効果を追加
+              hoverStyle = `onmouseover="this.style.borderColor='#4CAF50'; this.style.background='#E8F5E9';" onmouseout="this.style.borderColor='#C8E6C9'; this.style.background='#fff';"`;
+            }
+            
+            return `
               <button class="choice-btn" data-choice="${escapeHtml(choice)}" 
-                      style="padding: 14px 20px; background: #fff; border: 2px solid #C8E6C9; border-radius: 10px; 
-                             cursor: pointer; text-align: left; font-size: 1em; transition: all 0.2s;
-                             color: #2E7D32;" 
-                      onmouseover="this.style.borderColor='#4CAF50'; this.style.background='#E8F5E9';"
-                      onmouseout="this.style.borderColor='#C8E6C9'; this.style.background='#fff';">
+                      data-is-correct="${isCorrect}"
+                      style="${buttonStyle}"
+                      ${hoverStyle}
+                      ${isAnswered ? 'disabled' : ''}>
                 ${String.fromCharCode(65 + index)}. ${escapeHtml(choice)}
+                ${isCorrect && isAnswered ? ' ✓' : ''}
               </button>
-            `).join('')}
-          </div>
-          <div class="quiz-explanation" style="display: none; padding: 16px; background: #E8F5E9; border-radius: 8px; 
-                                              border-left: 4px solid #4CAF50; margin-top: 16px;">
-            <strong style="color: #2E7D32;">解説：</strong>
-            <p style="margin-top: 8px; color: #1B5E20; line-height: 1.6;">${escapeHtml(question.explanation)}</p>
-          </div>
-          <div class="quiz-navigation" style="display: none; text-align: center; margin-top: 20px;">
-            <button class="quiz-btn" onclick="nextPersonalizedQuestion(${totalQuestions})" 
-                    style="font-size: 1em; padding: 12px 24px;">
-              ${currentQuizIndex + 1 === totalQuestions ? '結果を見る' : '次へ'}
-            </button>
-          </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="quiz-explanation" style="display: ${isAnswered ? 'block' : 'none'}; padding: 16px; background: #E8F5E9; border-radius: 8px; 
+                                            border-left: 4px solid #4CAF50; margin-top: 16px;">
+          <strong style="color: #2E7D32;">解説：</strong>
+          <p style="margin-top: 8px; color: #1B5E20; line-height: 1.6;">${escapeHtml(question.explanation)}</p>
+        </div>
+        <div class="quiz-navigation" style="display: ${isAnswered ? 'block' : 'none'}; text-align: center; margin-top: 20px;">
+          <button class="quiz-btn" onclick="nextPersonalizedQuestion(${totalQuestions})" 
+                  style="font-size: 1em; padding: 12px 24px;">
+            ${questionIndex + 1 === totalQuestions ? '結果を見る' : '次へ'}
+          </button>
         </div>
       `;
       
-      // 選択肢ボタンにイベントリスナーを追加
-      container.querySelectorAll('.choice-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          if (this.disabled) return;
-          
-          const selectedChoice = this.dataset.choice;
-          const isCorrect = selectedChoice === question.answer;
-          const explanationDiv = container.querySelector('.quiz-explanation');
-          const navigationDiv = container.querySelector('.quiz-navigation');
-          const allButtons = container.querySelectorAll('.choice-btn');
-          
-          // すべてのボタンを無効化
-          allButtons.forEach(b => b.disabled = true);
-          
-          // 正解/不正解のスタイルを適用
-          allButtons.forEach(b => {
-            if (b.dataset.choice === question.answer) {
-              b.style.background = '#4CAF50';
-              b.style.color = '#fff';
-              b.style.borderColor = '#2E7D32';
-            } else if (b.dataset.choice === selectedChoice && !isCorrect) {
-              b.style.background = '#FF6B35';
-              b.style.color = '#fff';
-              b.style.borderColor = '#D84315';
+      // 未回答の場合のみイベントリスナーを追加
+      if (!isAnswered) {
+        quizCard.querySelectorAll('.choice-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            if (this.disabled) return;
+            
+            const selectedChoice = this.dataset.choice;
+            const isCorrect = selectedChoice === question.answer;
+            
+            // 回答状態を保存
+            quizAnswers[questionIndex] = {
+              questionIndex: questionIndex,
+              selectedChoice: selectedChoice,
+              isCorrect: isCorrect,
+              answered: true
+            };
+            
+            if (isCorrect) {
+              personalizedQuizScore++;
             }
+            
+            // 問題を再表示して回答状態を反映
+            displayPersonalizedQuiz(question, container, totalQuestions);
           });
-          
-          if (isCorrect) {
-            personalizedQuizScore++;
-          }
-          
-          // 解説とナビゲーションボタンを表示
-          explanationDiv.style.display = 'block';
-          navigationDiv.style.display = 'block';
         });
-      });
+      }
     }
 
     // 次の問題へ
