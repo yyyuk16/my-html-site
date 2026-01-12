@@ -189,20 +189,17 @@
           
           if (userDoc.exists) {
             const userData = userDoc.data();
-            // displayName, userName, nameの順で取得
-            const displayName = userData.displayName || userData.userName || userData.name || 
-                               (user.email ? user.email.split('@')[0] : 'ユーザー');
+            // nameのみを使用
+            const displayName = userData.name || 'ユーザー';
             userNameDisplay.textContent = displayName + ' さん';
           } else {
-            // Firestoreにデータがない場合は、Authの情報を使用
-            const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ユーザー');
-            userNameDisplay.textContent = displayName + ' さん';
+            // Firestoreにデータがない場合はデフォルト値
+            userNameDisplay.textContent = 'ユーザー さん';
           }
         } catch (error) {
           console.error('ユーザー名の取得に失敗しました:', error);
-          // エラー時はAuthの情報を使用
-          const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ユーザー');
-          userNameDisplay.textContent = displayName + ' さん';
+          // エラー時はデフォルト値
+          userNameDisplay.textContent = 'ユーザー さん';
         }
       });
     }
