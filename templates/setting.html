@@ -150,32 +150,49 @@
     </style>
 
     <script>
-      // ユーザー名を取得して表示
-      function updateUserName() {
+      // ユーザー名を取得して表示（Firestoreから取得）
+      async function updateUserName() {
         const userNameDisplay = document.getElementById('userNameDisplay');
         if (!userNameDisplay) return;
         
+        let auth = null;
         if (window.multiLang && window.multiLang.auth) {
-          window.multiLang.auth.onAuthStateChanged((user) => {
-            if (user) {
-              const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ユーザー');
-              userNameDisplay.textContent = displayName + ' さん';
-            } else {
-              userNameDisplay.textContent = 'ゲスト さん';
-            }
-          });
+          auth = window.multiLang.auth;
         } else if (typeof firebase !== 'undefined' && firebase.auth) {
-          firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-              const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ユーザー');
+          auth = firebase.auth();
+        }
+        
+        if (!auth) {
+          userNameDisplay.textContent = 'ゲスト さん';
+          return;
+        }
+        
+        auth.onAuthStateChanged(async (user) => {
+          if (!user) {
+            userNameDisplay.textContent = 'ゲスト さん';
+            return;
+          }
+          
+          try {
+            // Firestoreからユーザー情報を取得
+            const db = firebase.firestore();
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            
+            if (userDoc.exists) {
+              const userData = userDoc.data();
+              // nameのみを使用
+              const displayName = userData.name || 'ユーザー';
               userNameDisplay.textContent = displayName + ' さん';
             } else {
-              userNameDisplay.textContent = 'ゲスト さん';
+              // Firestoreにデータがない場合はデフォルト値
+              userNameDisplay.textContent = 'ユーザー さん';
             }
-          });
-        } else {
-          userNameDisplay.textContent = 'ゲスト さん';
-        }
+          } catch (error) {
+            console.error('ユーザー名の取得に失敗しました:', error);
+            // エラー時はデフォルト値
+            userNameDisplay.textContent = 'ユーザー さん';
+          }
+        });
       }
 
       // Firebase認証からユーザー情報を取得（ダミー表示）
