@@ -563,14 +563,11 @@
         <div id="personalized-quiz-container" style="max-height: 600px; overflow-y: auto;"></div>
       </div>
 
-      <!-- 右：スコア表示エリア -->
+      <!-- 右：スコア表示エリア（グラフのみ表示） -->
       <div class="scores-section">
-        <h2 style="text-align: center; margin-bottom: 16px; color: #D84315; font-size: 1.3em; font-weight: 600; letter-spacing: 0.04em;" data-translate="quiz_history">📊 クイズ履歴</h2>
-        <!-- グラフ表示セクション -->
-        <div class="chart-container" style="margin-bottom: 20px;">
+        <div class="chart-container" style="margin-bottom: 0;">
           <canvas id="movieScoreChart"></canvas>
         </div>
-        <div id="scores-container" style="max-height: 600px; overflow-y: auto;"></div>
       </div>
     </div>
   </div>
@@ -626,11 +623,11 @@
       }
     }
 
-    // AIクイズスコアを取得
+    // AIクイズ（パーソナライズドクイズ）スコアを取得
     async function loadAIQuizScores(userId) {
       try {
         const db = firebase.firestore();
-        const snapshot = await db.collection('ai_quiz_scores')
+        const snapshot = await db.collection('personalized_quiz_scores')
           .where('userId', '==', userId)
           .get();
         const scores = [];
@@ -1104,13 +1101,8 @@
       if (!scoresContainer) return;
 
       if (!scores || scores.length === 0) {
-        scoresContainer.innerHTML = `
-          <div class="no-scores-message">
-            <div class="no-scores-icon">📚</div>
-            <h3 data-translate="no_quiz_results">まだクイズの結果がありません</h3>
-            <p data-translate="start_learning">新しいクイズに挑戦して、学習を始めましょう！</p>
-          </div>
-        `;
+        // スコアがない場合は何も表示しない
+        scoresContainer.innerHTML = '';
         return;
       }
 
