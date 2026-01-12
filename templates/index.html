@@ -290,9 +290,10 @@ h2 {
 
 @media (max-width: 600px) {
   .container {
-    padding: 10px 2vw 24px 2vw;
+    padding: 50px 2vw 24px 2vw;
     border-radius: 0;
     box-shadow: none;
+    margin-top: 0;
   }
   .header {
     border-radius: 0;
@@ -352,15 +353,92 @@ h2 {
     .language-select:hover { border-color:#2E7D32; background:#f7faf8; }
 
     @media (max-width: 768px) {
-      .language-selector { top:10px; right:10px; padding:8px 12px; }
-      .language-label { font-size:13px; }
-      .language-select { font-size:13px; min-width:90px; padding:4px 8px; }
+      .language-selector { 
+        top: 10px; 
+        right: 10px; 
+        padding: 10px 14px; 
+      }
+      .language-selector-container { 
+        gap: 8px; 
+      }
+      .language-label { 
+        font-size: 13px; 
+      }
+      .language-icon { 
+        font-size: 16px; 
+      }
+      .language-select { 
+        font-size: 13px; 
+        min-width: 85px; 
+        padding: 8px 12px; 
+        min-height: 36px;
+      }
+    }
+    @media (max-width: 600px) {
+      .language-selector { 
+        top: 8px; 
+        right: 8px; 
+        padding: 8px 12px; 
+        border-radius: 12px;
+      }
+      .language-selector-container { 
+        gap: 6px; 
+        flex-wrap: wrap;
+      }
+      .language-label { 
+        font-size: 12px; 
+      }
+      .language-icon { 
+        font-size: 15px; 
+      }
+      .language-select { 
+        font-size: 12px; 
+        min-width: 75px; 
+        padding: 8px 10px; 
+        min-height: 36px;
+      }
     }
     @media (max-width: 480px) {
-      .language-selector { position:relative; top:auto; right:auto; margin:10px auto; width:fit-content; border-radius:10px; padding:7px 8px; }
-      .language-label { font-size:12px; }
-      .language-select { font-size:12px; min-width:70px; padding:3px 6px; }
-      .language-text { display:none; }
+      .language-selector { 
+        top: 6px; 
+        right: 6px; 
+        padding: 6px 10px; 
+        border-radius: 10px;
+        z-index: 1001;
+      }
+      .language-selector-container { 
+        gap: 5px; 
+      }
+      .language-label { 
+        font-size: 11px; 
+      }
+      .language-icon { 
+        font-size: 14px; 
+      }
+      .language-text { 
+        display: none; 
+      }
+      .language-select { 
+        font-size: 11px; 
+        min-width: 65px; 
+        padding: 8px 8px; 
+        min-height: 32px;
+        border-width: 1.5px;
+      }
+    }
+    @media (max-width: 360px) {
+      .language-selector { 
+        padding: 5px 8px; 
+      }
+      .language-selector-container { 
+        gap: 4px; 
+      }
+      .language-select { 
+        font-size: 10px; 
+        min-width: 58px; 
+        padding: 7px 6px; 
+        min-height: 30px;
+      }
     }
   </style>
 </head>
