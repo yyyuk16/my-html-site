@@ -988,7 +988,20 @@
           return;
         }
 
-        // 日付順にソート（古い順）
+        // 日付を取得するヘルパー関数
+        function getDate(score) {
+          if (score.timestamp && typeof score.timestamp.toDate === "function") {
+            return score.timestamp.toDate();
+          } else if (score.timestamp && score.timestamp.seconds) {
+            return new Date(score.timestamp.seconds * 1000);
+          } else if (score.timestamp) {
+            return new Date(score.timestamp);
+          } else {
+            return new Date();
+          }
+        }
+
+        // 日付順にソート（新しい順）
         const sortedScores = scores.slice().sort((a, b) => {
           let ta, tb;
           
@@ -1013,135 +1026,29 @@
             tb = new Date(0);
           }
           
-          return ta.getTime() - tb.getTime(); // 古い順
+          return tb.getTime() - ta.getTime(); // 新しい順（降順）
         });
 
         console.log('ソート後のスコア:', sortedScores);
 
-        // 日付を取得するヘルパー関数
-        function getDate(score) {
-          if (score.timestamp && typeof score.timestamp.toDate === "function") {
-            return score.timestamp.toDate();
-          } else if (score.timestamp && score.timestamp.seconds) {
-            return new Date(score.timestamp.seconds * 1000);
-          } else if (score.timestamp) {
-            return new Date(score.timestamp);
-          } else {
-            return new Date();
-          }
-        }
+        // 最新5件を取得
+        const latestScores = sortedScores.slice(0, 5);
+        
+        // 古い順に並び替え（グラフ表示用）
+        latestScores.reverse();
 
-        // データを期間ごとにグループ化
-        const periodGroups = [];
-        const periodData = {
-          accuracy: [],
-          correct: [],
-          labels: []
-        };
+        // ラベルとデータを生成
+        const labels = [];
+        const accuracyData = [];
+        const correctData = [];
 
-        if (sortedScores.length > 0) {
-          // 最初と最後の日付を取得
-          const firstDate = getDate(sortedScores[0]);
-          const lastDate = getDate(sortedScores[sortedScores.length - 1]);
-          const daysDiff = Math.ceil((lastDate - firstDate) / (1000 * 60 * 60 * 24));
-          
-          // 期間の単位を決定（データ数と日数に基づく）
-          let periodDays = 1; // デフォルトは1日
-          if (daysDiff > 30) {
-            periodDays = 7; // 30日以上なら週単位
-          } else if (daysDiff > 90) {
-            periodDays = 30; // 90日以上なら月単位
-          }
-
-          // 期間ごとにデータをグループ化
-          const groups = new Map();
-          
-          sortedScores.forEach(score => {
-            const date = getDate(score);
-            let periodStart, periodKey;
-            
-            if (periodDays === 1) {
-              // 日単位
-              periodStart = new Date(date);
-              periodStart.setHours(0, 0, 0, 0);
-              periodKey = periodStart.toISOString().split('T')[0];
-            } else if (periodDays === 7) {
-              // 週単位（月曜日を週の開始とする）
-              periodStart = new Date(date);
-              const dayOfWeek = periodStart.getDay();
-              const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // 月曜日まで戻す
-              periodStart.setDate(periodStart.getDate() + diff);
-              periodStart.setHours(0, 0, 0, 0);
-              periodKey = periodStart.toISOString().split('T')[0];
-            } else {
-              // 月単位
-              periodStart = new Date(date.getFullYear(), date.getMonth(), 1);
-              periodKey = `${periodStart.getFullYear()}-${String(periodStart.getMonth() + 1).padStart(2, '0')}`;
-            }
-            
-            if (!groups.has(periodKey)) {
-              const endDate = new Date(periodStart);
-              if (periodDays === 7) {
-                endDate.setDate(endDate.getDate() + 6); // 週の終わり（日曜日）
-              } else if (periodDays === 30) {
-                endDate.setMonth(endDate.getMonth() + 1);
-                endDate.setDate(0); // 月の最後の日
-              } else {
-                endDate.setDate(endDate.getDate() + periodDays - 1);
-              }
-              
-              groups.set(periodKey, {
-                startDate: new Date(periodStart),
-                endDate: endDate,
-                scores: [],
-                accuracySum: 0,
-                correctSum: 0,
-                count: 0
-              });
-            }
-            
-            const group = groups.get(periodKey);
-            group.scores.push(score);
-            group.accuracySum += parseFloat(score.accuracy) || 0;
-            group.correctSum += parseInt(score.correct) || parseInt(score.score) || 0;
-            group.count++;
-          });
-
-          // 期間ごとの平均値を計算してラベルを生成
-          const sortedGroups = Array.from(groups.entries()).sort((a, b) => 
-            a[1].startDate.getTime() - b[1].startDate.getTime()
-          );
-
-          sortedGroups.forEach(([key, group]) => {
-            const avgAccuracy = group.count > 0 ? group.accuracySum / group.count : 0;
-            const avgCorrect = group.count > 0 ? Math.round(group.correctSum / group.count) : 0;
-            
-            // 期間ラベルを生成
-            let periodLabel = '';
-            if (periodDays === 1) {
-              // 日単位
-              periodLabel = group.startDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
-            } else if (periodDays === 7) {
-              // 週単位
-              const startStr = group.startDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
-              const endStr = group.endDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
-              periodLabel = `${startStr}〜${endStr}`;
-            } else {
-              // 月単位
-              const startStr = group.startDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
-              const endStr = group.endDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
-              periodLabel = `${startStr}〜${endStr}`;
-            }
-
-            periodData.labels.push(periodLabel);
-            periodData.accuracy.push(avgAccuracy);
-            periodData.correct.push(avgCorrect);
-          });
-        }
-
-        const labels = periodData.labels;
-        const accuracyData = periodData.accuracy;
-        const correctData = periodData.correct;
+        latestScores.forEach(score => {
+          const date = getDate(score);
+          const dateStr = date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+          labels.push(dateStr);
+          accuracyData.push(parseFloat(score.accuracy) || 0);
+          correctData.push(parseInt(score.correct) || parseInt(score.score) || 0);
+        });
 
         console.log('ラベル:', labels);
         console.log('正答率データ:', accuracyData);
@@ -1149,9 +1056,9 @@
       
         // 正解数のY軸の最大値を計算
         let y1Max = 10; // デフォルト値
-        if (sortedScores.length > 0) {
+        if (latestScores.length > 0) {
           try {
-            const totals = sortedScores.map(score => parseInt(score.total) || 10).filter(t => !isNaN(t) && t > 0);
+            const totals = latestScores.map(score => parseInt(score.total) || 10).filter(t => !isNaN(t) && t > 0);
             const maxTotal = totals.length > 0 ? Math.max(...totals) : 10;
             const validCorrectData = correctData.filter(c => !isNaN(c) && c >= 0);
             const maxCorrect = validCorrectData.length > 0 ? Math.max(...validCorrectData) : 0;
