@@ -964,7 +964,7 @@
                 chatMessages.innerHTML = '<p style="color:#888;text-align:center;">メッセージなし</p>';
                 return;
             }
-            snapshot.forEach(doc => displayMessage(doc.data(), currentUser.uid, messagesElementId));
+            snapshot.forEach(doc => displayMessage(doc.data(), currentUser.uid, messagesElementId, doc.id));
             // 初期表示時は最下部へ
             chatMessages.scrollTop = chatMessages.scrollHeight;
             if (messagesElementId === 'chatMessages') {
@@ -974,12 +974,23 @@
             }
         }
 
-        function displayMessage(message, currentUserId, messagesElementId = 'chatMessages') {
+        function displayMessage(message, currentUserId, messagesElementId = 'chatMessages', messageId = null) {
             const chatMessages = document.getElementById(messagesElementId);
             if (!chatMessages) return;
 
+            // メッセージIDで重複チェック（既に表示されている場合はスキップ）
+            if (messageId) {
+                const existingMsg = chatMessages.querySelector(`[data-message-id="${messageId}"]`);
+                if (existingMsg) {
+                    return; // 既に表示されているのでスキップ
+                }
+            }
+
             const div = document.createElement('div');
             div.className = `message ${message.senderId === currentUserId ? 'sent' : 'received'}`;
+            if (messageId) {
+                div.setAttribute('data-message-id', messageId);
+            }
             // Firestore Timestamp 互換（toMillis or seconds 両対応）
             const ts = message.timestamp;
             const dateObj = ts?.toMillis ? new Date(ts.toMillis())
@@ -1108,22 +1119,9 @@
                     snapshot.docChanges().forEach(change => {
                         if (change.type === 'added') {
                             const msg = change.doc.data();
-                            // 重複チェック: 既に表示されているメッセージかチェック
-                            const chatMessages = document.getElementById(messagesElementId);
-                            if (chatMessages) {
-                                const existingMessages = chatMessages.querySelectorAll('.message');
-                                let isDuplicate = false;
-                                existingMessages.forEach(existingMsg => {
-                                    const existingText = existingMsg.querySelector('.message-text')?.textContent;
-                                    const existingTime = existingMsg.querySelector('.message-time')?.textContent;
-                                    if (existingText === (msg.text || '') && existingTime === (msg.timestamp ? new Date(msg.timestamp.toMillis ? msg.timestamp.toMillis() : msg.timestamp.seconds * 1000).toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' }) : '--:--')) {
-                                        isDuplicate = true;
-                                    }
-                                });
-                                if (!isDuplicate) {
-                                    displayMessage(msg, currentUser.uid, messagesElementId);
-                                }
-                            }
+                            const msgId = change.doc.id;
+                            // メッセージIDで重複チェック（displayMessage内で行う）
+                            displayMessage(msg, currentUser.uid, messagesElementId, msgId);
                         }
                     });
                 });

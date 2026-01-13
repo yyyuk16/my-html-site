@@ -1643,20 +1643,38 @@ ${patientText}
         }
         
         // クイズ生成APIを呼び出し
-        const response = await fetch('/api/quiz', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            topic: topic,
-            count: count,
-            difficulty: difficulty,
-            language: 'ja'
-          })
-        });
+        let response;
+        try {
+          response = await fetch('/api/quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              topic: topic,
+              count: count,
+              difficulty: difficulty,
+              language: 'ja'
+            })
+          });
+        } catch (fetchError) {
+          throw new Error(`ネットワークエラー: ${fetchError.message || 'APIに接続できませんでした'}`);
+        }
         
-        if (!response.ok) throw new Error(`クイズ生成APIエラー: ${response.status}`);
+        if (!response.ok) {
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch {
+            errorData = { message: `HTTP ${response.status} エラー` };
+          }
+          throw new Error(errorData.message || `クイズ生成APIエラー: ${response.status}`);
+        }
         
         const data = await response.json();
+        
+        if (!data || !data.questions) {
+          throw new Error('APIからのレスポンスが不正です');
+        }
+        
         const questions = data.questions || [];
         
         if (questions.length === 0) {
