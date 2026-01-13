@@ -818,7 +818,7 @@
                     chatItem.innerHTML = `
                         <div class="doctor-avatar">${patient.name ? patient.name[0] : '?'}</div>
                         <div class="chat-info">
-                            <div class="doctor-name">${patient.name || '名無し'}さん</div>
+                            <div class="doctor-name">${patient.name || t('unnamed', '名無し')}${t('honorific_suffix', 'さん')}</div>
                         </div>`;
                     chatItem.onclick = () => openChatMobile(patient.id, patient.name);
                     chatListMobileDiv.appendChild(chatItem);
