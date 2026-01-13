@@ -1540,32 +1540,53 @@
         
         // チャット履歴がない場合は、デフォルトレベルでクイズ生成
         if (!patientText || patientText.trim().length < 10) {
-          statusDiv.innerHTML = '<p style="color:#888;">チャット履歴が少ないため、基礎レベルのクイズを生成します</p>';
+          statusDiv.innerHTML = `<p style="color:#888;">${t('insufficient_chat_history', 'チャット履歴が少ないため、基礎レベルのクイズを生成します')}</p>`;
           await generateQuizByLevel(3, quizContainer, statusDiv);
           return;
         }
         
         // 患者の発言を評価
-        statusDiv.innerHTML = '<p>あなたの理解度を評価中...</p>';
+        statusDiv.innerHTML = `<p>${t('evaluating_understanding', 'あなたの理解度を評価中...')}</p>`;
         const evaluation = await evaluatePatientChat(patientText);
         
         if (!evaluation) {
-          statusDiv.innerHTML = '<p style="color:#888;">評価に失敗しました。デフォルトクイズを生成します</p>';
+          statusDiv.innerHTML = `<p style="color:#888;">${t('evaluation_failed', '評価に失敗しました。デフォルトクイズを生成します')}</p>`;
           await generateQuizByLevel(3, quizContainer, statusDiv);
           return;
         }
         
         const knowledgeScore = evaluation.knowledge_score;
-        statusDiv.innerHTML = `<p>評価完了：レベル ${knowledgeScore} → 適切な難易度のクイズを生成中...</p>`;
+        const evalCompleteMsg = t('evaluation_complete', `評価完了：レベル ${knowledgeScore} → 適切な難易度のクイズを生成中...`)
+          .replace('{level}', knowledgeScore);
+        statusDiv.innerHTML = `<p>${evalCompleteMsg}</p>`;
         
         // 評価レベルに応じたクイズを生成
         await generateQuizByLevel(knowledgeScore, quizContainer, statusDiv, evaluation);
         
       } catch (error) {
         console.error('クイズ生成エラー:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+        
         const statusDiv = document.getElementById('quiz-generation-status');
         if (statusDiv) {
-          statusDiv.innerHTML = `<p style="color:#f44336;">エラー: ${error.message}</p>`;
+          const errorLabel = t('error', 'エラー:');
+          // エラーメッセージをより詳細に表示
+          let errorMsg = error.message || '不明なエラーが発生しました';
+          
+          // ネットワークエラーの場合
+          if (error.message && error.message.includes('ネットワークエラー')) {
+            errorMsg = t('network_error', 'ネットワークエラー: APIに接続できませんでした。インターネット接続を確認してください。');
+          }
+          // APIエラーの場合
+          else if (error.message && (error.message.includes('500') || error.message.includes('HTTP'))) {
+            errorMsg = t('api_error', 'APIエラー: サーバーでエラーが発生しました。しばらく待ってから再度お試しください。');
+          }
+          
+          statusDiv.innerHTML = `<p style="color:#f44336;">${errorLabel} ${errorMsg}</p>`;
         }
       }
     }
@@ -1660,13 +1681,41 @@ ${patientText}
         }
         
         if (!response.ok) {
-          let errorData;
+          let errorData = { message: `HTTP ${response.status} エラー` };
+          let errorText = '';
+          
           try {
-            errorData = await response.json();
-          } catch {
-            errorData = { message: `HTTP ${response.status} エラー` };
+            // まずテキストとして取得
+            errorText = await response.text();
+            console.error('API Error Response:', {
+              status: response.status,
+              statusText: response.statusText,
+              body: errorText
+            });
+            
+            // JSONとしてパースを試みる
+            if (errorText) {
+              try {
+                errorData = JSON.parse(errorText);
+              } catch (parseError) {
+                // JSONでない場合はテキストをそのまま使用
+                errorData = { 
+                  message: errorText.substring(0, 200) || `HTTP ${response.status} エラー`,
+                  detail: errorText
+                };
+              }
+            }
+          } catch (textError) {
+            console.error('Error reading response:', textError);
+            errorData = { 
+              message: `HTTP ${response.status} エラー: レスポンスの読み取りに失敗しました`,
+              detail: String(textError)
+            };
           }
-          throw new Error(errorData.message || `クイズ生成APIエラー: ${response.status}`);
+          
+          const errorMessage = errorData.message || errorData.error || `クイズ生成APIエラー: ${response.status}`;
+          console.error('Throwing error:', errorMessage);
+          throw new Error(errorMessage);
         }
         
         const data = await response.json();
@@ -1688,7 +1737,10 @@ ${patientText}
         quizAnswers = []; // 回答状態をリセット
         
         if (statusDiv) {
-          statusDiv.innerHTML = `<p style="color:#2E7D32;">✅ レベル ${level} に合わせたクイズを生成しました（${questions.length}問）</p>`;
+          const message = t('level_quiz_generated', `レベル ${level} に合わせたクイズを生成しました（${questions.length}問）`)
+            .replace('{level}', level)
+            .replace('{count}', questions.length);
+          statusDiv.innerHTML = `<p style="color:#2E7D32;">✅ ${message}</p>`;
         }
         
         container.innerHTML = ''; // コンテナをクリア
@@ -1696,8 +1748,27 @@ ${patientText}
         
       } catch (error) {
         console.error('クイズ生成エラー:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+        
         if (statusDiv) {
-          statusDiv.innerHTML = `<p style="color:#f44336;">エラー: ${error.message}</p>`;
+          const errorLabel = t('error', 'エラー:');
+          // エラーメッセージをより詳細に表示
+          let errorMsg = error.message || '不明なエラーが発生しました';
+          
+          // ネットワークエラーの場合
+          if (error.message && error.message.includes('ネットワークエラー')) {
+            errorMsg = t('network_error', 'ネットワークエラー: APIに接続できませんでした。インターネット接続を確認してください。');
+          }
+          // APIエラーの場合
+          else if (error.message && (error.message.includes('500') || error.message.includes('HTTP'))) {
+            errorMsg = t('api_error', 'APIエラー: サーバーでエラーが発生しました。しばらく待ってから再度お試しください。');
+          }
+          
+          statusDiv.innerHTML = `<p style="color:#f44336;">${errorLabel} ${errorMsg}</p>`;
         }
       }
     }
@@ -1721,7 +1792,7 @@ ${patientText}
       // 問題カードの内容を設定
       quizCard.innerHTML = `
         <div style="text-align: center; margin-bottom: 16px; color: #2E7D32; font-weight: 600;">
-          問題 ${questionIndex + 1} / ${totalQuestions}
+          ${t('question_number', '問題')} ${questionIndex + 1} / ${totalQuestions}
         </div>
         <h3 style="font-size: 1.2em; margin-bottom: 20px; color: #1B5E20; line-height: 1.6;">
           ${escapeHtml(question.question)}
@@ -1766,13 +1837,13 @@ ${patientText}
         </div>
         <div class="quiz-explanation" style="display: ${isAnswered ? 'block' : 'none'}; padding: 16px; background: #E8F5E9; border-radius: 8px; 
                                             border-left: 4px solid #4CAF50; margin-top: 16px;">
-          <strong style="color: #2E7D32;">解説：</strong>
+          <strong style="color: #2E7D32;">${t('explanation', '解説：')}</strong>
           <p style="margin-top: 8px; color: #1B5E20; line-height: 1.6;">${escapeHtml(question.explanation)}</p>
         </div>
         <div class="quiz-navigation" style="display: ${isAnswered ? 'block' : 'none'}; text-align: center; margin-top: 20px;">
           <button class="quiz-btn" onclick="nextPersonalizedQuestion(${totalQuestions})" 
                   style="font-size: 1em; padding: 12px 24px;">
-            ${questionIndex + 1 === totalQuestions ? '結果を見る' : '次へ'}
+            ${questionIndex + 1 === totalQuestions ? t('view_results', '結果を見る') : t('next_question', '次へ')}
           </button>
         </div>
       `;
@@ -1831,15 +1902,15 @@ ${patientText}
             ${personalizedQuizScore} / ${totalQuestions}
           </div>
           <div style="font-size: 1.5em; margin-bottom: 30px;">
-            正答率: ${accuracy}%
+            ${t('accuracy_rate_label', '正答率:')} ${accuracy}%
           </div>
           <button class="quiz-btn" onclick="generatePersonalizedQuiz()" 
                   style="background: #fff; color: #2E7D32; font-size: 1.1em; padding: 14px 32px; box-shadow: 0 2px 12px rgba(255,255,255,0.3);">
-            もう一度挑戦
+            ${t('retry_quiz', 'もう一度挑戦')}
           </button>
           <button class="quiz-btn" onclick="location.reload()" 
                   style="background: rgba(255,255,255,0.2); color: #fff; font-size: 1.1em; padding: 14px 32px; margin-left: 10px; border: 2px solid rgba(255,255,255,0.3);">
-            結果ページに戻る
+            ${t('back_to_results', '結果ページに戻る')}
           </button>
         </div>
       `;
