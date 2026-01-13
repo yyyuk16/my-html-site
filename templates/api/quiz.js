@@ -33,11 +33,22 @@ module.exports = async (req, res) => {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   try {
+    // リクエスト情報をログに記録
+    console.log("Quiz API request received:", {
+      method: req.method,
+      url: req.url,
+      headers: req.headers,
+      bodyType: typeof req.body,
+      bodyLength: req.body ? (typeof req.body === 'string' ? req.body.length : JSON.stringify(req.body).length) : 0
+    });
+
     // JSON body を安全にパース
     let body = {};
     try {
       body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-    } catch {
+      console.log("Parsed body:", { topic: body.topic?.substring(0, 50), count: body.count, difficulty: body.difficulty, language: body.language });
+    } catch (parseError) {
+      console.error("Body parse error:", parseError);
       body = {};
     }
 
@@ -207,19 +218,30 @@ module.exports = async (req, res) => {
     console.error("quiz API error:", e);
     const errorMessage = e.message || "Unknown error occurred";
     const errorStack = e.stack || "";
+    const errorName = e.name || "Error";
     
     // エラーの詳細をログに記録
     console.error("Error details:", {
+      name: errorName,
       message: errorMessage,
       stack: errorStack,
-      name: e.name,
+      type: typeof e,
+      keys: Object.keys(e),
     });
 
-    return res.status(500).json({
+    // より詳細なエラー情報を返す
+    const errorResponse = {
       error: "quiz_generation_failed",
       message: errorMessage,
-      // 開発環境でのみスタックトレースを返す（本番では削除推奨）
-      ...(process.env.NODE_ENV === "development" && { stack: errorStack }),
-    });
+      status: 500,
+    };
+
+    // 開発環境または詳細情報が必要な場合
+    if (process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "development") {
+      errorResponse.stack = errorStack;
+      errorResponse.name = errorName;
+    }
+
+    return res.status(500).json(errorResponse);
   }
 };
