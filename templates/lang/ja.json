@@ -138,7 +138,10 @@
   "logging-in": "ログイン中...",
   "signup": "新規登録はこちら",
   "doctor-login-link": "← 医者の方はこちら",
+  "doctor-login": "医師ログイン",
+  "patient-login-link": "← 患者の方はこちら",
   "language": "言語",
   "login_error": "ログインエラー",
-  "login_failed": "ログインに失敗しました"
+  "login_failed": "ログインに失敗しました",
+  "login_success": "ログインに成功しました！"
 }

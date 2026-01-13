@@ -138,7 +138,10 @@
   "logging-in": "登录中...",
   "signup": "注册新账号",
   "doctor-login-link": "← 医生登录",
+  "doctor-login": "医生登录",
+  "patient-login-link": "← 患者登录",
   "language": "语言",
   "login_error": "登录错误",
-  "login_failed": "登录失败"
+  "login_failed": "登录失败",
+  "login_success": "登录成功！"
 }

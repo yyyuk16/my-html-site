@@ -138,7 +138,10 @@
   "logging-in": "Logging in...",
   "signup": "Sign up here",
   "doctor-login-link": "← For doctors",
+  "doctor-login": "Doctor Login",
+  "patient-login-link": "← For patients",
   "language": "Language",
   "login_error": "Login Error",
-  "login_failed": "Login failed"
+  "login_failed": "Login failed",
+  "login_success": "Login successful!"
 }

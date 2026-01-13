@@ -138,7 +138,10 @@
   "logging-in": "로그인 중...",
   "signup": "회원가입",
   "doctor-login-link": "← 의사 로그인",
+  "doctor-login": "의사 로그인",
+  "patient-login-link": "← 환자 로그인",
   "language": "언어",
   "login_error": "로그인 오류",
-  "login_failed": "로그인에 실패했습니다"
+  "login_failed": "로그인에 실패했습니다",
+  "login_success": "로그인에 성공했습니다!"
 }
