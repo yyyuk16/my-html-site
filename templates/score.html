@@ -689,7 +689,7 @@
         <span data-translate="site_title">結核対策アプリ</span>
       </div>
       <button class="user-name-btn" id="userNameBtn">
-        <span id="userNameDisplay">ゲスト さん</span>
+        <span id="userNameDisplay" data-translate="guest">ゲスト</span><span id="userNameSuffix" data-translate="honorific_suffix"> さん</span>
       </button>
       <div class="header-right">
         <nav>
@@ -952,6 +952,12 @@
 
       const accuracyData = sortedScores.map(score => parseFloat(score.accuracy) || 0);
       const correctData = sortedScores.map(score => score.correct || score.score || 0);
+      
+      // 正解数のY軸の最大値を、総問題数の最大値に基づいて設定
+      const maxTotal = Math.max(...sortedScores.map(score => score.total || 10), 10);
+      const maxCorrect = Math.max(...correctData, 0);
+      // 最大値は、総問題数の最大値と実際の正解数の最大値のうち大きい方に少し余裕を持たせる
+      const y1Max = Math.max(maxTotal, maxCorrect) + 1;
 
       movieScoreChart = new Chart(ctx, {
         type: 'line',
@@ -1067,6 +1073,7 @@
               display: true,
               position: 'right',
               beginAtZero: true,
+              max: y1Max,
               title: {
                 display: true,
                 text: t('correct_label','🎯 正解数'),
@@ -1074,7 +1081,12 @@
                 color: '#4f4f4f'
               },
               grid: { drawOnChartArea: false, color: 'rgba(227,232,238,0.5)', lineWidth: 1 },
-              ticks: { color: '#888', font: { size: 12 } }
+              ticks: { 
+                color: '#888', 
+                font: { size: 12 },
+                stepSize: 1,
+                precision: 0
+              }
             }
           },
           elements: { line: { borderWidth: 3 } },
@@ -1400,13 +1412,21 @@
       }
       
       if (!auth) {
-        userNameDisplay.textContent = 'ゲスト さん';
+        const guestText = t('guest', 'ゲスト');
+        const suffix = t('honorific_suffix', 'さん');
+        userNameDisplay.textContent = guestText;
+        const suffixEl = document.getElementById('userNameSuffix');
+        if (suffixEl) suffixEl.textContent = suffix ? ' ' + suffix : '';
         return;
       }
       
       auth.onAuthStateChanged(async (user) => {
         if (!user) {
-          userNameDisplay.textContent = 'ゲスト さん';
+          const guestText = t('guest', 'ゲスト');
+          const suffix = t('honorific_suffix', 'さん');
+          userNameDisplay.textContent = guestText;
+          const suffixEl = document.getElementById('userNameSuffix');
+          if (suffixEl) suffixEl.textContent = suffix ? ' ' + suffix : '';
           return;
         }
         
@@ -1418,16 +1438,27 @@
           if (userDoc.exists) {
             const userData = userDoc.data();
             // nameのみを使用
-            const displayName = userData.name || 'ユーザー';
-            userNameDisplay.textContent = displayName + ' さん';
+            const displayName = userData.name || t('user', 'ユーザー');
+            const suffix = t('honorific_suffix', 'さん');
+            userNameDisplay.textContent = displayName;
+            const suffixEl = document.getElementById('userNameSuffix');
+            if (suffixEl) suffixEl.textContent = suffix ? ' ' + suffix : '';
           } else {
             // Firestoreにデータがない場合はデフォルト値
-            userNameDisplay.textContent = 'ユーザー さん';
+            const userText = t('user', 'ユーザー');
+            const suffix = t('honorific_suffix', 'さん');
+            userNameDisplay.textContent = userText;
+            const suffixEl = document.getElementById('userNameSuffix');
+            if (suffixEl) suffixEl.textContent = suffix ? ' ' + suffix : '';
           }
         } catch (error) {
           console.error('ユーザー名の取得に失敗しました:', error);
           // エラー時はデフォルト値
-          userNameDisplay.textContent = 'ユーザー さん';
+          const userText = t('user', 'ユーザー');
+          const suffix = t('honorific_suffix', 'さん');
+          userNameDisplay.textContent = userText;
+          const suffixEl = document.getElementById('userNameSuffix');
+          if (suffixEl) suffixEl.textContent = suffix ? ' ' + suffix : '';
         }
       });
     }
@@ -1663,6 +1694,30 @@ ${patientText}
           topic = '結核の詳細な治療プロセス、接触者健診、潜在性結核感染症の治療';
         }
         
+        // 現在の言語設定を取得
+        const currentLang = (window.multiLang && window.multiLang.currentLanguage) || 'ja';
+        
+        // 日本語以外の場合はトピックを翻訳
+        let translatedTopic = topic;
+        if (currentLang !== 'ja') {
+          try {
+            const translateResponse = await fetch('/api/translate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: topic, targetLang: currentLang })
+            });
+            if (translateResponse.ok) {
+              const translateData = await translateResponse.json();
+              if (translateData.translated) {
+                translatedTopic = translateData.translated;
+              }
+            }
+          } catch (translateError) {
+            console.warn('トピックの翻訳に失敗しました。元のトピックを使用します:', translateError);
+            // 翻訳に失敗した場合は元のトピックを使用
+          }
+        }
+        
         // クイズ生成APIを呼び出し
         let response;
         try {
@@ -1670,10 +1725,10 @@ ${patientText}
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              topic: topic,
+              topic: translatedTopic,
               count: count,
               difficulty: difficulty,
-              language: 'ja'
+              language: currentLang
             })
           });
         } catch (fetchError) {
