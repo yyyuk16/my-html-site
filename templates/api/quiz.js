@@ -1,5 +1,4 @@
 // templates/api/quiz.js
-const OpenAI = require("openai");
 
 // CORSヘッダーを設定
 const setCORSHeaders = (res) => {
@@ -21,16 +20,14 @@ module.exports = async (req, res) => {
   }
 
   // 環境変数のチェック
-  if (!process.env.OPENAI_API_KEY) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
     console.error("OPENAI_API_KEY is not set");
     return res.status(500).json({
       error: "quiz_generation_failed",
       message: "OpenAI API key is not configured",
     });
   }
-
-  // OpenAIクライアントの初期化
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   try {
     // リクエスト情報をログに記録
@@ -86,7 +83,7 @@ module.exports = async (req, res) => {
     `.trim();
 
     // OpenAI API呼び出し
-    let completion;
+    let content = "";
     try {
       console.log("Calling OpenAI API with:", {
         model: "gpt-4o-mini",
@@ -96,59 +93,75 @@ module.exports = async (req, res) => {
         language
       });
       
-      // タイムアウト設定（Vercelの最大実行時間を考慮）
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Request timeout: OpenAI API呼び出しがタイムアウトしました")), 25000);
+      const payload = {
+        model: "gpt-4o-mini",
+        temperature: 0.6,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      };
+      
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
       
-      completion = await Promise.race([
-        client.chat.completions.create({
-          model: "gpt-4o-mini",
-          temperature: 0.6,
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-        }),
-        timeoutPromise
-      ]);
+      if (!r.ok) {
+        const detail = await r.text().catch(() => '');
+        
+        // 特定のエラータイプに応じた処理
+        if (r.status === 401) {
+          return res.status(401).json({
+            error: "quiz_generation_failed",
+            message: "OpenAI認証エラー: APIキーが無効です",
+            detail
+          });
+        }
+        
+        if (r.status === 429) {
+          return res.status(429).json({
+            error: "quiz_generation_failed",
+            message: "リクエストが多すぎます。しばらく待ってから再度お試しください。",
+            detail: 'Rate limit exceeded. Please wait a moment before trying again.'
+          });
+        }
+        
+        if (r.status === 500 || r.status === 502 || r.status === 503) {
+          return res.status(503).json({
+            error: "quiz_generation_failed",
+            message: "OpenAIサービスが一時的に利用できません。しばらく待ってから再度お試しください。",
+            detail
+          });
+        }
+        
+        let errorMsg = 'OpenAI API error';
+        try {
+          const errorData = JSON.parse(detail);
+          if (errorData.error && errorData.error.message) {
+            errorMsg = errorData.error.message;
+          }
+        } catch {}
+        
+        throw new Error(`OpenAI API呼び出しエラー: ${errorMsg} (Status: ${r.status})`);
+      }
+      
+      const data = await r.json();
+      content = (data.choices && data.choices[0]?.message?.content) || "";
       
       console.log("OpenAI API response received");
     } catch (openaiError) {
       console.error("OpenAI API error details:", {
         message: openaiError.message,
-        status: openaiError.status,
-        code: openaiError.code,
-        type: openaiError.type,
         stack: openaiError.stack
       });
       
-      // 特定のエラータイプに応じた処理
-      if (openaiError.status === 401) {
-        return res.status(401).json({
-          error: "quiz_generation_failed",
-          message: "OpenAI認証エラー: APIキーが無効です",
-        });
-      }
-      
-      if (openaiError.status === 429) {
-        return res.status(429).json({
-          error: "quiz_generation_failed",
-          message: "リクエストが多すぎます。しばらく待ってから再度お試しください。",
-        });
-      }
-      
-      if (openaiError.status === 500 || openaiError.status === 502 || openaiError.status === 503) {
-        return res.status(503).json({
-          error: "quiz_generation_failed",
-          message: "OpenAIサービスが一時的に利用できません。しばらく待ってから再度お試しください。",
-        });
-      }
-      
-      throw new Error(`OpenAI API呼び出しエラー: ${openaiError.message || "Unknown error"} (Status: ${openaiError.status || "N/A"})`);
+      throw new Error(`OpenAI API呼び出しエラー: ${openaiError.message || "Unknown error"}`);
     }
-
-    let content = completion.choices?.[0]?.message?.content || "";
     
     console.log("OpenAI response content length:", content.length);
     console.log("OpenAI response preview:", content.substring(0, 200));
