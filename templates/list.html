@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-translate="患者診療記録">患者診療記録</title>
     <link rel="stylesheet" href="maintab.css">
-    <link rel="stylesheet" href="footer.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="d_footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -216,6 +216,108 @@
             max-height: 400px;
             overflow-y: auto;
         }
+
+        .patient-item-hidden {
+            display: none;
+        }
+
+        .show-more-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            background: #f8f9fa;
+            border: 1px solid #e3f2fd;
+            border-radius: 8px;
+            color: #2196f3;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+
+        .show-more-btn:hover {
+            background: #e3f2fd;
+        }
+
+        /* ハンバーガーメニュー */
+        .hamburger-menu {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #2196f3;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* サイドバーオーバーレイ */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* サイドバー（モバイル用） */
+        .patient-list-sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 280px;
+            max-width: 85%;
+            height: 100vh;
+            background: #fff;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            padding: 20px 16px;
+        }
+
+        .patient-list-sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e3f2fd;
+        }
+
+        .sidebar-header h2 {
+            color: #2196f3;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-sidebar-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #666;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .close-sidebar-btn:hover {
+            color: #2196f3;
+        }
         
         .chat-item {
             display: flex;
@@ -235,6 +337,18 @@
         .chat-item.selected {
             background-color: #e3f2fd;
             border-color: #2196f3;
+        }
+
+        /* モバイル版の患者リスト表示 */
+        .mobile-patient-list {
+            display: none;
+        }
+
+        .mobile-patient-list-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
         }
         
         .doctor-avatar {
@@ -403,25 +517,193 @@
         .btn-secondary:hover {
             background-color: #e0e0e0;
         }
+
+        /* --- モバイル専用デザインの調整 --- */
+
+        /* 1. デフォルト（PC）ではモバイル用ナビを隠す */
+        .mobile-nav {
+            display: none;
+        }
+
+        /* 2. モバイル画面（768px以下）の設定 */
+        @media (max-width: 768px) {
+            /* PC用ナビを隠す */
+            .tab-menu {
+                display: none;
+            }
+
+            /* ヘッダーを画像のようなシンプル構成に */
+            .top-bar {
+                padding: 10px 15px;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .header-inner {
+                justify-content: space-between;
+            }
+
+            .logo span {
+                font-size: 1.1rem;
+            }
+
+            /* 下部ナビゲーションを表示 */
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 70px;
+                background: #f8f9fa;
+                border-top: 1px solid #eee;
+                justify-content: space-around;
+                align-items: center;
+                z-index: 1000;
+                padding-bottom: env(safe-area-inset-bottom); /* iPhoneのバー対策 */
+            }
+
+            .nav-item {
+                text-decoration: none;
+                color: #888;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                font-size: 0.7rem;
+                gap: 4px;
+            }
+
+            .nav-item i {
+                font-size: 1.4rem;
+            }
+
+            .nav-item.active {
+                color: #333; /* 選択中の色 */
+            }
+
+            /* メインコンテンツの下部に余白を追加（ナビに被らないように） */
+            body {
+                padding-bottom: 80px;
+            }
+            
+            /* レイアウトを縦並びに */
+            .flex-container {
+                flex-direction: column;
+                gap: 0;
+                padding: 70px 0 80px 0;
+            }
+
+            /* ハンバーガーメニューを非表示（画像にはない） */
+            .hamburger-menu {
+                display: none;
+            }
+
+            /* PC版の患者リストパネルを非表示 */
+            .patient-list-panel {
+                display: none;
+            }
+
+            /* モバイル版の患者リストを表示 */
+            .mobile-patient-list {
+                display: block;
+                padding: 0 2vw;
+                margin-bottom: 20px;
+            }
+
+            .mobile-patient-list-header {
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin: 20px 0 15px 0;
+                color: #333;
+            }
+
+            .mobile-patient-list .search-box {
+                margin-bottom: 15px;
+            }
+
+            .mobile-patient-list .search-box input {
+                width: 100%;
+                height: 40px;
+                padding: 8px 35px 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                font-size: 1em;
+                background: #f8f9fa;
+            }
+
+            .mobile-patient-list .chat-item {
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+                margin-bottom: 0;
+                border-radius: 0;
+            }
+
+            .mobile-patient-list .doctor-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2em;
+            }
+
+            .mobile-patient-list .doctor-name {
+                font-size: 1em;
+            }
+
+            .patient-info-container {
+                width: 100%;
+                min-width: 0;
+                padding: 0 2vw 20px 2vw;
+                display: none; /* モバイル版では最初は非表示 */
+            }
+
+            .patient-info-container.has-selection {
+                display: block; /* 患者が選択されたら表示 */
+            }
+
+            /* PC版のフッターをスマホでは隠す（ナビがあるため） */
+            .footer {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- 💚 ヘッダー -->
     <header class="top-bar">
         <div class="header-inner">
-            <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3; letter-spacing:0.08em; display:flex; align-items:center;">
-                <span data-translate="site_title" style="vertical-align:middle;">医療管理アプリ</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="hamburger-menu" id="hamburgerMenu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3; letter-spacing:0.08em; display:flex; align-items:center;">
+                    <span data-translate="site_title" style="vertical-align:middle;">医療管理アプリ</span>
+                </div>
             </div>
             <nav>
                 <ul class="tab-menu">
-                    <li><a href="home.html">🏥 <span data-translate="HOME">HOME</span></a></li>
                     <li><a href="list.html" class="active">👥 <span data-translate="患者診療記録">患者診療記録</span></a></li>
                     <li><a href="chat.html">📅 <span data-translate="チャット">チャット</span></a></li>
-                    <li><a href="docterprofile.html">👤 <span data-translate="プロフィール">プロフィール</span></a></li>
+                    <li><a href="docterprofile.html">🏥 <span data-translate="プロフィール">プロフィール</span></a></li>
                 </ul>
             </nav>
         </div>
     </header>
+
+    <!-- サイドバーオーバーレイ -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- サイドバー（モバイル用） -->
+    <div class="patient-list-sidebar" id="patientListSidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-user-friends"></i> <span data-translate="担当患者リスト">担当患者リスト</span></h2>
+            <button class="close-sidebar-btn" id="closeSidebarBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="search-box">
+            <input type="text" id="patientSearchSidebar" placeholder="患者を検索...">
+            <i class="fas fa-search"></i>
+        </div>
+        <div class="chat-list" id="patientListSidebarContent"></div>
+    </div>
         
     <div class="flex-container">
         <div class="patient-list-panel">
@@ -439,6 +721,22 @@
             </div>
         </div>
     </div>
+
+    <!-- モバイル用ナビゲーション -->
+    <nav class="mobile-nav">
+        <a href="list.html" class="nav-item active">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span data-translate="患者診療記録">患者診療記録</span>
+        </a>
+        <a href="chat.html" class="nav-item">
+            <i class="fa-solid fa-comments"></i>
+            <span data-translate="チャット">チャット</span>
+        </a>
+        <a href="docterprofile.html" class="nav-item">
+            <i class="fa-regular fa-user"></i>
+            <span data-translate="プロフィール">プロフィール</span>
+        </a>
+    </nav>
     
     <!-- フッター -->
     <footer class="footer">
@@ -531,20 +829,27 @@
         .where('assignedDoctor', '==', currentUserId)
         .get();
       patients = patientsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      renderPatientList();
+      renderPatientList(); // PC版
+      renderPatientListMobile(); // モバイル版
     });
 
-    function renderPatientList() {
-      const listDiv = document.getElementById('patientList');
+    function renderPatientList(targetDiv = null) {
+      const listDiv = targetDiv || document.getElementById('patientList');
+      if (!listDiv) return;
+      
       listDiv.innerHTML = '';
       if (patients.length === 0) {
         listDiv.innerHTML = '<p style="color:var(--text-color-muted,#4A4A4A);text-align:center;margin:32px 0;">担当患者が登録されていません</p>';
-        document.getElementById('memoArea').innerHTML = '';
         return;
       }
-      patients.forEach(patient => {
+      
+      const maxVisible = 3;
+      const hasMore = patients.length > maxVisible;
+      
+      patients.forEach((patient, index) => {
         const item = document.createElement('div');
-        item.className = 'chat-item' + (selectedPatientId === patient.id ? ' selected' : '');
+        const isHidden = index >= maxVisible;
+        item.className = 'chat-item' + (selectedPatientId === patient.id ? ' selected' : '') + (isHidden ? ' patient-item-hidden' : '');
         item.innerHTML = `
           <div class="doctor-avatar">${patient.name ? patient.name.charAt(0) : '?'}</div>
           <div class="chat-info">
@@ -557,12 +862,70 @@
         };
         listDiv.appendChild(item);
       });
-      // 最初の患者を自動選択
-      if (!selectedPatientId && patients.length > 0) {
+      
+      // 「もっと見る」ボタンを追加
+      if (hasMore) {
+        const showMoreBtn = document.createElement('button');
+        showMoreBtn.className = 'show-more-btn';
+        showMoreBtn.textContent = `もっと見る (${patients.length - maxVisible}人)`;
+        let isExpanded = false;
+        showMoreBtn.onclick = function() {
+          const allItems = listDiv.querySelectorAll('.chat-item');
+          isExpanded = !isExpanded;
+          
+          if (isExpanded) {
+            // 全て表示する
+            allItems.forEach((item, index) => {
+              if (index >= maxVisible) {
+                item.classList.remove('patient-item-hidden');
+              }
+            });
+            showMoreBtn.textContent = '閉じる';
+          } else {
+            // 4人目以降を非表示にする
+            allItems.forEach((item, index) => {
+              if (index >= maxVisible) {
+                item.classList.add('patient-item-hidden');
+              }
+            });
+            showMoreBtn.textContent = `もっと見る (${patients.length - maxVisible}人)`;
+          }
+        };
+        listDiv.appendChild(showMoreBtn);
+      }
+      
+      // 最初の患者を自動選択（PC版のみ）
+      if (!targetDiv && !selectedPatientId && patients.length > 0) {
         setTimeout(() => {
           selectPatient(patients[0].id);
         }, 100);
       }
+    }
+
+    function renderPatientListMobile() {
+      const listDiv = document.getElementById('patientListMobile');
+      if (!listDiv) return;
+      
+      listDiv.innerHTML = '';
+      if (patients.length === 0) {
+        listDiv.innerHTML = '<p style="color:var(--text-color-muted,#4A4A4A);text-align:center;margin:32px 0; padding: 20px;">担当患者が登録されていません</p>';
+        return;
+      }
+      
+      patients.forEach((patient) => {
+        const item = document.createElement('div');
+        item.className = 'chat-item' + (selectedPatientId === patient.id ? ' selected' : '');
+        item.innerHTML = `
+          <div class="doctor-avatar">${patient.name ? patient.name.charAt(0) : '?'}</div>
+          <div class="chat-info">
+            <div class="doctor-name">${patient.name || '名無しの患者'}さん</div>
+          </div>
+        `;
+        item.onclick = () => {
+          selectPatient(patient.id);
+        };
+        listDiv.appendChild(item);
+      });
     }
 
     async function selectPatient(patientId) {
@@ -575,15 +938,19 @@
       }
       console.log('選択された患者:', patient);
       
-      // 選択状態を更新
-      document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('selected'));
-      // 患者リスト内の該当するアイテムを選択状態にする
-      const patientItems = document.querySelectorAll('.chat-item');
-      patientItems.forEach(item => {
-        if (item.onclick && item.onclick.toString().includes(patientId)) {
+      // 選択状態を更新（PC版とモバイル版の両方）
+      document.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.remove('selected');
+        const nameEl = item.querySelector('.doctor-name');
+        if (nameEl && nameEl.textContent.includes(patient.name)) {
           item.classList.add('selected');
         }
       });
+      
+      // モバイル版のリストも更新
+      if (window.innerWidth <= 768) {
+        renderPatientListMobile();
+      }
       
       // 最新データ取得
       const doc = await db.collection('users').doc(patientId).get();
@@ -596,13 +963,31 @@
 
     async function renderPatientInfo(patient, data, memos) {
       const area = document.getElementById('patientInfoArea');
+      const noDataDiv = document.getElementById('noPatientSelected');
       console.log('患者情報を表示中:', patient);
+      
+      // モバイル版では患者リストを非表示にして詳細を表示
+      if (window.innerWidth <= 768) {
+        const mobileList = document.querySelector('.mobile-patient-list');
+        if (mobileList) {
+          mobileList.style.display = 'none';
+        }
+        // 詳細エリアを表示
+        area.classList.add('has-selection');
+      }
       
       // クイズ結果を取得
       const quizResults = await getQuizResults(patient.email);
       console.log('クイズ結果:', quizResults);
       
-      area.innerHTML = `
+      // 戻るボタンを追加（モバイル版のみ）
+      const backButtonHtml = window.innerWidth <= 768 ? `
+        <button class="back-to-list-btn" id="backToListBtn" style="margin-bottom: 20px; padding: 10px 15px; background: #2196f3; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9em; width: 100%;">
+          ← 患者リストに戻る
+        </button>
+      ` : '';
+      
+      area.innerHTML = backButtonHtml + `
         <div class="patient-header">
           <div class="patient-name">${patient.name || '名無しの患者'}</div>
           <div class="patient-details">
@@ -694,6 +1079,23 @@
         addMemoBtn.onclick = function() {
           openMemoModal(patient);
         };
+      }
+      
+      // 戻るボタンのイベントリスナーを追加（モバイル版のみ）
+      if (window.innerWidth <= 768) {
+        const backBtn = document.getElementById('backToListBtn');
+        if (backBtn) {
+          backBtn.onclick = function() {
+            const mobileList = document.querySelector('.mobile-patient-list');
+            if (mobileList) {
+              mobileList.style.display = 'block';
+            }
+            area.classList.remove('has-selection');
+            area.innerHTML = '<div class="no-data" id="noPatientSelected"><i class="fas fa-user" style="font-size: 3em; color: #ccc; margin-bottom: 15px;"></i><p>患者を選択してください</p></div>';
+            selectedPatientId = null;
+            document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('selected'));
+          };
+        }
       }
     }
 
@@ -894,13 +1296,77 @@
       }
     }
 
-    document.getElementById('patientSearch').addEventListener('input', function(e) {
+    // 検索機能（PC版とサイドバー版の両方に対応）
+    function setupSearch(inputId, listSelector) {
+      const searchInput = document.getElementById(inputId);
+      if (!searchInput) return;
+      
+      searchInput.addEventListener('input', function(e) {
         const searchText = e.target.value.toLowerCase();
-        const items = document.querySelectorAll('.chat-item');
+        const container = searchInput.closest('.patient-list-panel') || searchInput.closest('.patient-list-sidebar');
+        const items = container ? container.querySelectorAll(listSelector) : document.querySelectorAll(listSelector);
         items.forEach(item => {
-            const name = item.querySelector('.doctor-name').textContent.toLowerCase();
+          const nameEl = item.querySelector('.doctor-name');
+          if (nameEl) {
+            const name = nameEl.textContent.toLowerCase();
             item.style.display = name.includes(searchText) ? 'flex' : 'none';
+          }
         });
+      });
+    }
+
+    // ハンバーガーメニューの開閉
+    function openSidebar() {
+      const sidebar = document.getElementById('patientListSidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (sidebar && overlay) {
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+        // サイドバーに患者リストを表示
+        const sidebarContent = document.getElementById('patientListSidebarContent');
+        if (sidebarContent) {
+          renderPatientList(sidebarContent);
+        }
+      }
+    }
+
+    function closeSidebar() {
+      const sidebar = document.getElementById('patientListSidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (sidebar && overlay) {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+      }
+    }
+
+    // イベントリスナーの設定
+    document.addEventListener('DOMContentLoaded', function() {
+      // PC版の検索
+      setupSearch('patientSearch', '.chat-item');
+      
+      // モバイル版の検索
+      setupSearch('patientSearchMobile', '.chat-item');
+      
+      // サイドバー版の検索
+      setupSearch('patientSearchSidebar', '.chat-item');
+      
+      // ハンバーガーメニューボタン
+      const hamburgerBtn = document.getElementById('hamburgerMenu');
+      if (hamburgerBtn) {
+        hamburgerBtn.addEventListener('click', openSidebar);
+      }
+      
+      // サイドバー閉じるボタン
+      const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+      if (closeSidebarBtn) {
+        closeSidebarBtn.addEventListener('click', closeSidebar);
+      }
+      
+      // オーバーレイクリックで閉じる
+      const overlay = document.getElementById('sidebarOverlay');
+      if (overlay) {
+        overlay.addEventListener('click', closeSidebar);
+      }
     });
 
     // モーダル機能を追加

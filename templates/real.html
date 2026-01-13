@@ -8,63 +8,149 @@
   <link rel="stylesheet" href="chat.css">
     
   <style>
-    /* メッセージバブルのレイアウト調整 */
-    .bubble {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
-    }
-    
     .msg-text[style*="opacity: 0.6"] {
       font-style: italic;
       opacity: 0.6;
     }
     
-    /* 緑色を#d12b02ccに変更 */
-    :root {
-      --primary: #d12b02;
-      --primary-hover: #b02402;
-      --primary-light: #ffe5e0;
+    /* 吹き出しスタイル */
+    .message {
+      max-width: 75%;
+      display: flex;
+      margin: 8px 0;
     }
     
+    .message.self {
+      align-self: flex-end;
+      justify-content: flex-end;
+    }
+    
+    .message:not(.self) {
+      align-self: flex-start;
+      justify-content: flex-start;
+    }
+    
+    .bubble {
+      position: relative;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      padding: 12px 16px;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+    
+    /* ユーザーメッセージ（右側の吹き出し） */
     .message.self .bubble {
-      background: #d12b02 !important;
+      background: #FF9800 !important;
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+    
+    /* 医師メッセージ（左側の吹き出し） */
+    .message:not(.self) .bubble {
+      background: #ffffff;
+      color: #222;
+      border: 1px solid #e0e0e0;
+      border-bottom-left-radius: 4px;
+    }
+    
+    /* 吹き出しの三角形（ユーザーメッセージ：右側） */
+    .message.self .bubble::after {
+      content: "";
+      position: absolute;
+      bottom: 8px;
+      right: -6px;
+      width: 12px;
+      height: 12px;
+      background: #FF9800;
+      transform: rotate(45deg);
+      border-radius: 0 0 4px 0;
+    }
+    
+    /* 吹き出しの三角形（医師メッセージ：左側） */
+    .message:not(.self) .bubble::before {
+      content: "";
+      position: absolute;
+      bottom: 8px;
+      left: -6px;
+      width: 12px;
+      height: 12px;
+      background: #ffffff;
+      border-left: 1px solid #e0e0e0;
+      border-bottom: 1px solid #e0e0e0;
+      transform: rotate(45deg);
+      border-radius: 0 0 0 4px;
+    }
+    
+    /* 時間表示のスタイル */
+    .msg-time {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      margin-top: 4px;
+      display: block;
+    }
+    
+    .message.self .msg-time {
+      color: rgba(255, 255, 255, 0.8);
+      text-align: right;
+    }
+    
+    .message:not(.self) .msg-time {
+      color: rgba(0, 0, 0, 0.6);
+      text-align: left;
+    }
+    
+    .msg-text {
+      white-space: pre-wrap;
+      word-break: break-word;
+      display: block;
+      line-height: 1.5;
+    }
+    
+    /* オレンジ色に変更 */
+    :root {
+      --primary: #FF9800;
+      --primary-hover: #F57C00;
+      --primary-light: #FFF3E0;
     }
     
     #sendBtn {
-      background: #d12b02 !important;
+      background: #FF9800 !important;
     }
     
     #sendBtn:hover {
-      background: #b02402 !important;
+      background: #F57C00 !important;
     }
     
     #voiceBtn.active {
-      background: #d12b02 !important;
-      border-color: #d12b02 !important;
+      background: #FF9800 !important;
+      border-color: #FF9800 !important;
     }
     
     #voiceBtn:hover {
-      border-color: #d12b02 !important;
-      color: #d12b02 !important;
+      border-color: #FF9800 !important;
+      color: #FF9800 !important;
     }
     
     #messageInput:focus {
-      border-color: #d12b02 !important;
-      box-shadow: 0 0 0 3px #ffe5e0 !important;
+      border-color: #FF9800 !important;
+      box-shadow: 0 0 0 3px #FFF3E0 !important;
     }
     
     #voiceBtn.active {
-      animation: pulse-red 2s infinite;
+      animation: pulse-orange 2s infinite;
     }
     
-    @keyframes pulse-red {
+    @keyframes pulse-orange {
       0%, 100% {
         box-shadow: var(--shadow-md);
       }
       50% {
-        box-shadow: 0 0 0 4px #ffe5e0;
+        box-shadow: 0 0 0 4px #FFF3E0;
       }
     }
   </style>

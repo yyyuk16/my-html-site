@@ -11,8 +11,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   
-  <!-- 翻訳機能 -->
-  <script src="translation.js"></script>
+  <!-- 多言語対応 -->
+  <script src="multilang.js"></script>
 
   <style>
     :root {
@@ -58,8 +58,10 @@
     h1 {
       text-align: center;
       color: var(--secondary-color);
-      margin-bottom: 1.5rem;
-      text-shadow: 0 2px 8px #a5d6a7;
+      margin-top: 1.5rem;
+      margin-bottom: 1.0rem;
+      text-shadow: 0 2px 10px #a5d6a7;
+      font-size: 1.5rem; /* 文字小さく */
     }
 
     .form-group {
@@ -149,69 +151,37 @@
       /* .lang-btn-group styles are kept for possible future use, but not used in DOM */
     }
 
-    /* === index.html と同じ言語選択コンポーネントのスタイル === */
+    /* 言語セレクター（index.htmlと同じスタイル） */
     .language-selector {
-      position: fixed;
-      top: 24px;
-      right: 24px;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(10px);
-      border-radius: 14px;
-      padding: 13px 18px;
-      box-shadow: 0 4px 24px rgba(46, 125, 50, 0.13);
-      border: 1.5px solid #C8E6C9;
-      transition: all 0.3s cubic-bezier(.4,2,.6,1);
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 5px;
     }
-    .language-selector:hover {
-      transform: translateY(-2px) scale(1.03);
-      box-shadow: 0 8px 32px rgba(46, 125, 50, 0.18);
-    }
-    .language-selector-container { display:flex; align-items:center; gap:10px; }
-    .language-label { display:flex; align-items:center; gap:7px; font-size:15px; font-weight:600; color:#2E7D32; letter-spacing:0.01em; }
-    .language-icon { font-size:18px; }
-    .language-text { white-space:nowrap; }
-    .language-select {
-      padding: 7px 14px;
-      border: 2px solid #A5D6B5;
-      border-radius: 9px;
-      background: #fff;
-      font-size: 15px;
-      color: #2E7D32;
-      cursor: pointer;
-      transition: all 0.3s;
-      min-width: 120px;
-      font-weight: 500;
-      outline: none;
-    }
-    .language-select:focus { border-color:#2E7D32; box-shadow:0 0 0 3px #C8E6C9; }
-    .language-select:hover { border-color:#2E7D32; background:#f7faf8; }
 
-    @media (max-width: 768px) {
-      .language-selector { top:10px; right:10px; padding:8px 12px; }
-      .language-label { font-size:13px; }
-      .language-select { font-size:13px; min-width:90px; padding:4px 8px; }
+    .lang-btn {
+      padding: 5px 10px;
+      border: 1px solid var(--color-green-accent);
+      border-radius: 8px;
+      background: white;
+      font-size: 12px;
+      color: var(--primary-color);
+      cursor: pointer;
     }
-    @media (max-width: 480px) {
-      .language-selector { position:relative; top:auto; right:auto; margin:10px auto; width:fit-content; border-radius:10px; padding:7px 8px; }
-      .language-label { font-size:12px; }
-      .language-select { font-size:12px; min-width:70px; padding:3px 6px; }
-      .language-text { display:none; }
+
+    .lang-btn.active {
+      background: var(--primary-color);
+      color: white;
     }
   </style>
 </head>
 <body>
    <!-- 言語選択ボタン -->
    <div class="language-selector" id="languageSelector">
-    <div class="language-selector-container">
-      <span class="language-label">
-        <span class="language-icon">🌐</span>
-        <span class="language-text" data-translate="language">言語</span>
-      </span>
-      <button type="button" class="language-select" data-lang="ja" id="langBtnJa">日本語</button>
-      <button type="button" class="language-select" data-lang="en" id="langBtnEn">English</button>
-      <button type="button" class="language-select" data-lang="zh" id="langBtnZh">中文</button>
-    </div>
+    <button class="lang-btn" data-lang="ja">JP</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="zh">ZH</button>
   </div>
   <div class="container">
     <h1 data-translate="signup-title">患者新規登録</h1>
@@ -290,137 +260,12 @@
     };
     firebase.initializeApp(firebaseConfig);
 
-    // 多言語対応の翻訳データ
-    const translations = {
-      ja: {
-        'title': '患者新規登録',
-        'signup-title': '患者新規登録',
-        'basic-info': '基本情報',
-        'account-info': 'アカウント情報',
-        'name': 'お名前',
-        'gender': '性別',
-        'select': '選択してください',
-        'male': '男性',
-        'female': '女性',
-        'other': 'その他',
-        'age': '年齢',
-        'language': '言語選択',
-        'ja': '日本語',
-        'en': 'English',
-        'zh': '中文',
-        'ko': '한국어',
-        'email': 'メールアドレス',
-        'select-doctor': '担当医を選択',
-        'password': 'パスワード',
-        'confirm-password': 'パスワード（確認）',
-        'register': '登録',
-        'back-to-login': '← ログイン画面に戻る',
-        'password-mismatch': 'パスワードが一致しません',
-        'registration-success': '登録が完了しました！',
-        'registration-error': '登録に失敗しました: '
-      },
-      en: {
-        'title': 'Patient Registration',
-        'signup-title': 'Patient Registration',
-        'basic-info': 'Basic Information',
-        'account-info': 'Account Information',
-        'name': 'Name',
-        'gender': 'Gender',
-        'select': 'Please select',
-        'male': 'Male',
-        'female': 'Female',
-        'other': 'Other',
-        'age': 'Age',
-        'language': 'Language',
-        'ja': 'Japanese',
-        'en': 'English',
-        'zh': 'Chinese',
-        'ko': 'Korean',
-        'email': 'Email',
-        'select-doctor': 'Select Doctor',
-        'password': 'Password',
-        'confirm-password': 'Confirm Password',
-        'register': 'Register',
-        'back-to-login': '← Back to Login'
-      },
-      zh: {
-        'title': '患者注册',
-        'signup-title': '患者注册',
-        'basic-info': '基本信息',
-        'account-info': '账户信息',
-        'name': '姓名',
-        'gender': '性别',
-        'select': '请选择',
-        'male': '男',
-        'female': '女',
-        'other': '其他',
-        'age': '年龄',
-        'language': '语言选择',
-        'ja': '日语',
-        'en': '英语',
-        'zh': '中文',
-        'ko': '韩语',
-        'email': '电子邮件',
-        'select-doctor': '选择主治医生',
-        'password': '密码',
-        'confirm-password': '确认密码',
-        'register': '注册',
-        'back-to-login': '← 返回登录'
-      },
-      ko: {
-        'title': '환자 등록',
-        'signup-title': '환자 등록',
-        'basic-info': '기본 정보',
-        'account-info': '계정 정보',
-        'name': '이름',
-        'gender': '성별',
-        'select': '선택하세요',
-        'male': '남성',
-        'female': '여성',
-        'other': '기타',
-        'age': '나이',
-        'language': '언어 선택',
-        'ja': '일본어',
-        'en': '영어',
-        'zh': '중국어',
-        'ko': '한국어',
-        'email': '이메일',
-        'select-doctor': '담당 의사 선택',
-        'password': '비밀번호',
-        'confirm-password': '비밀번호 확인',
-        'register': '등록',
-        'back-to-login': '← 로그인으로 돌아가기'
+    // 翻訳取得ヘルパー関数（multilang.jsを使用）
+    function getTranslation(key, fallback) {
+      if (window.multiLang && window.multiLang.translations && window.multiLang.currentLanguage) {
+        return window.multiLang.translations[window.multiLang.currentLanguage]?.[key] || fallback;
       }
-    };
-
-    // 言語変更関数（画面全体の文言を更新）
-    function changeLanguage(lang) {
-      document.documentElement.lang = lang;
-      // [data-translate]
-      document.querySelectorAll('[data-translate]').forEach(element => {
-        const key = element.getAttribute('data-translate');
-        if (translations[lang] && translations[lang][key]) {
-          // input/textarea の placeholder 対応
-          if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-            element.placeholder = translations[lang][key];
-          } else if (element.tagName === 'OPTION') {
-            element.textContent = translations[lang][key];
-          } else {
-            element.textContent = translations[lang][key];
-          }
-        }
-      });
-      // title タグ
-      const titleEl = document.querySelector('title[data-translate]');
-      if (titleEl) {
-        const key = titleEl.getAttribute('data-translate');
-        if (translations[lang] && translations[lang][key]) {
-          titleEl.textContent = translations[lang][key];
-        }
-      }
-      // 言語セレクトの値を同期
-      const langSelect = document.getElementById('language');
-      if (langSelect && langSelect.value !== lang) langSelect.value = lang;
+      return fallback;
     }
 
     function loadDoctors() {
@@ -442,45 +287,59 @@
         });
     }
 
-    // 言語セレクトボックスのイベント設定
-    function setupLangSelect() {
-      const langSelect = document.getElementById('language');
-      if (langSelect) {
-        langSelect.addEventListener('change', function() {
-          if (langSelect.value) {
-            changeLanguage(langSelect.value);
-            localStorage.setItem('lang', langSelect.value);
+    // 言語切り替えボタンの処理（index.htmlと同じ）
+    const initLanguageSwitcher = async () => {
+      if (!window.multiLang) {
+        setTimeout(initLanguageSwitcher, 100);
+        return;
+      }
+
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const lang = btn.getAttribute('data-lang');
+          await window.multiLang.switchLanguage(lang);
+          document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          // UIを更新（念のため明示的に呼び出し）
+          if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+            window.multiLang.updateUI();
           }
         });
-      }
-      // 画面右上の言語ボタン（index.html と同じ動作）
-      const btnJa = document.getElementById('langBtnJa');
-      const btnEn = document.getElementById('langBtnEn');
-      const btnZh = document.getElementById('langBtnZh');
-      if (btnJa) btnJa.addEventListener('click', () => { changeLanguage('ja'); localStorage.setItem('lang','ja'); });
-      if (btnEn) btnEn.addEventListener('click', () => { changeLanguage('en'); localStorage.setItem('lang','en'); });
-      if (btnZh) btnZh.addEventListener('click', () => { changeLanguage('zh'); localStorage.setItem('lang','zh'); });
-    }
+      });
 
-    // 初期言語の決定
-    function getInitialLang() {
-      // localStorage, ブラウザ言語, デフォルトja
-      const saved = localStorage.getItem('lang');
-      if (saved && translations[saved]) return saved;
-      const browserLang = (navigator.language || navigator.userLanguage || '').slice(0,2);
-      if (translations[browserLang]) return browserLang;
-      return 'ja';
-    }
+      // 初期表示時に現在の言語に応じてボタンをアクティブにする
+      const currentLang = window.multiLang.currentLanguage || 'ja';
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.getAttribute('data-lang') === currentLang) {
+          btn.classList.add('active');
+        }
+      });
+    };
 
     window.onload = function() {
       loadDoctors();
-      setupLangSelect();
-      // 初期言語設定
-      const initialLang = getInitialLang();
-      changeLanguage(initialLang);
-      // selectの値も合わせる
+      // 言語切り替えボタンの初期化
+      setTimeout(initLanguageSwitcher, 200);
+      // 初期翻訳を適用（multilang.jsの初期化完了を待つ）
+      const applyInitialTranslation = () => {
+        if (window.multiLang && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+          window.multiLang.updateUI();
+        } else {
+          setTimeout(applyInitialTranslation, 100);
+        }
+      };
+      setTimeout(applyInitialTranslation, 300);
+      
+      // 言語セレクトボックスの変更時にも翻訳を更新
       const langSelect = document.getElementById('language');
-      if (langSelect) langSelect.value = initialLang;
+      if (langSelect) {
+        langSelect.addEventListener('change', async function() {
+          if (langSelect.value && window.multiLang) {
+            await window.multiLang.switchLanguage(langSelect.value);
+            window.multiLang.updateUI();
+          }
+        });
+      }
     };
 
     document.getElementById('signupForm').addEventListener('submit', function(e) {
@@ -498,11 +357,11 @@
       const assignedDoctorUid = doctorSelect.value;
 
       if (password !== confirmPassword) {
-        alert(translations[language]['password-mismatch'] || 'パスワードが一致しません');
+        alert(getTranslation('password_mismatch', 'パスワードが一致しません'));
         return;
       }
       if (!assignedDoctorUid) {
-        alert(translations[language]['select-doctor'] || '担当医を選択してください');
+        alert(getTranslation('select_doctor', '担当医を選択してください'));
         return;
       }
 
@@ -522,11 +381,11 @@
           });
         })
         .then(() => {
-          alert(translations[language]['registration-success'] || '登録が完了しました！');
+          alert(getTranslation('registration_success', '登録が完了しました！'));
           window.location.href = 'ai.html';
         })
         .catch(error => {
-          alert((translations[language]['registration-error'] || '登録に失敗しました: ') + error.message);
+          alert(getTranslation('registration_error', '登録に失敗しました: ') + error.message);
         });
     });
   </script>

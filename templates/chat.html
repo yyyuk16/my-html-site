@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-translate="患者診療記録">患者診療記録</title>
     <link rel="stylesheet" href="maintab.css">
-    <link rel="stylesheet" href="footer.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="d_footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         html, body {
@@ -17,7 +17,7 @@
             background: #f4f8fb;
             font-family: 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif;
             color: #222;
-            padding-top: 0;
+            padding-top: 70px; /* ヘッダーのスペース */
         }
         
         /* ヘッダーの固定 */
@@ -45,7 +45,7 @@
         .flex-container {
             display: flex;
             gap: 28px;
-            padding: 100px 24px 120px 24px;
+            padding: 30px 24px 120px 24px;
             max-width: 1200px;
             margin: 0 auto;
             min-height: 80vh;
@@ -63,6 +63,11 @@
             padding: 20px 16px 16px 16px;
             display: flex;
             flex-direction: column;
+        }
+
+        /* モバイル版：患者リスト画面 */
+        .mobile-patient-list-view {
+            display: none;
         }
         .patient-list-panel h2 {
             font-size: 1.13rem;
@@ -133,6 +138,10 @@
             font-weight: 700;
             font-size: 1.1em;
             box-shadow: 0 2px 8px rgba(33,150,243,0.07);
+        }
+
+        .chat-info {
+            flex: 1;
         }
         .doctor-name {
             font-weight: 600;
@@ -365,11 +374,16 @@
             color: #607d8b;
         }
 
+        /* 1. デフォルト（PC）ではモバイル用ナビを隠す */
+        .mobile-nav {
+            display: none;
+        }
+
         /* ===== レスポンシブ ===== */
         @media (max-width: 1100px) {
             .flex-container {
                 gap: 12px;
-                padding: 100px 6px 120px 6px;
+                padding: 30px 6px 120px 6px;
             }
             .patient-list-panel {
                 width: 210px;
@@ -377,38 +391,227 @@
                 padding: 12px 6px 8px 6px;
             }
             .chat-area {
-                height: calc(100vh - 240px);
+                height: calc(100vh - 200px);
             }
         }
         @media (max-width: 900px) {
             .flex-container {
                 flex-direction: column;
                 gap: 18px;
-                padding: 90px 2vw 120px 2vw;
+                padding: 20px 2vw 120px 2vw;
             }
             .patient-list-panel {
                 width: 100%;
                 min-width: 0;
                 height: auto;
+                max-height: 40vh;
                 margin-bottom: 8px;
             }
             .chat-area {
-                height: 60vh;
-                min-height: 340px;
+                height: calc(100vh - 200px);
+                min-height: 400px;
+            }
+        }
+        @media (max-width: 768px) {
+            /* PC用ナビを隠す */
+            .tab-menu {
+                display: none;
+            }
+
+            /* ヘッダーを画像のようなシンプル構成に */
+            .top-bar {
+                padding: 10px 15px;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .header-inner {
+                justify-content: space-between;
+            }
+
+            .logo span {
+                font-size: 1.1rem;
+            }
+
+            /* 下部ナビゲーションを表示 */
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 70px;
+                background: #f8f9fa;
+                border-top: 1px solid #eee;
+                justify-content: space-around;
+                align-items: center;
+                z-index: 1000;
+                padding-bottom: env(safe-area-inset-bottom); /* iPhoneのバー対策 */
+            }
+
+            .nav-item {
+                text-decoration: none;
+                color: #888;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                font-size: 0.7rem;
+                gap: 4px;
+            }
+
+            .nav-item i {
+                font-size: 1.4rem;
+            }
+
+            .nav-item.active {
+                color: #333; /* 選択中の色 */
+            }
+
+            /* メインコンテンツの下部に余白を追加（ナビに被らないように） */
+            body {
+                padding-bottom: 80px;
+            }
+
+            /* PC版のフッターをスマホでは隠す（ナビがあるため） */
+            .footer {
+                display: none;
+            }
+
+            /* PC版のflex-containerを非表示 */
+            .flex-container {
+                display: none;
+            }
+
+            /* モバイル版：患者リスト画面を表示 */
+            .mobile-patient-list-view {
+                display: block;
+                width: 100%;
+                padding: 0 2vw;
+                margin-top: 20px;
+            }
+
+            .mobile-patient-list-view h2 {
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin: 0 0 15px 0;
+                color: #333;
+            }
+
+            .mobile-patient-list-view .search-box {
+                position: relative;
+                margin-bottom: 15px;
+            }
+
+            .mobile-patient-list-view .search-box input {
+                width: 100%;
+                height: 40px;
+                padding: 8px 35px 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                font-size: 1em;
+                background: #f8f9fa;
+                box-sizing: border-box;
+            }
+
+            .mobile-patient-list-view .search-box i {
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #94a3b8;
+                font-size: 0.9em;
+                pointer-events: none;
+            }
+
+            .mobile-patient-list-view .chat-item {
+                display: flex;
+                align-items: center;
+                padding: 15px 0;
+                border-bottom: 1px solid #eee;
+                margin-bottom: 0;
+                border-radius: 0;
+                cursor: pointer;
+            }
+
+            .mobile-patient-list-view .chat-item:active {
+                background-color: #f0f0f0;
+            }
+
+            .mobile-patient-list-view .doctor-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #2196f3, #21cbf3);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                margin-right: 12px;
+                font-size: 1.2em;
+            }
+
+            .mobile-patient-list-view .doctor-name {
+                font-weight: 500;
+                color: #333;
+                font-size: 1em;
+            }
+
+            /* PC版の患者リストパネルを非表示 */
+            .patient-list-panel {
+                display: none;
+            }
+
+            /* チャットエリアを全画面表示 */
+            .chat-area.mobile-chat-view {
+                display: none;
+                width: 100%;
+                height: calc(100vh - 150px);
+                border-radius: 0;
+                box-shadow: none;
+                border: none;
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                bottom: 80px;
+                background: #fff;
+                z-index: 100;
+            }
+
+            .chat-area.mobile-chat-view.active {
+                display: flex;
+            }
+
+            .chat-area.mobile-chat-view .chat-messages {
+                background: linear-gradient(180deg, #f8fafc 0%, #e3f2fd 100%);
+            }
+
+            /* 戻るボタンを表示 */
+            .back-btn-mobile {
+                display: block !important;
+            }
+
+            /* PC版のflex-containerを非表示 */
+            @media (max-width: 768px) {
+                .flex-container {
+                    display: none;
+                }
             }
         }
         @media (max-width: 600px) {
             .flex-container {
-                padding: 90px 2vw 120px 2vw;
+                padding: 20px 2vw 80px 2vw;
             }
             .chat-area {
                 border-radius: 0;
                 box-shadow: none;
-                height: 54vh;
+                height: calc(100vh - 180px);
+                min-height: 350px;
             }
             .patient-list-panel {
                 border-radius: 0;
                 box-shadow: none;
+                max-height: 35vh;
             }
             .chat-header, .chat-messages, .chat-input-container {
                 padding-left: 6px;
@@ -421,20 +624,25 @@
     <!-- 💚 ヘッダー -->
     <header class="top-bar">
         <div class="header-inner">
-            <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3;">
-                <span data-translate="site_title">医療管理アプリ</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="back-btn-mobile" id="backBtnMobile" style="display: none; background: none; border: none; font-size: 1.5rem; color: #2196f3; cursor: pointer; padding: 5px;">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3;">
+                    <span data-translate="site_title">医療管理アプリ</span>
+                </div>
             </div>
             <nav>
                 <ul class="tab-menu">
-                    <li><a href="home.html">🏥 HOME</a></li>
                     <li><a href="list.html">👥 患者診療記録</a></li>
                     <li><a href="chat.html" class="active">📅 チャット</a></li>
-                    <li><a href="docterprofile.html">👤 プロフィール</a></li>
+                    <li><a href="docterprofile.html">🏥 プロフィール</a></li>
                 </ul>
             </nav>
         </div>
     </header>
 
+    <!-- PC版：横並びレイアウト -->
     <div class="flex-container" style="margin-top:32px;">
         <!-- サイドバー：患者リスト -->
         <aside class="patient-list-panel">
@@ -483,6 +691,51 @@
         </main>
     </div>
 
+    <!-- モバイル版：患者リスト画面 -->
+    <div class="mobile-patient-list-view">
+        <h2>患者リスト</h2>
+        <div class="search-box">
+            <input type="text" id="patientSearchMobile" placeholder="検索">
+            <i class="fas fa-search"></i>
+        </div>
+        <div class="chat-list" id="chatListMobile"></div>
+    </div>
+
+    <!-- モバイル版：チャット画面 -->
+    <main class="chat-area mobile-chat-view" id="chatAreaMobile" style="display:none;">
+        <div id="chatInterfaceMobile" style="display:flex;height:100%;flex-direction:column;">
+            <div class="chat-header">
+                <h3 id="chatPatientNameMobile">患者名</h3>
+                <div class="patient-info" id="patientInfoMobile"></div>
+            </div>
+
+            <div class="chat-messages" id="chatMessagesMobile"></div>
+
+            <div class="chat-input-container">
+                <input id="messageInputMobile" type="text" placeholder="メッセージを入力..." />
+                <button id="sendBtnMobile" class="send-btn">
+                    <i class="fas fa-paper-plane"></i> 送信
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- モバイル用ナビゲーション -->
+    <nav class="mobile-nav">
+        <a href="list.html" class="nav-item">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span data-translate="患者診療記録">患者診療記録</span>
+        </a>
+        <a href="chat.html" class="nav-item active">
+            <i class="fa-solid fa-comments"></i>
+            <span data-translate="チャット">チャット</span>
+        </a>
+        <a href="docterprofile.html" class="nav-item">
+            <i class="fa-regular fa-user"></i>
+            <span data-translate="プロフィール">プロフィール</span>
+        </a>
+    </nav>
+
     <!-- フッター -->
     <footer class="footer">
         <div class="container">
@@ -521,6 +774,57 @@
         let userLanguage = 'ja';
 
         const chatListDiv = document.getElementById('chatList');
+        const chatListMobileDiv = document.getElementById('chatListMobile');
+        let currentPatientId = null;
+        let currentPatientName = null;
+
+        // モバイル判定
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+
+        // 患者リストを表示する関数
+        function renderPatientList(patients) {
+            // PC版のリスト
+            if (chatListDiv) {
+                chatListDiv.innerHTML = '';
+                if (patients.length === 0) {
+                    chatListDiv.innerHTML = '<p style="color:#888;text-align:center;">担当患者がいません</p>';
+                    return;
+                }
+                patients.forEach(patient => {
+                    const chatItem = document.createElement('div');
+                    chatItem.className = 'chat-item';
+                    chatItem.innerHTML = `
+                        <div class="doctor-avatar">${patient.name ? patient.name[0] : '?'}</div>
+                        <div class="chat-info">
+                            <div class="doctor-name">${patient.name || '名無し'}</div>
+                        </div>`;
+                    chatItem.onclick = () => openChat(patient.id, patient.name);
+                    chatListDiv.appendChild(chatItem);
+                });
+            }
+
+            // モバイル版のリスト
+            if (chatListMobileDiv) {
+                chatListMobileDiv.innerHTML = '';
+                if (patients.length === 0) {
+                    chatListMobileDiv.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">担当患者がいません</p>';
+                    return;
+                }
+                patients.forEach(patient => {
+                    const chatItem = document.createElement('div');
+                    chatItem.className = 'chat-item';
+                    chatItem.innerHTML = `
+                        <div class="doctor-avatar">${patient.name ? patient.name[0] : '?'}</div>
+                        <div class="chat-info">
+                            <div class="doctor-name">${patient.name || '名無し'}さん</div>
+                        </div>`;
+                    chatItem.onclick = () => openChatMobile(patient.id, patient.name);
+                    chatListMobileDiv.appendChild(chatItem);
+                });
+            }
+        }
 
         // ================= ユーザーログインチェック =================
         firebase.auth().onAuthStateChanged(async (user) => {
@@ -545,27 +849,45 @@
                 .where('assignedDoctor', '==', user.uid)
                 .get();
 
-            if (patientsSnapshot.empty) {
-                chatListDiv.innerHTML = '<p style="color:#888;text-align:center;">担当患者がいません</p>';
-                return;
+            const patients = [];
+            patientsSnapshot.forEach(doc => {
+                patients.push({ id: doc.id, ...doc.data() });
+            });
+
+            renderPatientList(patients);
+
+            // 検索機能（PC版）
+            const patientSearch = document.getElementById('patientSearch');
+            if (patientSearch) {
+                patientSearch.addEventListener('input', (e) => {
+                    const searchText = e.target.value.toLowerCase();
+                    const items = chatListDiv.querySelectorAll('.chat-item');
+                    items.forEach(item => {
+                        const name = item.querySelector('.doctor-name')?.textContent.toLowerCase() || '';
+                        item.style.display = name.includes(searchText) ? 'flex' : 'none';
+                    });
+                });
             }
 
-            patientsSnapshot.forEach(doc => {
-                const patient = doc.data();
-                const chatItem = document.createElement('div');
-                chatItem.className = 'chat-item';
-                chatItem.innerHTML = `
-                    <div class="doctor-avatar">${patient.name ? patient.name[0] : '?'}</div>
-                    <div class="chat-info">
-                        <div class="doctor-name">${patient.name || '名無し'}</div>
-                    </div>`;
-                chatItem.onclick = () => openChat(doc.id, patient.name);
-                chatListDiv.appendChild(chatItem);
-            });
+            // 検索機能（モバイル版）
+            const patientSearchMobile = document.getElementById('patientSearchMobile');
+            if (patientSearchMobile) {
+                patientSearchMobile.addEventListener('input', (e) => {
+                    const searchText = e.target.value.toLowerCase();
+                    const items = chatListMobileDiv.querySelectorAll('.chat-item');
+                    items.forEach(item => {
+                        const name = item.querySelector('.doctor-name')?.textContent.toLowerCase() || '';
+                        item.style.display = name.includes(searchText) ? 'flex' : 'none';
+                    });
+                });
+            }
         });
 
-        // ================= 患者選択 =================
+        // ================= 患者選択（PC版） =================
         function openChat(patientId, patientName) {
+            currentPatientId = patientId;
+            currentPatientName = patientName;
+
             document.getElementById('chatGuide').style.display = 'none';
             document.getElementById('chatInterface').style.display = 'flex';
 
@@ -573,9 +895,9 @@
             document.getElementById('patientInfo').innerHTML =
                 `<span style="color:#666;font-size:0.9em;"><i class="fas fa-user"></i> ID: ${patientId}</span>`;
 
-            loadChatHistory(patientId);
-            setupChatInput(patientId);
-            setupRealtimeChat(patientId);
+            loadChatHistory(patientId, 'chatMessages');
+            setupChatInput(patientId, 'messageInput', 'sendBtn');
+            setupRealtimeChat(patientId, 'chatMessages');
             // スクロール位置監視（手動スクロール中は自動で最下部へ飛ばさない）
             const chatMessages = document.getElementById('chatMessages');
             if (chatMessages) {
@@ -587,9 +909,46 @@
             }
         }
 
+        // ================= 患者選択（モバイル版） =================
+        function openChatMobile(patientId, patientName) {
+            currentPatientId = patientId;
+            currentPatientName = patientName;
+
+            // 患者リストを非表示、チャット画面を表示
+            document.querySelector('.mobile-patient-list-view').style.display = 'none';
+            document.getElementById('chatAreaMobile').style.display = 'flex';
+            document.getElementById('backBtnMobile').style.display = 'block';
+
+            document.getElementById('chatPatientNameMobile').textContent = patientName;
+            document.getElementById('patientInfoMobile').innerHTML =
+                `<span style="color:#666;font-size:0.9em;"><i class="fas fa-user"></i> ID: ${patientId}</span>`;
+
+            loadChatHistory(patientId, 'chatMessagesMobile');
+            setupChatInput(patientId, 'messageInputMobile', 'sendBtnMobile');
+            setupRealtimeChat(patientId, 'chatMessagesMobile');
+            // スクロール位置監視
+            const chatMessages = document.getElementById('chatMessagesMobile');
+            if (chatMessages) {
+                window.__chatUserAtBottomMobile = true;
+                chatMessages.addEventListener('scroll', () => {
+                    const nearBottom = (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight) < 24;
+                    window.__chatUserAtBottomMobile = nearBottom;
+                });
+            }
+        }
+
+        // 戻るボタンの処理
+        document.getElementById('backBtnMobile').onclick = function() {
+            document.querySelector('.mobile-patient-list-view').style.display = 'block';
+            document.getElementById('chatAreaMobile').style.display = 'none';
+            document.getElementById('backBtnMobile').style.display = 'none';
+            currentPatientId = null;
+            currentPatientName = null;
+        };
+
         // ================= チャット履歴 =================
-        async function loadChatHistory(patientId) {
-            const chatMessages = document.getElementById('chatMessages');
+        async function loadChatHistory(patientId, messagesElementId) {
+            const chatMessages = document.getElementById(messagesElementId);
             if (!chatMessages) return;
             chatMessages.innerHTML = '読み込み中...';
 
@@ -605,14 +964,18 @@
                 chatMessages.innerHTML = '<p style="color:#888;text-align:center;">メッセージなし</p>';
                 return;
             }
-            snapshot.forEach(doc => displayMessage(doc.data(), currentUser.uid));
+            snapshot.forEach(doc => displayMessage(doc.data(), currentUser.uid, messagesElementId));
             // 初期表示時は最下部へ
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            window.__chatUserAtBottom = true;
+            if (messagesElementId === 'chatMessages') {
+                window.__chatUserAtBottom = true;
+            } else {
+                window.__chatUserAtBottomMobile = true;
+            }
         }
 
-        function displayMessage(message, currentUserId) {
-            const chatMessages = document.getElementById('chatMessages');
+        function displayMessage(message, currentUserId, messagesElementId = 'chatMessages') {
+            const chatMessages = document.getElementById(messagesElementId);
             if (!chatMessages) return;
 
             const div = document.createElement('div');
@@ -649,8 +1012,14 @@
             }
 
             // 近くにいる時だけ最下部へ自動スクロール
-            if (window.__chatUserAtBottom !== false) {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+            if (messagesElementId === 'chatMessages') {
+                if (window.__chatUserAtBottom !== false) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            } else {
+                if (window.__chatUserAtBottomMobile !== false) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
             }
         }
 
@@ -680,28 +1049,28 @@
         }
 
         // ================= 入力と送信 =================
-        function setupChatInput(patientId) {
-            const input = document.getElementById('messageInput');
-            const btn = document.getElementById('sendBtn');
+        function setupChatInput(patientId, inputId, btnId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
             if (!input || !btn) return;
 
-            btn.onclick = () => sendMessage(patientId);
+            btn.onclick = () => sendMessage(patientId, inputId);
             input.onkeypress = (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    sendMessage(patientId);
+                    sendMessage(patientId, inputId);
                 }
             };
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    sendMessage(patientId);
+                    sendMessage(patientId, inputId);
                 }
             });
         }
 
-        async function sendMessage(patientId) {
-            const input = document.getElementById('messageInput');
+        async function sendMessage(patientId, inputId) {
+            const input = document.getElementById(inputId);
             if (!input) return;
             const text = input.value.trim();
             if (!text) return;
@@ -723,21 +1092,24 @@
 
 
         // ================= リアルタイム =================
-        function setupRealtimeChat(patientId) {
+        function setupRealtimeChat(patientId, messagesElementId = 'chatMessages') {
             const currentUser = firebase.auth().currentUser;
             if (!currentUser) return;
             
             const chatRoomId = [currentUser.uid, patientId].sort().join('_');
 
-            if (window.chatListener) window.chatListener();
-            window.chatListener = db.collection('chats').doc(chatRoomId).collection('messages')
+            // 既存のリスナーをクリーンアップ
+            const listenerKey = `chatListener_${messagesElementId}`;
+            if (window[listenerKey]) window[listenerKey]();
+            
+            window[listenerKey] = db.collection('chats').doc(chatRoomId).collection('messages')
                 .orderBy('timestamp','asc')
                 .onSnapshot(snapshot => {
                     snapshot.docChanges().forEach(change => {
                         if (change.type === 'added') {
                             const msg = change.doc.data();
                             // 重複チェック: 既に表示されているメッセージかチェック
-                            const chatMessages = document.getElementById('chatMessages');
+                            const chatMessages = document.getElementById(messagesElementId);
                             if (chatMessages) {
                                 const existingMessages = chatMessages.querySelectorAll('.message');
                                 let isDuplicate = false;
@@ -749,7 +1121,7 @@
                                     }
                                 });
                                 if (!isDuplicate) {
-                                    displayMessage(msg, currentUser.uid);
+                                    displayMessage(msg, currentUser.uid, messagesElementId);
                                 }
                             }
                         }

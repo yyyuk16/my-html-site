@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-translate="医師プロフィール">医師プロフィール</title>
     <link rel="stylesheet" href="maintab.css">
-    <link rel="stylesheet" href="footer.css">
+    <link rel="stylesheet" href="d_footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -15,6 +16,18 @@
             background: #e3f0fc;
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-top: 70px; /* ヘッダーのスペース */
+        }
+
+        /* ヘッダーの固定 */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .profile-container {
@@ -201,10 +214,81 @@
             background: #ffcdd2;
         }
 
+        /* 1. デフォルト（PC）ではモバイル用ナビを隠す */
+        .mobile-nav {
+            display: none;
+        }
+
+        /* 2. モバイル画面（768px以下）の設定 */
         @media (max-width: 768px) {
+            /* PC用ナビを隠す */
+            .tab-menu {
+                display: none;
+            }
+
+            /* ヘッダーを画像のようなシンプル構成に */
+            .top-bar {
+                padding: 10px 15px;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .header-inner {
+                justify-content: space-between;
+            }
+
+            .logo span {
+                font-size: 1.1rem;
+            }
+
+            /* 下部ナビゲーションを表示 */
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 70px;
+                background: #f8f9fa;
+                border-top: 1px solid #eee;
+                justify-content: space-around;
+                align-items: center;
+                z-index: 1000;
+                padding-bottom: env(safe-area-inset-bottom); /* iPhoneのバー対策 */
+            }
+
+            .nav-item {
+                text-decoration: none;
+                color: #888;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                font-size: 0.7rem;
+                gap: 4px;
+            }
+
+            .nav-item i {
+                font-size: 1.4rem;
+            }
+
+            .nav-item.active {
+                color: #333; /* 選択中の色 */
+            }
+
+            /* メインコンテンツの下部に余白を追加（ナビに被らないように） */
+            body {
+                padding-bottom: 80px;
+            }
+
+            /* PC版のフッターをスマホでは隠す（ナビがあるため） */
+            .footer {
+                display: none;
+            }
+
+            /* プロフィールコンテナのモバイル調整 */
             .profile-container {
-                margin: 8px;
+                margin: 20px 2vw 80px 2vw;
                 border-radius: 10px;
+                max-width: 100%;
             }
             .profile-header {
                 padding: 14px 0 10px 0;
@@ -227,6 +311,10 @@
                 flex-direction: column;
                 align-items: center;
             }
+            .logout-btn, .delete-btn {
+                width: 100%;
+                max-width: 300px;
+            }
         }
     </style>
 </head>
@@ -239,10 +327,9 @@
             </div>
             <nav>
                 <ul class="tab-menu">
-                    <li><a href="home.html">🏥 <span data-translate="HOME">HOME</span></a></li>
                     <li><a href="list.html">👥 <span data-translate="患者診療記録">患者診療記録</span></a></li>
                     <li><a href="chat.html">📅 <span data-translate="チャット">チャット</span></a></li>
-                    <li><a href="docterprofile.html" class="active">👤 <span data-translate="プロフィール">プロフィール</span></a></li>
+                    <li><a href="docterprofile.html" class="active">🏥 <span data-translate="プロフィール">プロフィール</span></a></li>
                 </ul>
             </nav>
         </div>
@@ -271,6 +358,22 @@
              </div>
         </div>
     </div>
+
+    <!-- モバイル用ナビゲーション -->
+    <nav class="mobile-nav">
+        <a href="list.html" class="nav-item">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span data-translate="患者診療記録">患者診療記録</span>
+        </a>
+        <a href="chat.html" class="nav-item">
+            <i class="fa-solid fa-comments"></i>
+            <span data-translate="チャット">チャット</span>
+        </a>
+        <a href="docterprofile.html" class="nav-item active">
+            <i class="fa-regular fa-user"></i>
+            <span data-translate="プロフィール">プロフィール</span>
+        </a>
+    </nav>
     
     <!-- フッター -->
     <footer class="footer">

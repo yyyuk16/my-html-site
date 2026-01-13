@@ -319,7 +319,7 @@
           }
           
           alert(successMessage);
-          window.location.href = 'home.html';
+          window.location.href = 'list.html';
         })
         .catch((error) => {
           let errorMessage = "Error: " + error.message;
@@ -345,6 +345,10 @@
           await window.multiLang.switchLanguage(lang);
           document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
+          // UIを更新（念のため明示的に呼び出し）
+          if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+            window.multiLang.updateUI();
+          }
         });
       });
 

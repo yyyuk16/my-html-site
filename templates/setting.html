@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-translate="settings">設定</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="maintab.css">
     <link rel="stylesheet" href="footer.css">
     
@@ -147,6 +148,127 @@
       .footer small a {
         color: #fff;
       }
+
+      /* --- モバイル専用デザインの調整 --- */
+
+      /* 1. デフォルト（PC）ではモバイル用ナビを隠す */
+      .mobile-nav {
+        display: none;
+      }
+
+      /* 2. PC版ヘッダー内の「ゲストさん」ボタンのデザイン調整 */
+      .user-name-btn {
+        background: #474646;
+        border: none;
+        border-radius: 20px;
+        padding: 5px 15px;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      /* 3. モバイル画面（768px以下）の設定 */
+      @media (max-width: 768px) {
+        /* PC用ナビを隠す */
+        .header-right {
+          display: none;
+        }
+
+        /* ヘッダーを画像のようなシンプル構成に */
+        .top-bar {
+          padding: 10px 15px;
+          border-bottom: 1px solid #eee;
+        }
+        
+        .header-inner {
+          justify-content: space-between;
+        }
+
+        .logo span {
+          font-size: 1.1rem;
+          color: #66bb6a; /* 画像のような緑色に */
+        }
+
+        /* 下部ナビゲーションを表示 */
+        .mobile-nav {
+          display: flex;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 70px;
+          background: #f8f9fa;
+          border-top: 1px solid #eee;
+          justify-content: space-around;
+          align-items: center;
+          z-index: 1000;
+          padding-bottom: env(safe-area-inset-bottom); /* iPhoneのバー対策 */
+        }
+
+        .nav-item {
+          text-decoration: none;
+          color: #888;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          font-size: 0.7rem;
+          gap: 4px;
+        }
+
+        .nav-item i {
+          font-size: 1.4rem;
+        }
+
+        .nav-item.active {
+          color: #333; /* 選択中の色 */
+        }
+
+        /* メインコンテンツの下部に余白を追加（ナビに被らないように） */
+        body {
+          padding-bottom: 80px;
+        }
+        
+        .container {
+          padding-top: 1rem !important; /* スマホでは余白を詰める */
+          padding-bottom: 2rem !important;
+        }
+
+        /* PC版のフッターをスマホでは隠す（ナビがあるため） */
+        .footer {
+          display: none;
+        }
+
+        /* モバイル版の文字サイズとレイアウト調整 */
+        .setting-header {
+          margin-bottom: 1.5rem !important;
+        }
+        .setting-header h1 {
+          font-size: 1.4rem !important;
+          margin-bottom: 0.3rem !important;
+        }
+        .setting-title {
+          font-size: 1rem !important;
+          margin-bottom: 0.7rem !important;
+        }
+        .setting-list {
+          font-size: 0.85rem !important;
+        }
+        .setting-list li {
+          margin-bottom: 0.5rem !important;
+          line-height: 1.5;
+        }
+        .setting-btn {
+          font-size: 0.9rem !important;
+          padding: 0.5rem 1rem !important;
+        }
+        .setting-card {
+          padding: 0.9rem 0.7rem !important;
+          border-radius: 0.9rem !important;
+        }
+        .setting-sections {
+          gap: 0.9rem !important;
+        }
+      }
     </style>
 
     <script>
@@ -195,50 +317,44 @@
         });
       }
 
-      // Firebase認証からユーザー情報を取得（ダミー表示）
-      document.addEventListener('DOMContentLoaded', function() {
+      // 初期レンダ後に翻訳を適用
+      document.addEventListener('DOMContentLoaded', function(){
         updateUserName();
-        // 実際はfirebase.auth().onAuthStateChangedなどで取得
-        // ここでは例としてダミー値
-        const userNameEl = document.getElementById('userName');
-        const userEmailEl = document.getElementById('userEmail');
-        if (userNameEl) userNameEl.textContent = "ゲスト";
-        if (userEmailEl) userEmailEl.textContent = "未登録";
-        // 言語に基づく翻訳を適用
         if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
           try { window.multiLang.updateUI(); } catch (_) {}
         }
-        // 念のためヘッダー/フッターの文字も明示的に更新
-        try {
-          const lang = (window.multiLang && window.multiLang.currentLanguage) || 'ja';
-          const dict = (window.multiLang && window.multiLang.translations && window.multiLang.translations[lang]) || {};
-          const titleEl = document.querySelector('.site-title[data-translate]');
-          if (titleEl && dict[titleEl.getAttribute('data-translate')]) {
-            titleEl.textContent = dict[titleEl.getAttribute('data-translate')];
-          }
-          const termsEl = document.querySelector('footer [data-translate="terms"]');
-          if (termsEl && dict.terms) termsEl.textContent = dict.terms;
-          const privacyEl = document.querySelector('footer [data-translate="privacy"]');
-          if (privacyEl && dict.privacy) privacyEl.textContent = dict.privacy;
-          const copyEl = document.querySelector('footer [data-translate="copyright_name"]');
-          if (copyEl && dict['copyright_name']) copyEl.textContent = dict['copyright_name'];
-        } catch(_) {}
       });
-
-      function logout() {
-        // 実際はfirebase.auth().signOut()など
-        alert('ログアウトしました（デモ）');
-        // location.reload();
-      }
     </script>
 
-    <!-- フッター -->
-    <footer class="footer container">
-      <small>
-        <a href="#" data-translate="terms">利用規約</a>
-        <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
-        &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
-      </small>
+    <!-- モバイル用ナビゲーション -->
+    <nav class="mobile-nav">
+      <a href="ai.html" class="nav-item">
+        <i class="fa-solid fa-house"></i>
+        <span data-translate="chat">チャット</span>
+      </a>
+      <a href="score.html" class="nav-item">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span data-translate="quiz">Q&A</span>
+      </a>
+      <a href="movie.html" class="nav-item">
+        <i class="fa-regular fa-clock"></i>
+        <span data-translate="video_watching">動画</span>
+      </a>
+      <a href="setting.html" class="nav-item active">
+        <i class="fa-regular fa-user"></i>
+        <span data-translate="settings">設定</span>
+      </a>
+    </nav>
+
+    <!-- ✅ フッター（footer.css の設計通り：footerの中に .container を入れる） -->
+    <footer class="footer">
+      <div class="container">
+        <small>
+          <a href="#" data-translate="terms">利用規約</a>
+          <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
+          &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
+        </small>
+      </div>
     </footer>
 </body>
 </html>

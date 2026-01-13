@@ -36,7 +36,105 @@
         .logout-btn:hover { background:linear-gradient(90deg,#455A64 0%,#78909C 100%); box-shadow:0 4px 16px var(--shadow-color-strong,rgba(96,125,139,0.18)); }
         .profile-edit-input { font-size:1em; padding:6px 10px; border-radius:8px; border:1px solid #BDBDBD; width:140px; }
         .profile-edit-form-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
-        @media (max-width:600px){ .profile-card{ min-width:0; max-width:98vw; padding:24px 6vw 18px; } .profile-main-content{ padding:18px 0 12px; } }
+        
+        /* モバイル版のスタイル調整 */
+        @media (max-width: 768px) {
+            .profile-main-content {
+                padding: 1rem 0.5rem 1rem;
+                min-height: auto;
+            }
+            .profile-card {
+                min-width: 0;
+                max-width: 98vw;
+                padding: 1.2rem 1rem 1rem;
+                border-radius: 1.2rem;
+            }
+            .profile-header {
+                margin-bottom: 1.2rem;
+            }
+            .profile-avatar {
+                width: 64px;
+                height: 64px;
+                font-size: 2em;
+                margin-bottom: 0.8rem;
+                border: 3px solid #fff;
+            }
+            .profile-title {
+                font-size: 1.1rem;
+            }
+            .profile-list {
+                margin-bottom: 1rem;
+            }
+            .profile-row {
+                padding: 0.8rem 0.9rem;
+                margin-bottom: 0.7rem;
+                font-size: 0.9rem;
+                border-radius: 0.9rem;
+            }
+            .profile-label {
+                font-size: 0.9em;
+            }
+            .profile-label i {
+                font-size: 1em;
+            }
+            .profile-value {
+                font-size: 0.9em;
+            }
+            .profile-edit-input {
+                font-size: 0.9em;
+                padding: 5px 8px;
+                width: 120px;
+            }
+            .edit-btn, .save-btn, .cancel-btn {
+                font-size: 0.85em;
+                padding: 6px 14px;
+                margin-left: 6px;
+            }
+            .delete-btn, .logout-btn {
+                font-size: 0.95em;
+                padding: 0.7rem 1.5rem;
+                margin-top: 0.5rem;
+            }
+            .profile-edit-form-btns {
+                gap: 8px;
+                margin-top: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .profile-edit-form-btns button {
+                flex: 1;
+                min-width: 80px;
+            }
+            .back-button-container {
+                margin-top: 1rem !important;
+            }
+            .back-btn {
+                font-size: 0.95em !important;
+                padding: 0.7rem 1.5rem !important;
+                border-radius: 0.9rem !important;
+            }
+        }
+        @media (max-width: 600px) {
+            .profile-card {
+                padding: 1rem 0.8rem 0.8rem;
+            }
+            .profile-avatar {
+                width: 56px;
+                height: 56px;
+                font-size: 1.8em;
+            }
+            .profile-title {
+                font-size: 1rem;
+            }
+            .profile-row {
+                padding: 0.7rem 0.8rem;
+                font-size: 0.85rem;
+            }
+            .profile-edit-input {
+                width: 100px;
+                font-size: 0.85em;
+            }
+        }
     </style>
     <script>
         window.addEventListener('DOMContentLoaded', () => document.documentElement.lang = 'ja');
@@ -54,8 +152,8 @@
             <button id="logoutBtn" class="logout-btn" style="margin-top: 12px;"><i class="fas fa-sign-out-alt"></i> <span data-translate="logout">ログアウト</span></button>
         </div>
     </div>
-    <div style="text-align:center; margin-top: 18px;">
-        <button onclick="window.location.href='setting.html'" style="background: linear-gradient(90deg, #A5D6B5 0%, #2E7D32 100%); color: #fff; border: none; border-radius: 16px; padding: 12px 36px; font-size: 1.08em; font-weight: 600; letter-spacing: .04em; cursor: pointer; box-shadow: 0 2px 8px rgba(46,125,50,0.10); transition: background .18s, box-shadow .18s;">
+    <div class="back-button-container" style="text-align:center; margin-top: 18px;">
+        <button class="back-btn" onclick="window.location.href='setting.html'" style="background: linear-gradient(90deg, #A5D6B5 0%, #2E7D32 100%); color: #fff; border: none; border-radius: 16px; padding: 12px 36px; font-size: 1.08em; font-weight: 600; letter-spacing: .04em; cursor: pointer; box-shadow: 0 2px 8px rgba(46,125,50,0.10); transition: background .18s, box-shadow .18s;">
             <i class="fas fa-arrow-left"></i> <span data-translate="back">戻る</span>
         </button>
     </div>

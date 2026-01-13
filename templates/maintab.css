@@ -1,9 +1,9 @@
-  body {
-      margin: 0;
-  background: #ffffff;
-  font-family: "Noto Sans JP", "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-  color: #333;
-  line-height: 1.6;
+body {
+    margin: 0;
+    background: #ffffff;
+    font-family: "Noto Sans JP", "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    color: #333;
+    line-height: 1.6;
 }
 
 /* シンプルなヘッダー */
@@ -51,7 +51,7 @@
 .logo-icon::before {
   width: 32px;
   height: 32px;
-  background: #4CAF50; /* 緑 */
+  background: #2196F3; /* 青 */
   top: 0;
   left: 0;
   z-index: 1;
@@ -69,7 +69,7 @@
 /* タイトル文字 */
 .logo span,
 .site-title {
-  color: #81C784;
+  color: #2196F3;  /* 青 */
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
@@ -79,8 +79,8 @@
 
 /* ユーザー名ボタン */
 .user-name-btn {
-  background: #E0E0E0;
-  color: #616161;
+  background: #474646;
+  color: #fff;
   border: none;
   border-radius: 20px;
   padding: 0.5rem 1.2rem;
@@ -134,13 +134,13 @@
 }
 
 .tab-menu li a:hover {
-  color: #2E7D32;
-  border-bottom-color: #2E7D32;
+  color: #2196F3;
+  border-bottom-color: #2196F3;
 }
 
 .tab-menu li a.active {
-  color: #2E7D32;
-  border-bottom-color: #2E7D32;
+  color: #2196F3;
+  border-bottom-color: #2196F3;
 }
 
 
@@ -187,7 +187,7 @@ h1 {
 
 h2 {
   font-size: 1.2rem;
-  color: #4CAF50;
+  color: #2196F3;
   font-weight: 400;
   margin-bottom: 2rem;
 }

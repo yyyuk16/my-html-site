@@ -195,6 +195,11 @@ class MultiLanguage {
     // タブ固有の認証状態を初期化
     this.setTabAuthState(null);
     
+    // まずデフォルト言語（日本語）を読み込んで即座に適用（ラグを減らす）
+    await this.loadLanguage('ja');
+    this.currentLanguage = 'ja';
+    this.updateUI();
+    
     // 認証状態を監視（タブ固有）
     this.auth.onAuthStateChanged(async (user) => {
       // タブ固有の認証状態を更新
@@ -204,10 +209,9 @@ class MultiLanguage {
       if (user) {
         // ログイン済みの場合、ユーザーの言語設定を取得
         const userLanguage = await this.getUserLanguage();
-        await this.switchLanguage(userLanguage);
-      } else {
-        // 未ログインの場合、デフォルト言語を使用
-        await this.switchLanguage('ja');
+        if (userLanguage !== this.currentLanguage) {
+          await this.switchLanguage(userLanguage);
+        }
       }
       
       // 言語切り替えボタンは非表示（必要なら this.showLanguageButtons = true に）

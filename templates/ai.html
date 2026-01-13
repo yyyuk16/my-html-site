@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-translate="ai_chat">AIチャット</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="maintab.css">
   <link rel="stylesheet" href="footer.css">
 
@@ -51,27 +52,49 @@
       <!-- 左のカード -->
       <div class="card green" onclick="startChat('teacher')">
         <h3 data-translate="ai_teacher">AI先生</h3>
-        <p data-translate="ai_teacher_24h">「AI先生」では24時間いつでも健康相談ができます。</p>
+        <p data-translate="ai_teacher_24h">「AI先生」では<br>24時間いつでも健康相談ができます。</p>
         <button class="start-chat-btn"><span data-translate="start_chat">チャットを始める</span></button>
       </div>
 
       <!-- 右のカード -->
       <div class="card blue" onclick="startChat('real')">
         <h3 data-translate="realtime_chat">リアルタイムチャット（患者用）</h3>
-        <p data-translate="realtime_chat_desc">「リアルタイム」では保健師との直接チャットが可能<br>です。</p>
+        <p data-translate="realtime_chat_desc">「リアルタイム」では<br>保健師との直接チャットが可能です。</p>
         <button class="start-chat-btn"><span data-translate="start_chat">チャットを始める</span></button>
       </div>
     </div>
   </main>
 
-  <!-- フッター -->
-  <footer class="footer container">
-    <small>
-      <a href="#" data-translate="terms">利用規約</a>
-      <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
-      &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
-    </small>
+  <!-- ✅ フッター（footer.css の設計通り：footerの中に .container を入れる） -->
+  <footer class="footer">
+    <div class="container">
+      <small>
+        <a href="#" data-translate="terms">利用規約</a>
+        <a href="#" data-translate="privacy">プライバシーポリシー</a><br>
+        &copy; <span data-translate="copyright_name">スマート医療ポータル</span>
+      </small>
+    </div>
   </footer>
+
+  <!-- モバイル用ナビゲーション -->
+  <nav class="mobile-nav">
+    <a href="ai.html" class="nav-item active">
+      <i class="fa-solid fa-house"></i>
+      <span data-translate="chat">チャット</span>
+    </a>
+    <a href="score.html" class="nav-item">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span data-translate="quiz">Q&A</span>
+    </a>
+    <a href="movie.html" class="nav-item">
+      <i class="fa-regular fa-clock"></i>
+      <span data-translate="video_watching">動画</span>
+    </a>
+    <a href="setting.html" class="nav-item">
+      <i class="fa-regular fa-user"></i>
+      <span data-translate="settings">設定</span>
+    </a>
+  </nav>
 
   <style>
     body {
@@ -146,6 +169,95 @@
     @media (max-width: 768px) {
       .cards {
         flex-direction: column;
+      }
+    }
+
+    /* --- モバイル専用デザインの調整 --- */
+
+    /* 1. デフォルト（PC）ではモバイル用ナビを隠す */
+    .mobile-nav {
+      display: none;
+    }
+
+    /* 2. PC版ヘッダー内の「ゲストさん」ボタンのデザイン調整 */
+    .user-name-btn {
+      background: #474646;
+      border: none;
+      border-radius: 20px;
+      padding: 5px 15px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* 3. モバイル画面（768px以下）の設定 */
+    @media (max-width: 768px) {
+      /* PC用ナビを隠す */
+      .header-right {
+        display: none;
+      }
+
+      /* ヘッダーを画像のようなシンプル構成に */
+      .top-bar {
+        padding: 10px 15px;
+        border-bottom: 1px solid #eee;
+      }
+      
+      .header-inner {
+        justify-content: space-between;
+      }
+
+      .logo span {
+        font-size: 1.1rem;
+        color: #66bb6a; /* 画像のような緑色に */
+      }
+
+      /* 下部ナビゲーションを表示 */
+      .mobile-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: #f8f9fa;
+        border-top: 1px solid #eee;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 1000;
+        padding-bottom: env(safe-area-inset-bottom); /* iPhoneのバー対策 */
+      }
+
+      .nav-item {
+        text-decoration: none;
+        color: #888;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.7rem;
+        gap: 4px;
+      }
+
+      .nav-item i {
+        font-size: 1.4rem;
+      }
+
+      .nav-item.active {
+        color: #333; /* 選択中の色 */
+      }
+
+      /* メインコンテンツの下部に余白を追加（ナビに被らないように） */
+      body {
+        padding-bottom: 80px;
+      }
+      
+      .container {
+        padding-top: 1.5rem !important; /* スマホでは余白を詰める */
+      }
+
+      /* PC版のフッターをスマホでは隠す（ナビがあるため） */
+      .footer {
+        display: none;
       }
     }
   </style>

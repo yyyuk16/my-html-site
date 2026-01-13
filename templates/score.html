@@ -6,6 +6,7 @@
   <title data-translate="quiz_results">クイズ結果</title>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- 共通CSS（ヘッダー/タブ/フッターはここで統一） -->
   <link rel="stylesheet" href="maintab.css">
@@ -428,6 +429,20 @@
       line-height: 1.6;
     }
 
+    /* フッターの色をsetting.htmlと統一 */
+    .footer {
+      background: #2E7D32;
+      color: #fff;
+    }
+    .footer small a {
+      color: #fff;
+    }
+
+    /* モバイルナビゲーション（PCでは非表示） */
+    .mobile-nav {
+      display: none;
+    }
+
     @media (max-width: 1024px) {
       .quiz-score-layout {
         grid-template-columns: 1fr;
@@ -436,45 +451,222 @@
     }
 
     @media (max-width: 768px) {
+      /* PC用ナビを隠す */
+      .tab-menu {
+        display: none;
+      }
+      .header-right {
+        display: none;
+      }
+
       .container {
-        padding: 24px 12px 32px 12px;
+        padding: 12px 10px 20px 10px;
       }
       .quiz-score-layout {
         grid-template-columns: 1fr;
-        gap: 16px;
-        margin: 20px 0;
+        gap: 12px;
+        margin: 12px 0;
       }
       .progress-grid, .stats-summary > div {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 10px;
       }
       .score-card-body {
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 8px;
       }
       .score-card-header {
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
         align-items: flex-start;
+        padding-bottom: 8px;
+        margin-bottom: 10px;
       }
       .progress-section, .scores-section, .stats-card {
-        padding: 14px 8px;
+        padding: 16px 12px;
+        margin: 12px 0;
+        border-radius: 16px;
+      }
+      .chat-quiz-section {
+        padding: 16px 12px;
+        border-radius: 16px;
+        margin: 0;
+      }
+      .scores-section {
+        padding: 16px 12px;
+        border-radius: 16px;
         margin: 16px 0;
       }
-      .chat-quiz-section, .scores-section {
-        padding: 20px 14px;
+      .scores-section h2 {
+        font-size: 1.1em;
+        margin-bottom: 12px;
+      }
+      .chat-quiz-section h2 {
+        font-size: 1.1em;
+        margin-bottom: 12px;
+      }
+      .stats-bar {
+        padding: 8px 0;
+        margin: 0;
+      }
+      .stats-bar .container {
+        padding: 0 8px !important;
       }
       .stats-bar-content {
-        flex-direction: column;
-        gap: 12px;
+        flex-direction: row;
+        gap: 4px;
+        padding: 0;
+        flex-wrap: nowrap;
+        justify-content: space-between;
       }
       .stat-pill {
-        justify-content: space-between;
+        justify-content: center;
+        flex: 1;
+        min-width: 0;
+        padding: 6px 4px !important;
+        border-radius: 14px;
+        font-size: 0.75em;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 2px;
+      }
+      .stat-pill span {
+        font-size: 0.8em !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+      .stat-pill span[style*="font-size: 1.2em"] {
+        font-size: 1em !important;
+        margin-right: 0 !important;
+        margin-bottom: 1px;
+      }
+      .stat-pill span[style*="font-size: 0.9em"] {
+        font-size: 0.65em !important;
+        display: block;
         width: 100%;
+        letter-spacing: -0.01em;
+      }
+      .stat-pill span[style*="font-size: 1.1em"] {
+        font-size: 0.85em !important;
+        font-weight: bold;
       }
       .stat-pill:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+      }
+      .chart-container {
+        padding: 12px 10px;
+        min-height: 260px;
+        border-radius: 14px;
+        margin: 10px 0;
+      }
+      .score-card {
+        padding: 12px 10px;
+        margin-bottom: 10px;
+        border-radius: 12px;
+      }
+      .quiz-btn {
+        padding: 12px 20px;
+        font-size: 0.95em;
+        border-radius: 22px;
+        width: 100%;
+        max-width: 100%;
+      }
+      .accuracy-value {
+        font-size: 1.6em;
+      }
+      .correct-value {
+        font-size: 1.1em;
+      }
+      .detail-item {
+        padding: 6px 0;
+        font-size: 0.9em;
+      }
+
+      .mobile-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: #f8f9fa;
+        border-top: 1px solid #eee;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 1000;
+        padding-bottom: env(safe-area-inset-bottom); /* iPhoneのバー対策 */
+      }
+
+      .nav-item {
+        text-decoration: none;
+        color: #888;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.7rem;
+        gap: 4px;
+      }
+
+      .nav-item i {
+        font-size: 1.4rem;
+      }
+
+      .nav-item.active {
+        color: #333; /* 選択中の色 */
+      }
+
+      /* メインコンテンツの下部に余白を追加（ナビに被らないように） */
+      body {
+        padding-bottom: 80px;
+      }
+      
+      .container {
+        padding-top: 1.5rem !important; /* スマホでは余白を詰める */
+      }
+
+      /* PC版のフッターをスマホでは隠す（ナビがあるため） */
+      .footer {
+        display: none;
+      }
+
+      /* ページトップボタン（モバイル版のみ） */
+      .scroll-to-top {
+        display: flex;
+        position: fixed;
+        bottom: 90px;
+        right: 16px;
+        width: 50px;
+        height: 50px;
+        background: #2E7D32;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+        font-size: 1.2rem;
+      }
+      .scroll-to-top.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+      .scroll-to-top:hover {
+        background: #1B5E20;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(46, 125, 50, 0.4);
+      }
+      .scroll-to-top:active {
+        transform: translateY(0);
       }
     }
   </style>
@@ -1656,7 +1848,64 @@ ${patientText}
         console.error('スコア保存エラー:', error);
       }
     }
+
+    // ページトップボタンの表示/非表示制御（モバイル版のみ）
+    const scrollToTopBtn = document.getElementById('scrollToTop');
+    if (scrollToTopBtn) {
+      // スクロール位置に応じてボタンを表示/非表示
+      function toggleScrollToTop() {
+        if (window.innerWidth <= 768) {
+          if (window.pageYOffset > 300) {
+            scrollToTopBtn.classList.add('visible');
+          } else {
+            scrollToTopBtn.classList.remove('visible');
+          }
+        } else {
+          scrollToTopBtn.classList.remove('visible');
+        }
+      }
+
+      // スクロールイベント
+      window.addEventListener('scroll', toggleScrollToTop);
+      // リサイズイベント（画面サイズ変更時）
+      window.addEventListener('resize', toggleScrollToTop);
+      // 初期チェック
+      toggleScrollToTop();
+
+      // クリックでページトップにスクロール
+      scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+    }
   </script>
+
+  <!-- ページトップボタン（モバイル版のみ） -->
+  <button class="scroll-to-top" id="scrollToTop" aria-label="ページトップに戻る">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+
+  <!-- モバイル用ナビゲーション -->
+  <nav class="mobile-nav">
+    <a href="ai.html" class="nav-item">
+      <i class="fa-solid fa-house"></i>
+      <span data-translate="chat">チャット</span>
+    </a>
+    <a href="score.html" class="nav-item active">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span data-translate="quiz">Q&A</span>
+    </a>
+    <a href="movie.html" class="nav-item">
+      <i class="fa-regular fa-clock"></i>
+      <span data-translate="video_watching">動画</span>
+    </a>
+    <a href="setting.html" class="nav-item">
+      <i class="fa-regular fa-user"></i>
+      <span data-translate="settings">設定</span>
+    </a>
+  </nav>
 
   <!-- ✅ フッター（footer.css の設計通り：footerの中に .container を入れる） -->
   <footer class="footer">
