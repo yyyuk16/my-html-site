@@ -224,8 +224,7 @@
         textSpan.textContent = '翻訳中...';
         textSpan.style.opacity = '0.6';
       }
-      chatDiv.appendChild(el);
-      chatDiv.scrollTop = chatDiv.scrollHeight;
+      // appendChildは呼び出し元で行うため、ここでは行わない
       return el;
     }
 
@@ -313,18 +312,23 @@
       return db.collection('chats').doc(chatRoomId).collection('messages')
         .orderBy('timestamp','asc')
         .onSnapshot((snapshot) => {
-          // 既存のメッセージ要素を保持するマップ
+          // 既存のメッセージ要素を保持するマップ（メッセージID -> DOM要素）
           const existingMessages = new Map();
           Array.from(chatDiv.children).forEach(child => {
             const msgId = child.dataset.messageId;
             if (msgId) existingMessages.set(msgId, child);
           });
 
-          chatDiv.innerHTML = '';
+          // スナップショットから取得したメッセージIDのセット
+          const snapshotMessageIds = new Set();
+          
+          // 既存のメッセージを一時的に保持（DOMから削除せずに）
+          const messageElements = [];
           
           snapshot.forEach(doc => {
             const m = doc.data();
             const msgId = doc.id;
+            snapshotMessageIds.add(msgId);
             const ts = m.timestamp?.toMillis?.() ?? (typeof m.timestamp?.seconds === 'number' ? m.timestamp.seconds*1000 : m.clientTimeMs);
             const isSelf = m.senderId === currentUserUid;
             const text = m.text || '';
@@ -332,10 +336,34 @@
             // 既存の要素があれば再利用、なければ新規作成
             let el = existingMessages.get(msgId);
             if (!el) {
+              // 新規メッセージ：新しく作成
               el = appendMessageBubble(text, isSelf, ts, msgId);
+              messageElements.push({ el, msgId, isSelf, text });
             } else {
-              // 既存要素を再配置
-              chatDiv.appendChild(el);
+              // 既存メッセージ：そのまま使用
+              messageElements.push({ el, msgId, isSelf, text });
+            }
+          });
+          
+          // 既存のメッセージで、スナップショットに存在しないもの（削除されたメッセージ）を削除
+          existingMessages.forEach((el, msgId) => {
+            if (!snapshotMessageIds.has(msgId)) {
+              el.remove();
+            }
+          });
+          
+          // メッセージを正しい順序で再配置
+          // 既存のメッセージを一旦全て削除（ただし、要素への参照は保持されている）
+          const fragment = document.createDocumentFragment();
+          
+          messageElements.forEach(({ el, msgId, isSelf, text }) => {
+            // 既存の要素がDOMに存在する場合は、一旦削除してからfragmentに追加
+            if (el.parentNode === chatDiv) {
+              // 既存の要素をfragmentに移動（DOMから削除されるが、参照は保持）
+              fragment.appendChild(el);
+            } else {
+              // 新規メッセージの場合は、そのままfragmentに追加
+              fragment.appendChild(el);
             }
             
             // 相手メッセージで、まだ翻訳していない場合は翻訳を実行
@@ -372,6 +400,14 @@
               }
             }
           });
+          
+          // 既存のメッセージを一旦全て削除してから、正しい順序で再追加
+          // innerHTMLを使うと、既存の要素への参照が失われる可能性があるため、
+          // 既存の要素を全て削除してから、fragmentを追加する
+          while (chatDiv.firstChild) {
+            chatDiv.removeChild(chatDiv.firstChild);
+          }
+          chatDiv.appendChild(fragment);
           
           chatDiv.scrollTop = chatDiv.scrollHeight;
         });

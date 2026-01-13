@@ -898,13 +898,14 @@
 
     // クイズ成績推移グラフ
     function updateMovieScoreChart(scores) {
-      const canvasElement = document.getElementById('movieScoreChart');
-      if (!canvasElement) {
-        console.warn('Canvas要素 movieScoreChart が見つかりません。グラフを表示できません。');
-        return;
-      }
-      const ctx = canvasElement.getContext('2d');
-      if (movieScoreChart) movieScoreChart.destroy();
+      try {
+        const canvasElement = document.getElementById('movieScoreChart');
+        if (!canvasElement) {
+          console.warn('Canvas要素 movieScoreChart が見つかりません。グラフを表示できません。');
+          return;
+        }
+        const ctx = canvasElement.getContext('2d');
+        if (movieScoreChart) movieScoreChart.destroy();
 
       if (!scores || scores.length === 0) {
         movieScoreChart = new Chart(ctx, {
@@ -954,10 +955,20 @@
       const correctData = sortedScores.map(score => score.correct || score.score || 0);
       
       // 正解数のY軸の最大値を、総問題数の最大値に基づいて設定
-      const maxTotal = Math.max(...sortedScores.map(score => score.total || 10), 10);
-      const maxCorrect = Math.max(...correctData, 0);
-      // 最大値は、総問題数の最大値と実際の正解数の最大値のうち大きい方に少し余裕を持たせる
-      const y1Max = Math.max(maxTotal, maxCorrect) + 1;
+      let y1Max = 10; // デフォルト値
+      if (sortedScores.length > 0 && correctData.length > 0) {
+        try {
+          const totals = sortedScores.map(score => parseInt(score.total) || 10).filter(t => !isNaN(t));
+          const maxTotal = totals.length > 0 ? Math.max(...totals) : 10;
+          const validCorrectData = correctData.filter(c => !isNaN(c) && c >= 0);
+          const maxCorrect = validCorrectData.length > 0 ? Math.max(...validCorrectData) : 0;
+          // 最大値は、総問題数の最大値と実際の正解数の最大値のうち大きい方に少し余裕を持たせる
+          y1Max = Math.max(maxTotal, maxCorrect, 5) + 1;
+        } catch (e) {
+          console.warn('Y軸最大値の計算エラー:', e);
+          y1Max = 10;
+        }
+      }
 
       movieScoreChart = new Chart(ctx, {
         type: 'line',
@@ -1093,6 +1104,27 @@
           animation: { duration: 1500, easing: 'easeInOutQuart' }
         }
       });
+      } catch (error) {
+        console.error('チャート描画エラー:', error);
+        // エラーが発生した場合でも、空のチャートを表示
+        movieScoreChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: [
+              { label: t('accuracy_label','正答率 (%)'), data: [] },
+              { label: t('correct_label','正解数'), data: [] }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: { display: true, text: t('chart_title','📈 クイズ成績推移') }
+            }
+          }
+        });
+      }
     }
 
     // 統計情報を更新
