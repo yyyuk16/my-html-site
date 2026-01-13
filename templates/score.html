@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-translate="quiz_results">クイズ結果</title>
 
-  <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Plotly.jsの読み込み確認
+    // Chart.jsの読み込み確認
     window.addEventListener('load', function() {
-      if (typeof Plotly === 'undefined') {
-        console.error('Plotly.js が読み込まれていません。CDNから読み込めなかった可能性があります。');
+      if (typeof Chart === 'undefined') {
+        console.error('Chart.js が読み込まれていません。CDNから読み込めなかった可能性があります。');
       } else {
-        console.log('Plotly.js が正常に読み込まれました。');
+        console.log('Chart.js が正常に読み込まれました。バージョン:', Chart.version || '不明');
       }
     });
   </script>
@@ -768,7 +768,7 @@
       <!-- 右：スコア表示エリア（グラフのみ表示） -->
       <div class="scores-section">
         <div class="chart-container" style="margin-bottom: 0;">
-          <div id="movieScoreChart" style="width: 100%; height: 400px;"></div>
+          <canvas id="movieScoreChart"></canvas>
         </div>
       </div>
     </div>
@@ -788,7 +788,7 @@
     };
     firebase.initializeApp(firebaseConfig);
 
-    // Plotly.js用の変数（チャートインスタンスは不要）
+    let movieScoreChart = null;
 
     // 翻訳ヘルパー
     function t(key, fallback){
@@ -948,26 +948,48 @@
       return { label: 'D', class: 'rank-d' };
     }
 
-    // クイズ成績推移グラフ（Plotly.js使用）
+    // クイズ成績推移グラフ
     function updateMovieScoreChart(scores) {
       try {
-        console.log('=== updateMovieScoreChart 開始 (Plotly.js) ===');
-        console.log('Plotly.js が利用可能か:', typeof Plotly !== 'undefined');
+        console.log('=== updateMovieScoreChart 開始 ===');
+        console.log('Chart.js が利用可能か:', typeof Chart !== 'undefined');
         console.log('スコアデータ:', scores);
         console.log('スコア数:', scores ? scores.length : 0);
         
-        const chartElement = document.getElementById('movieScoreChart');
-        if (!chartElement) {
-          console.error('グラフ要素 movieScoreChart が見つかりません。グラフを表示できません。');
+        const canvasElement = document.getElementById('movieScoreChart');
+        if (!canvasElement) {
+          console.error('Canvas要素 movieScoreChart が見つかりません。グラフを表示できません。');
           return;
         }
-        console.log('グラフ要素が見つかりました:', chartElement);
+        console.log('Canvas要素が見つかりました:', canvasElement);
+        console.log('Canvas要素のサイズ:', {
+          width: canvasElement.width,
+          height: canvasElement.height,
+          clientWidth: canvasElement.clientWidth,
+          clientHeight: canvasElement.clientHeight,
+          offsetWidth: canvasElement.offsetWidth,
+          offsetHeight: canvasElement.offsetHeight
+        });
+        
+        const ctx = canvasElement.getContext('2d');
+        if (!ctx) {
+          console.error('Canvas context を取得できませんでした。');
+          return;
+        }
+        console.log('Canvas context を取得しました');
+        
+        if (movieScoreChart) {
+          console.log('既存のチャートを破棄します');
+          movieScoreChart.destroy();
+          movieScoreChart = null;
+        }
 
-        // Plotly.jsが利用可能か確認
-        if (typeof Plotly === 'undefined') {
-          console.error('Plotly.js が読み込まれていません。');
-          if (chartElement) {
-            chartElement.innerHTML = '<p style="text-align: center; padding: 20px; color: #888;">Plotly.js が読み込まれていません。ページを再読み込みしてください。</p>';
+        // Chart.jsが利用可能か確認
+        if (typeof Chart === 'undefined') {
+          console.error('Chart.js が読み込まれていません。');
+          const canvasElement = document.getElementById('movieScoreChart');
+          if (canvasElement && canvasElement.parentElement) {
+            canvasElement.parentElement.innerHTML = '<p style="text-align: center; padding: 20px; color: #888;">Chart.js が読み込まれていません。ページを再読み込みしてください。</p>';
           }
           return;
         }
@@ -976,15 +998,45 @@
         if (!scores || scores.length === 0) {
           console.log('スコアデータがありません。空のチャートを表示します。');
           try {
-            Plotly.newPlot(chartElement, [], {
-              title: {
-                text: t('chart_title','📈 クイズ成績推移'),
-                font: { size: 18, family: "'Noto Sans JP', sans-serif" }
+            movieScoreChart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: [],
+                 datasets: [
+                   { 
+                     label: t('accuracy_label','正答率 (%)'), 
+                     data: [],
+                     borderColor: '#6c63ff',
+                     backgroundColor: 'rgba(76, 99, 255, 0.10)'
+                   }
+                 ]
               },
-              xaxis: { title: { text: t('period_axis','📅 期間') } },
-              yaxis: { title: { text: t('accuracy_label','📊 正答率 (%)') }, range: [0, 100] },
-              yaxis2: { title: { text: t('correct_label','🎯 正解数') }, overlaying: 'y', side: 'right', range: [0, 10] }
-            }, { responsive: true });
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: t('chart_title','📈 クイズ成績推移'),
+                    font: { size: 18, weight: 'bold' }
+                  },
+                  legend: {
+                    display: true,
+                    position: 'top'
+                  }
+                },
+                 scales: {
+                   y: {
+                     beginAtZero: true,
+                     max: 100,
+                     title: {
+                       display: true,
+                       text: t('accuracy_label','正答率 (%)')
+                     }
+                   }
+                 }
+              }
+            });
             console.log('空のチャートを作成しました');
           } catch (emptyChartError) {
             console.error('空のチャート作成エラー:', emptyChartError);
@@ -1067,153 +1119,182 @@
 
         console.log('ラベル:', labels);
         console.log('正答率データ:', accuracyData);
-        console.log('正解数データ:', correctData);
-        console.log('データ数:', labels.length, accuracyData.length, correctData.length);
-      
-        // 正解数のY軸の最大値を計算
-        let y1Max = 10; // デフォルト値
-        if (latestScores.length > 0) {
-          try {
-            const totals = latestScores.map(score => parseInt(score.total) || 10).filter(t => !isNaN(t) && t > 0);
-            const maxTotal = totals.length > 0 ? Math.max(...totals) : 10;
-            const validCorrectData = correctData.filter(c => !isNaN(c) && c >= 0);
-            const maxCorrect = validCorrectData.length > 0 ? Math.max(...validCorrectData) : 0;
-            y1Max = Math.max(maxTotal, maxCorrect, 5) + 1;
-            console.log('Y軸最大値:', y1Max, 'maxTotal:', maxTotal, 'maxCorrect:', maxCorrect);
-          } catch (e) {
-            console.warn('Y軸最大値の計算エラー:', e);
-            y1Max = 10;
-          }
-        }
+        console.log('データ数:', labels.length, accuracyData.length);
 
         console.log('チャートを作成します...');
         console.log('ラベル数:', labels.length);
         console.log('正答率データ数:', accuracyData.length);
-        console.log('正解数データ数:', correctData.length);
         
-        // Plotly.jsでチャートを作成
-        const trace1 = {
-          x: labels,
-          y: accuracyData,
-          name: t('accuracy_label','正答率 (%)'),
-          type: 'scatter',
-          mode: 'lines+markers',
-          line: {
-            color: '#6c63ff',
-            width: 3,
-            shape: 'spline'
+        // チャートを作成（正答率のみ）
+        movieScoreChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: t('accuracy_label','正答率 (%)'),
+                data: accuracyData,
+                borderColor: '#6c63ff',
+                backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y',
+                pointBackgroundColor: '#6c63ff',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointHoverBorderWidth: 3
+              }
+            ]
           },
-          marker: {
-            color: '#6c63ff',
-            size: 8,
-            line: {
-              color: '#fff',
-              width: 2
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { 
+              mode: 'index', 
+              intersect: false 
+            },
+            plugins: {
+              title: {
+                display: true,
+                text: t('chart_title','📈 クイズ成績推移'),
+                font: { 
+                  size: 18, 
+                  weight: 'bold', 
+                  family: "'Noto Sans JP', sans-serif" 
+                },
+                color: '#4f4f4f',
+                padding: { top: 10, bottom: 15 }
+              },
+              legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                  usePointStyle: true,
+                  padding: 15,
+                  font: { 
+                    size: 13, 
+                    family: "'Noto Sans JP', sans-serif" 
+                  },
+                  color: '#4f4f4f'
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#4f4f4f',
+                bodyColor: '#222',
+                borderColor: '#e3e8ee',
+                borderWidth: 1,
+                cornerRadius: 8,
+                displayColors: true,
+                padding: 12,
+                callbacks: {
+                  title: function(context) {
+                    return context[0].label || '';
+                  },
+                  label: function(context) {
+                    const value = context.parsed.y;
+                    return `${t('tooltip_accuracy','📊 正答率')}: ${value.toFixed(1)}%`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                display: true,
+                title: {
+                  display: true,
+                  text: t('period_axis','📅 期間'),
+                  font: { size: 13, weight: 'bold' },
+                  color: '#4f4f4f'
+                },
+                grid: { 
+                  color: 'rgba(227, 232, 238, 0.5)', 
+                  lineWidth: 1 
+                },
+                ticks: { 
+                  color: '#888', 
+                  font: { size: 12 } 
+                }
+              },
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                beginAtZero: true,
+                max: 100,
+                title: {
+                  display: true,
+                  text: t('accuracy_label','📊 正答率 (%)'),
+                  font: { size: 13, weight: 'bold' },
+                  color: '#4f4f4f'
+                },
+                grid: { 
+                  color: 'rgba(227, 232, 238, 0.5)', 
+                  lineWidth: 1 
+                },
+                ticks: {
+                  color: '#888',
+                  font: { size: 12 },
+                  stepSize: 10,
+                  callback: function(value) {
+                    return value + '%';
+                  }
+                }
+              }
+            },
+            elements: { 
+              line: { 
+                borderWidth: 3 
+              },
+              point: {
+                radius: 6,
+                hoverRadius: 8
+              }
+            },
+            animation: { 
+              duration: 1000, 
+              easing: 'easeInOutQuart' 
             }
-          },
-          fill: 'tozeroy',
-          fillcolor: 'rgba(108, 99, 255, 0.1)',
-          yaxis: 'y'
-        };
+          }
+        });
         
-        const trace2 = {
-          x: labels,
-          y: correctData,
-          name: t('correct_label','正解数'),
-          type: 'scatter',
-          mode: 'lines+markers',
-          line: {
-            color: '#48c6ef',
-            width: 3,
-            shape: 'spline'
-          },
-          marker: {
-            color: '#48c6ef',
-            size: 8,
-            line: {
-              color: '#fff',
-              width: 2
-            }
-          },
-          yaxis: 'y2'
-        };
-        
-        const layout = {
-          title: {
-            text: t('chart_title','📈 クイズ成績推移'),
-            font: { 
-              size: 18, 
-              family: "'Noto Sans JP', sans-serif" 
-            },
-            x: 0.5
-          },
-          xaxis: {
-            title: {
-              text: t('period_axis','📅 期間'),
-              font: { size: 13, family: "'Noto Sans JP', sans-serif" }
-            },
-            showgrid: true,
-            gridcolor: 'rgba(227, 232, 238, 0.5)'
-          },
-          yaxis: {
-            title: {
-              text: t('accuracy_label','📊 正答率 (%)'),
-              font: { size: 13, family: "'Noto Sans JP', sans-serif" }
-            },
-            range: [0, 100],
-            showgrid: true,
-            gridcolor: 'rgba(227, 232, 238, 0.5)',
-            tickformat: '.0f',
-            ticksuffix: '%'
-          },
-          yaxis2: {
-            title: {
-              text: t('correct_label','🎯 正解数'),
-              font: { size: 13, family: "'Noto Sans JP', sans-serif" }
-            },
-            overlaying: 'y',
-            side: 'right',
-            range: [0, y1Max],
-            showgrid: false,
-            tickformat: 'd'
-          },
-          legend: {
-            x: 0,
-            y: 1,
-            font: { 
-              size: 13, 
-              family: "'Noto Sans JP', sans-serif" 
-            }
-          },
-          hovermode: 'x unified',
-          margin: { l: 60, r: 60, t: 60, b: 60 },
-          plot_bgcolor: 'rgba(0,0,0,0)',
-          paper_bgcolor: 'rgba(0,0,0,0)'
-        };
-        
-        const config = {
-          responsive: true,
-          displayModeBar: false
-        };
-        
-        Plotly.newPlot(chartElement, [trace1, trace2], layout, config);
-        
-        console.log('チャート作成完了 (Plotly.js)');
+        console.log('チャート作成完了');
+        console.log('チャートインスタンス:', movieScoreChart);
         console.log('=== updateMovieScoreChart 終了 ===');
       } catch (error) {
         console.error('チャート描画エラー:', error);
         console.error('エラー詳細:', error.stack);
         // エラーが発生した場合でも、空のチャートを表示
         try {
-          const chartElement = document.getElementById('movieScoreChart');
-          if (chartElement) {
-            Plotly.newPlot(chartElement, [], {
-              title: {
-                text: t('chart_title','📈 クイズ成績推移'),
-                font: { size: 18, family: "'Noto Sans JP', sans-serif" }
+          movieScoreChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: [],
+               datasets: [
+                 { 
+                   label: t('accuracy_label','正答率 (%)'), 
+                   data: [],
+                   borderColor: '#6c63ff'
+                 }
+               ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                title: { 
+                  display: true, 
+                  text: t('chart_title','📈 クイズ成績推移') 
+                },
+                legend: {
+                  display: true
+                }
               }
-            }, { responsive: true });
-          }
+            }
+          });
         } catch (fallbackError) {
           console.error('フォールバックチャート作成も失敗:', fallbackError);
         }
