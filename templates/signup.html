@@ -269,7 +269,7 @@
     function loadDoctors() {
       const doctorSelect = document.getElementById('doctorSelect');
       firebase.firestore().collection('users')
-        .where('role', '==', 'doct')
+        .where('role', '==', 'staff')
         .get()
         .then(snapshot => {
           snapshot.forEach(doc => {

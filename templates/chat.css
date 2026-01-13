@@ -350,15 +350,35 @@ body {
 }
 
 @media (max-width: 768px) {
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    /* iOSの安全領域を考慮 */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   .chat-container {
     border-radius: 0;
     height: 100vh;
+    height: 100dvh; /* Dynamic Viewport Height - モバイルブラウザのUIを考慮 */
+    min-height: 100vh;
+    min-height: 100dvh;
     border-left: none;
     border-right: none;
+    margin: 0;
+    max-width: 100%;
+    /* iOSの安全領域を考慮 */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
   .chat-header {
-    padding: 16px;
+    padding: 12px 16px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    flex-shrink: 0;
   }
 
   .doctor-name {
@@ -366,8 +386,12 @@ body {
   }
 
   .chat-messages {
-    padding: 16px 12px;
+    padding: 12px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
     gap: 10px;
+    flex: 1 1 0;
+    min-height: 0;
   }
 
   .message {
@@ -380,25 +404,35 @@ body {
   }
 
   .input-container {
-    padding: 12px;
+    padding: 10px 12px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
     gap: 6px;
+    flex-shrink: 0;
   }
 
   #messageInput {
     min-height: 40px;
     padding: 8px 12px;
     font-size: 0.875rem;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   #sendBtn, .back-btn {
     padding: 8px 14px;
     font-size: 0.8125rem;
+    flex-shrink: 0;
   }
 
   #voiceBtn {
     width: 40px;
     height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     font-size: 1.125rem;
+    flex-shrink: 0;
   }
 
   #voiceIcon {

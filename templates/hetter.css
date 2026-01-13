@@ -1,0 +1,209 @@
+body {
+    margin: 0;
+    background: #ffffff;
+    font-family: "Noto Sans JP", "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* シンプルなヘッダー */
+.top-bar {
+  background: #ffffff;
+  padding: 1rem 2rem;
+  border-top: 1px solid #2E7D32; /* 緑に変更 */
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* ヘッダーの中身を横並び */
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* ロゴエリア */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ロゴアイコン（2つの円が重なったデザイン） */
+.logo-icon {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.logo-icon::before,
+.logo-icon::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.logo-icon::before {
+  width: 32px;
+  height: 32px;
+  background: #2E7D32; /* 緑に変更 */
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.logo-icon::after {
+  width: 32px;
+  height: 32px;
+  background: #FF6B35; /* オレンジ/赤 */
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+}
+
+/* タイトル文字 */
+.logo span,
+.site-title {
+  color: #2E7D32;  /* 緑に変更 */
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* ユーザー名ボタン */
+.user-name-btn {
+  background: #474646;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+  margin-left: auto;
+  margin-right: 1rem;
+}
+
+.user-name-btn:hover {
+  background: #D0D0D0;
+}
+
+/* ヘッダーの右側エリア（ナビゲーション + グリッドボタン） */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* シンプルなナビゲーションメニュー */
+.tab-menu {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tab-menu li {
+  list-style: none;
+}
+
+/* シンプルなナビゲーションリンク */
+.tab-menu li a {
+  color: #000;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.5rem 0;
+  transition: color 0.2s ease;
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.tab-menu li a:hover {
+  color: #2E7D32; /* 緑に変更 */
+  border-bottom-color: #2E7D32; /* 緑に変更 */
+}
+
+.tab-menu li a.active {
+  color: #2E7D32; /* 緑に変更 */
+  border-bottom-color: #2E7D32; /* 緑に変更 */
+}
+
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .header-inner {
+    flex-wrap: wrap;
+  }
+  
+  .user-name-btn {
+    margin-left: 0;
+    margin-right: 0;
+    order: 3;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .header-right {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .tab-menu {
+    gap: 1rem;
+    order: 1;
+  }
+}
+
+/* メインエリア */
+main.container {
+  padding: 4rem 2rem;
+  text-align: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 2.8rem;
+  color: #2e7d32; /* 緑に変更 */
+  margin-bottom: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 1.2rem;
+  color: #2E7D32; /* 緑に変更 */
+  font-weight: 400;
+  margin-bottom: 2rem;
+}
+
+:root {
+    --main-color: #2e7d32;      /* 緑に変更 */
+    --accent-color: #1976d2;
+    --bg-color: #f7fafd;
+    --header-bg: #fff;
+    --tab-active: #e3f2fd;
+    --tab-hover: #f1f8e9;
+    --border-radius: 14px;
+}
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #ffffff;
+    margin: 0;
+    min-height: 100vh;
+}

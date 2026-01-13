@@ -98,7 +98,7 @@
         </div>
       </div>
       <div class="profile-row">
-        <div class="profile-label">ローマ字の名前</div>
+        <div class="profile-label">名前（英語）</div>
         <div class="profile-value">
           <input type="text" id="nameRomaji" name="nameRomaji" required placeholder="例：Takagi Taro">
         </div>
@@ -133,7 +133,7 @@
         </div>
       </div>
       <div class="profile-row">
-        <div class="profile-label">病院</div>
+        <div class="profile-label">病院・保健所</div>
         <div class="profile-value">
           <input type="text" id="hospital" name="hospital" required placeholder="例：〇〇病院">
         </div>
@@ -209,12 +209,12 @@
           specialty,
           createdAt: new Date(),
           language: 'ja',
-          role: 'doct'
+          role: 'staff'
         });
-        messageDiv.style.color = "#388e3c";
-        messageDiv.textContent = '登録が完了しました。ログイン画面に移動します。';
+        messageDiv.style.color = "#1976d2";
+        messageDiv.textContent = '登録が完了しました。';
         setTimeout(() => {
-          window.location.href = 'index.html';
+          window.location.href = 'list.html';
         }, 1500);
       } catch (error) {
         messageDiv.style.color = "#d32f2f";
