@@ -187,7 +187,6 @@
     <h1 data-translate="signup-title">患者新規登録</h1>
     <form id="signupForm">
       <div class="form-section">
-        <div class="section-title" data-translate="basic-info">基本情報</div>
         <div class="form-grid">
           <div class="form-group half-width">
             <label for="name" data-translate="name">お名前</label>
@@ -220,7 +219,6 @@
       </div>
 
       <div class="form-section">
-        <div class="section-title" data-translate="account-info">アカウント情報</div>
         <div class="form-grid">
           <div class="form-group full-width">
             <label for="email" data-translate="email">メールアドレス</label>
@@ -271,7 +269,7 @@
     function loadDoctors() {
       const doctorSelect = document.getElementById('doctorSelect');
       firebase.firestore().collection('users')
-        .where('role', '==', 'staff')
+        .where('role', '==', 'doct')
         .get()
         .then(snapshot => {
           snapshot.forEach(doc => {
