@@ -920,225 +920,375 @@
           return;
         }
         const ctx = canvasElement.getContext('2d');
-        if (movieScoreChart) movieScoreChart.destroy();
-
-      if (!scores || scores.length === 0) {
-        movieScoreChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: [],
-            datasets: [
-              { label: t('accuracy_label','正答率 (%)'), data: [] },
-              { label: t('correct_label','正解数'), data: [] }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              title: { display: true, text: t('chart_title','📈 クイズ成績推移') }
-            }
-          }
-        });
-        return;
-      }
-
-      // 日付順にソート
-      const sortedScores = scores.slice().sort((a, b) => {
-        const ta = a.timestamp && typeof a.timestamp.toDate === "function"
-          ? a.timestamp.toDate()
-          : new Date(a.timestamp);
-        const tb = b.timestamp && typeof b.timestamp.toDate === "function"
-          ? b.timestamp.toDate()
-          : new Date(b.timestamp);
-        return ta - tb;
-      });
-
-      const labels = sortedScores.map(score => {
-        let d;
-        if (score.timestamp && typeof score.timestamp.toDate === "function") {
-          d = score.timestamp.toDate();
-        } else if (score.timestamp) {
-          d = new Date(score.timestamp);
-        } else {
-          d = new Date();
+        if (movieScoreChart) {
+          movieScoreChart.destroy();
+          movieScoreChart = null;
         }
-        return d.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
-      });
 
-      const accuracyData = sortedScores.map(score => parseFloat(score.accuracy) || 0);
-      const correctData = sortedScores.map(score => score.correct || score.score || 0);
-      
-      // 正解数のY軸の最大値を、総問題数の最大値に基づいて設定
-      let y1Max = 10; // デフォルト値
-      if (sortedScores.length > 0 && correctData.length > 0) {
-        try {
-          const totals = sortedScores.map(score => parseInt(score.total) || 10).filter(t => !isNaN(t));
-          const maxTotal = totals.length > 0 ? Math.max(...totals) : 10;
-          const validCorrectData = correctData.filter(c => !isNaN(c) && c >= 0);
-          const maxCorrect = validCorrectData.length > 0 ? Math.max(...validCorrectData) : 0;
-          // 最大値は、総問題数の最大値と実際の正解数の最大値のうち大きい方に少し余裕を持たせる
-          y1Max = Math.max(maxTotal, maxCorrect, 5) + 1;
-        } catch (e) {
-          console.warn('Y軸最大値の計算エラー:', e);
-          y1Max = 10;
-        }
-      }
+        console.log('チャート更新: スコア数', scores ? scores.length : 0);
 
-      movieScoreChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: t('accuracy_label','正答率 (%)'),
-              data: accuracyData,
-              borderColor: '#6c63ff',
-              backgroundColor: 'rgba(76, 99, 255, 0.10)',
-              borderWidth: 3,
-              tension: 0.4,
-              fill: true,
-              yAxisID: 'y',
-              pointBackgroundColor: '#6c63ff',
-              pointBorderColor: '#fff',
-              pointBorderWidth: 2,
-              pointRadius: 5,
-              pointHoverRadius: 7,
-              pointHoverBorderWidth: 2
+        // データがない場合
+        if (!scores || scores.length === 0) {
+          console.log('スコアデータがありません。空のチャートを表示します。');
+          movieScoreChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: [],
+              datasets: [
+                { 
+                  label: t('accuracy_label','正答率 (%)'), 
+                  data: [],
+                  borderColor: '#6c63ff',
+                  backgroundColor: 'rgba(76, 99, 255, 0.10)'
+                },
+                { 
+                  label: t('correct_label','正解数'), 
+                  data: [],
+                  borderColor: '#48c6ef',
+                  backgroundColor: 'rgba(72, 198, 239, 0.10)'
+                }
+              ]
             },
-            {
-              label: t('correct_label','正解数'),
-              data: correctData,
-              borderColor: '#48c6ef',
-              backgroundColor: 'rgba(72, 198, 239, 0.10)',
-              borderWidth: 3,
-              tension: 0.4,
-              fill: false,
-              yAxisID: 'y1',
-              pointBackgroundColor: '#48c6ef',
-              pointBorderColor: '#fff',
-              pointBorderWidth: 2,
-              pointRadius: 5,
-              pointHoverRadius: 7,
-              pointHoverBorderWidth: 2
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          plugins: {
-            title: {
-              display: true,
-              text: t('chart_title','📈 クイズ成績推移'),
-              font: { size: 18, weight: 'bold', family: "'Noto Sans JP', sans-serif" },
-              color: '#4f4f4f',
-              padding: { top: 6, bottom: 12 }
-            },
-            legend: {
-              position: 'top',
-              labels: {
-                usePointStyle: true,
-                padding: 12,
-                font: { size: 13, family: "'Noto Sans JP', sans-serif" },
-                color: '#4f4f4f'
-              }
-            },
-            tooltip: {
-              backgroundColor: 'rgba(255,255,255,0.97)',
-              titleColor: '#4f4f4f',
-              bodyColor: '#222',
-              borderColor: '#e3e8ee',
-              borderWidth: 1,
-              cornerRadius: 7,
-              displayColors: true,
-              callbacks: {
-                label: function(context) {
-                  if (context.dataset.label === t('accuracy_label','正答率 (%)')) {
-                    return `${t('tooltip_accuracy','📊 正答率')}: ${context.parsed.y}%`;
-                  } else {
-                    return `${t('tooltip_correct','🎯 正解数')}: ${context.parsed.y}${t('unit_questions','問')}`;
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                title: { 
+                  display: true, 
+                  text: t('chart_title','📈 クイズ成績推移'),
+                  font: { size: 18, weight: 'bold' }
+                },
+                legend: {
+                  display: true,
+                  position: 'top'
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  title: {
+                    display: true,
+                    text: t('accuracy_label','正答率 (%)')
+                  }
+                },
+                y1: {
+                  type: 'linear',
+                  position: 'right',
+                  beginAtZero: true,
+                  max: 10,
+                  title: {
+                    display: true,
+                    text: t('correct_label','正解数')
                   }
                 }
               }
             }
-          },
-          scales: {
-            x: {
-              title: {
-                display: true,
-                text: t('date_axis','📅 日付'),
-                font: { size: 13, weight: 'bold' },
-                color: '#4f4f4f'
-              },
-              grid: { color: 'rgba(227,232,238,0.5)', lineWidth: 1 },
-              ticks: { color: '#888', font: { size: 12 } }
-            },
-            y: {
-              type: 'linear',
-              display: true,
-              position: 'left',
-              beginAtZero: true,
-              max: 100,
-              title: {
-                display: true,
-                text: t('accuracy_label','📊 正答率 (%)'),
-                font: { size: 13, weight: 'bold' },
-                color: '#4f4f4f'
-              },
-              grid: { color: 'rgba(227,232,238,0.5)', lineWidth: 1 },
-              ticks: {
-                color: '#888',
-                font: { size: 12 },
-                callback: function(value) { return value + '%'; }
-              }
-            },
-            y1: {
-              type: 'linear',
-              display: true,
-              position: 'right',
-              beginAtZero: true,
-              max: y1Max,
-              title: {
-                display: true,
-                text: t('correct_label','🎯 正解数'),
-                font: { size: 13, weight: 'bold' },
-                color: '#4f4f4f'
-              },
-              grid: { drawOnChartArea: false, color: 'rgba(227,232,238,0.5)', lineWidth: 1 },
-              ticks: { 
-                color: '#888', 
-                font: { size: 12 },
-                stepSize: 1,
-                precision: 0
-              }
-            }
-          },
-          elements: { line: { borderWidth: 3 } },
-          animation: { duration: 1500, easing: 'easeInOutQuart' }
+          });
+          return;
         }
-      });
-      } catch (error) {
-        console.error('チャート描画エラー:', error);
-        // エラーが発生した場合でも、空のチャートを表示
+
+        // 日付順にソート（古い順）
+        const sortedScores = scores.slice().sort((a, b) => {
+          let ta, tb;
+          
+          // timestampの処理
+          if (a.timestamp && typeof a.timestamp.toDate === "function") {
+            ta = a.timestamp.toDate();
+          } else if (a.timestamp && a.timestamp.seconds) {
+            ta = new Date(a.timestamp.seconds * 1000);
+          } else if (a.timestamp) {
+            ta = new Date(a.timestamp);
+          } else {
+            ta = new Date(0);
+          }
+          
+          if (b.timestamp && typeof b.timestamp.toDate === "function") {
+            tb = b.timestamp.toDate();
+          } else if (b.timestamp && b.timestamp.seconds) {
+            tb = new Date(b.timestamp.seconds * 1000);
+          } else if (b.timestamp) {
+            tb = new Date(b.timestamp);
+          } else {
+            tb = new Date(0);
+          }
+          
+          return ta.getTime() - tb.getTime(); // 古い順
+        });
+
+        console.log('ソート後のスコア:', sortedScores);
+
+        // ラベル（日付）を生成
+        const labels = sortedScores.map((score, index) => {
+          let d;
+          if (score.timestamp && typeof score.timestamp.toDate === "function") {
+            d = score.timestamp.toDate();
+          } else if (score.timestamp && score.timestamp.seconds) {
+            d = new Date(score.timestamp.seconds * 1000);
+          } else if (score.timestamp) {
+            d = new Date(score.timestamp);
+          } else {
+            d = new Date();
+          }
+          return d.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+        });
+
+        // 正答率データ（パーセント）
+        const accuracyData = sortedScores.map(score => {
+          const acc = parseFloat(score.accuracy) || 0;
+          return acc;
+        });
+
+        // 正解数データ
+        const correctData = sortedScores.map(score => {
+          const correct = parseInt(score.correct) || parseInt(score.score) || 0;
+          return correct;
+        });
+
+        console.log('ラベル:', labels);
+        console.log('正答率データ:', accuracyData);
+        console.log('正解数データ:', correctData);
+      
+        // 正解数のY軸の最大値を計算
+        let y1Max = 10; // デフォルト値
+        if (sortedScores.length > 0) {
+          try {
+            const totals = sortedScores.map(score => parseInt(score.total) || 10).filter(t => !isNaN(t) && t > 0);
+            const maxTotal = totals.length > 0 ? Math.max(...totals) : 10;
+            const validCorrectData = correctData.filter(c => !isNaN(c) && c >= 0);
+            const maxCorrect = validCorrectData.length > 0 ? Math.max(...validCorrectData) : 0;
+            y1Max = Math.max(maxTotal, maxCorrect, 5) + 1;
+            console.log('Y軸最大値:', y1Max, 'maxTotal:', maxTotal, 'maxCorrect:', maxCorrect);
+          } catch (e) {
+            console.warn('Y軸最大値の計算エラー:', e);
+            y1Max = 10;
+          }
+        }
+
+        // チャートを作成
         movieScoreChart = new Chart(ctx, {
           type: 'line',
           data: {
-            labels: [],
+            labels: labels,
             datasets: [
-              { label: t('accuracy_label','正答率 (%)'), data: [] },
-              { label: t('correct_label','正解数'), data: [] }
+              {
+                label: t('accuracy_label','正答率 (%)'),
+                data: accuracyData,
+                borderColor: '#6c63ff',
+                backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y',
+                pointBackgroundColor: '#6c63ff',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointHoverBorderWidth: 3
+              },
+              {
+                label: t('correct_label','正解数'),
+                data: correctData,
+                borderColor: '#48c6ef',
+                backgroundColor: 'rgba(72, 198, 239, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: false,
+                yAxisID: 'y1',
+                pointBackgroundColor: '#48c6ef',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointHoverBorderWidth: 3
+              }
             ]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { 
+              mode: 'index', 
+              intersect: false 
+            },
             plugins: {
-              title: { display: true, text: t('chart_title','📈 クイズ成績推移') }
+              title: {
+                display: true,
+                text: t('chart_title','📈 クイズ成績推移'),
+                font: { 
+                  size: 18, 
+                  weight: 'bold', 
+                  family: "'Noto Sans JP', sans-serif" 
+                },
+                color: '#4f4f4f',
+                padding: { top: 10, bottom: 15 }
+              },
+              legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                  usePointStyle: true,
+                  padding: 15,
+                  font: { 
+                    size: 13, 
+                    family: "'Noto Sans JP', sans-serif" 
+                  },
+                  color: '#4f4f4f'
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#4f4f4f',
+                bodyColor: '#222',
+                borderColor: '#e3e8ee',
+                borderWidth: 1,
+                cornerRadius: 8,
+                displayColors: true,
+                padding: 12,
+                callbacks: {
+                  title: function(context) {
+                    return context[0].label || '';
+                  },
+                  label: function(context) {
+                    const label = context.dataset.label || '';
+                    const value = context.parsed.y;
+                    if (label.includes('正答率') || label.includes('Accuracy')) {
+                      return `${t('tooltip_accuracy','📊 正答率')}: ${value.toFixed(1)}%`;
+                    } else {
+                      return `${t('tooltip_correct','🎯 正解数')}: ${value}${t('unit_questions','問')}`;
+                    }
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                display: true,
+                title: {
+                  display: true,
+                  text: t('date_axis','📅 日付'),
+                  font: { size: 13, weight: 'bold' },
+                  color: '#4f4f4f'
+                },
+                grid: { 
+                  color: 'rgba(227, 232, 238, 0.5)', 
+                  lineWidth: 1 
+                },
+                ticks: { 
+                  color: '#888', 
+                  font: { size: 12 } 
+                }
+              },
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                beginAtZero: true,
+                max: 100,
+                title: {
+                  display: true,
+                  text: t('accuracy_label','📊 正答率 (%)'),
+                  font: { size: 13, weight: 'bold' },
+                  color: '#4f4f4f'
+                },
+                grid: { 
+                  color: 'rgba(227, 232, 238, 0.5)', 
+                  lineWidth: 1 
+                },
+                ticks: {
+                  color: '#888',
+                  font: { size: 12 },
+                  stepSize: 10,
+                  callback: function(value) {
+                    return value + '%';
+                  }
+                }
+              },
+              y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                beginAtZero: true,
+                max: y1Max,
+                title: {
+                  display: true,
+                  text: t('correct_label','🎯 正解数'),
+                  font: { size: 13, weight: 'bold' },
+                  color: '#4f4f4f'
+                },
+                grid: { 
+                  drawOnChartArea: false,
+                  color: 'rgba(227, 232, 238, 0.5)', 
+                  lineWidth: 1 
+                },
+                ticks: { 
+                  color: '#888', 
+                  font: { size: 12 },
+                  stepSize: 1,
+                  precision: 0,
+                  callback: function(value) {
+                    return Math.round(value);
+                  }
+                }
+              }
+            },
+            elements: { 
+              line: { 
+                borderWidth: 3 
+              },
+              point: {
+                radius: 6,
+                hoverRadius: 8
+              }
+            },
+            animation: { 
+              duration: 1000, 
+              easing: 'easeInOutQuart' 
             }
           }
         });
+        
+        console.log('チャート作成完了');
+      } catch (error) {
+        console.error('チャート描画エラー:', error);
+        console.error('エラー詳細:', error.stack);
+        // エラーが発生した場合でも、空のチャートを表示
+        try {
+          movieScoreChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: [],
+              datasets: [
+                { 
+                  label: t('accuracy_label','正答率 (%)'), 
+                  data: [],
+                  borderColor: '#6c63ff'
+                },
+                { 
+                  label: t('correct_label','正解数'), 
+                  data: [],
+                  borderColor: '#48c6ef'
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                title: { 
+                  display: true, 
+                  text: t('chart_title','📈 クイズ成績推移') 
+                },
+                legend: {
+                  display: true
+                }
+              }
+            }
+          });
+        } catch (fallbackError) {
+          console.error('フォールバックチャート作成も失敗:', fallbackError);
+        }
       }
     }
 
