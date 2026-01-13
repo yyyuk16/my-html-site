@@ -1040,6 +1040,12 @@
 
         async function translateTextOpenAI(text, targetLang) {
             if (!text) return '';
+            
+            // 日本語の場合は翻訳をスキップして原文をそのまま返す
+            if (targetLang === 'ja') {
+                return text;
+            }
+            
             try {
                 const res = await fetch(TRANSLATE_ENDPOINT, {
                     method: 'POST',
