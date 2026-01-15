@@ -1753,111 +1753,31 @@
     if (scrollToTopBtn) {
       // スクロール位置に応じてボタンを表示/非表示
       function toggleScrollToTop() {
-      quizContainer.innerHTML = '';
-      
-      try {
-        const currentUser = firebase.auth().currentUser;
-        if (!currentUser) {
-          statusDiv.innerHTML = '<p style="color:#f44336;">ログインが必要です</p>';
-          return;
-        }
-        
-        const db = firebase.firestore();
-        
-        // 最新のチャット履歴を取得
-        // まず、ユーザーが参加しているチャットルームを検索
-        const allChatsSnapshot = await db.collection('chats').get();
-        let latestMessagesSnapshot = null;
-        let chatRoomId = null;
-        
-        // ユーザーが参加している最新のチャットルームを見つける
-        for (const chatDoc of allChatsSnapshot.docs) {
-          const roomId = chatDoc.id;
-          // chatRoomIdが2つのUIDを_で結合した形式の場合
-          if (roomId.includes(currentUser.uid)) {
-            const messagesSnapshot = await db.collection('chats').doc(roomId)
-              .collection('messages')
-              .orderBy('timestamp', 'desc')
-              .limit(1)
-              .get();
-            
-            if (!messagesSnapshot.empty) {
-              chatRoomId = roomId;
-              latestMessagesSnapshot = await db.collection('chats').doc(roomId)
-                .collection('messages')
-                .orderBy('timestamp', 'desc')
-                .limit(50)
-                .get();
-              break;
-            }
+        if (window.innerWidth <= 768) {
+          if (window.pageYOffset > 300) {
+            scrollToTopBtn.classList.add('visible');
+          } else {
+            scrollToTopBtn.classList.remove('visible');
           }
-        }
-        
-        let patientText = '';
-        
-        if (latestMessagesSnapshot && !latestMessagesSnapshot.empty) {
-          const userMessages = [];
-          latestMessagesSnapshot.forEach(doc => {
-            const msg = doc.data();
-            if (msg.senderId === currentUser.uid && msg.text) {
-              userMessages.push(msg.text);
-            }
-          });
-          
-          patientText = userMessages.reverse().join('\n');
-        }
-        
-        // チャット履歴がない場合は、デフォルトレベルでクイズ生成
-        if (!patientText || patientText.trim().length < 10) {
-          statusDiv.innerHTML = `<p style="color:#888;">${t('insufficient_chat_history', 'チャット履歴が少ないため、基礎レベルのクイズを生成します')}</p>`;
-          await generateQuizByLevel(3, quizContainer, statusDiv);
-          return;
-        }
-        
-        // 患者の発言を評価
-        statusDiv.innerHTML = `<p>${t('evaluating_understanding', 'あなたの理解度を評価中...')}</p>`;
-        const evaluation = await evaluatePatientChat(patientText);
-        
-        if (!evaluation) {
-          statusDiv.innerHTML = `<p style="color:#888;">${t('evaluation_failed', '評価に失敗しました。デフォルトクイズを生成します')}</p>`;
-          await generateQuizByLevel(3, quizContainer, statusDiv);
-          return;
-        }
-        
-        const knowledgeScore = evaluation.knowledge_score;
-        const evalCompleteMsg = t('evaluation_complete', `評価完了：レベル ${knowledgeScore} → 適切な難易度のクイズを生成中...`)
-          .replace('{level}', knowledgeScore);
-        statusDiv.innerHTML = `<p>${evalCompleteMsg}</p>`;
-        
-        // 評価レベルに応じたクイズを生成
-        await generateQuizByLevel(knowledgeScore, quizContainer, statusDiv, evaluation);
-        
-      } catch (error) {
-        console.error('クイズ生成エラー:', error);
-        console.error('Error details:', {
-          message: error.message,
-          stack: error.stack,
-          name: error.name
-        });
-        
-        const statusDiv = document.getElementById('quiz-generation-status');
-        if (statusDiv) {
-          const errorLabel = t('error', 'エラー:');
-          // エラーメッセージをより詳細に表示
-          let errorMsg = error.message || '不明なエラーが発生しました';
-          
-          // ネットワークエラーの場合
-          if (error.message && error.message.includes('ネットワークエラー')) {
-            errorMsg = t('network_error', 'ネットワークエラー: APIに接続できませんでした。インターネット接続を確認してください。');
-          }
-          // APIエラーの場合
-          else if (error.message && (error.message.includes('500') || error.message.includes('HTTP'))) {
-            errorMsg = t('api_error', 'APIエラー: サーバーでエラーが発生しました。しばらく待ってから再度お試しください。');
-          }
-          
-          statusDiv.innerHTML = `<p style="color:#f44336;">${errorLabel} ${errorMsg}</p>`;
+        } else {
+          scrollToTopBtn.classList.remove('visible');
         }
       }
+
+      // スクロールイベント
+      window.addEventListener('scroll', toggleScrollToTop);
+      // リサイズイベント（画面サイズ変更時）
+      window.addEventListener('resize', toggleScrollToTop);
+      // 初期チェック
+      toggleScrollToTop();
+
+      // クリックでページトップにスクロール
+      scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
     }
 
   
@@ -1896,4 +1816,5 @@
     </div>
   </footer>
 </body>
+
 </html>
