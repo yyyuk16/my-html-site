@@ -847,48 +847,71 @@
         snapshot.forEach(doc => {
           const data = doc.data();
           console.log('ドキュメントデータ:', { id: doc.id, data: data });
+          
+          // timestampをDateオブジェクトに変換
+          let timestamp = null;
+          if (data.timestamp) {
+            if (typeof data.timestamp.toDate === "function") {
+              // Firestore Timestampオブジェクトの場合
+              timestamp = data.timestamp.toDate();
+            } else if (data.timestamp.seconds) {
+              // { seconds: xxx } 形式の場合
+              timestamp = new Date(data.timestamp.seconds * 1000);
+            } else if (data.timestamp instanceof Date) {
+              // 既にDateオブジェクトの場合
+              timestamp = data.timestamp;
+            } else {
+              // 文字列や数値の場合
+              timestamp = new Date(data.timestamp);
+            }
+          } else if (data.createdAt) {
+            // createdAtをtimestampとして使用
+            if (typeof data.createdAt.toDate === "function") {
+              timestamp = data.createdAt.toDate();
+            } else if (data.createdAt.seconds) {
+              timestamp = new Date(data.createdAt.seconds * 1000);
+            } else {
+              timestamp = new Date(data.createdAt);
+            }
+          } else {
+            // デフォルト値（現在時刻）
+            timestamp = new Date();
+          }
+          
+          // accuracyを計算（保存されていない場合）
+          let accuracy = 0;
+          if (data.accuracy !== undefined && data.accuracy !== null) {
+            accuracy = parseFloat(data.accuracy);
+          } else if (data.total && data.total > 0) {
+            const score = data.score || data.correct || 0;
+            accuracy = (score / data.total) * 100;
+          }
+          
           // personalized_quiz_scoresから取得したデータを変換
           const score = {
             id: doc.id,
             quizType: 'ai',
             score: data.score || 0,
             total: data.total || 10,
-            correct: data.score || 0, // 正解数はscoreと同じ
-            // accuracyは保存された値を使う（なければ計算）
-            accuracy: data.accuracy !== undefined ? parseFloat(data.accuracy) : (data.total ? ((data.score / data.total) * 100).toFixed(1) : 0),
-            // timestampフィールドを優先（保存時にtimestampとして保存されている）
-            timestamp: data.timestamp || data.createdAt,
+            correct: data.score || data.correct || 0,
+            accuracy: accuracy,
+            timestamp: timestamp, // Dateオブジェクトに変換済み
             userName: data.userName || t('anonymous', '匿名'),
             userEmail: data.userEmail || '',
             category: 'tuberculosis_quiz'
           };
           scores.push(score);
           console.log('変換後のスコア:', score);
+          console.log('変換後のtimestamp型:', typeof score.timestamp, score.timestamp instanceof Date);
         });
         
         console.log('変換前のスコア数:', scores.length);
         
         // クライアント側でソート（timestampで降順）
         scores.sort((a, b) => {
-          let ta, tb;
-          // timestampがFirestore Timestampオブジェクトの場合
-          if (a.timestamp && typeof a.timestamp.toDate === "function") {
-            ta = a.timestamp.toDate();
-          } else if (a.timestamp) {
-            ta = new Date(a.timestamp);
-          } else {
-            ta = new Date(0); // デフォルト値
-          }
-          
-          if (b.timestamp && typeof b.timestamp.toDate === "function") {
-            tb = b.timestamp.toDate();
-          } else if (b.timestamp) {
-            tb = new Date(b.timestamp);
-          } else {
-            tb = new Date(0); // デフォルト値
-          }
-          
-          return tb - ta; // 降順（新しい順）
+          const ta = a.timestamp instanceof Date ? a.timestamp : new Date(a.timestamp || 0);
+          const tb = b.timestamp instanceof Date ? b.timestamp : new Date(b.timestamp || 0);
+          return tb.getTime() - ta.getTime(); // 降順（新しい順）
         });
         
         console.log('personalized_quiz_scoresから取得したスコア:', scores.length, '件');
