@@ -798,33 +798,6 @@
         return (dict && dict[key]) || fallback;
       }catch(_){ return fallback; }
     }
-
-    // 動画クイズスコアを取得
-    async function loadMovieScores(userId) {
-      try {
-        const db = firebase.firestore();
-        const snapshot = await db.collection('movie_quiz_scores')
-          .where('userId', '==', userId)
-          .orderBy('timestamp', 'desc')
-          .get();
-
-        const scores = [];
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          scores.push({
-            ...data,
-            id: doc.id,
-            quizType: 'movie'
-          });
-        });
-
-        return scores;
-      } catch (e) {
-        console.error("動画クイズスコアの取得に失敗:", e);
-        return [];
-      }
-    }
-
     // AIクイズ（パーソナライズドクイズ）スコアを取得
     async function loadAIQuizScores(userId) {
       try {
@@ -933,6 +906,52 @@
         const aiScores = await loadAIQuizScores(userId);
         console.log('取得したスコア数:', aiScores.length);
         console.log('取得したスコアデータ:', aiScores);
+        
+        // 最新のクイズ結果データを詳細にコンソールに出力
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📊 最新のクイズ結果データ（全件）');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        if (aiScores.length === 0) {
+          console.log('⚠️ データがありません');
+        } else {
+          aiScores.forEach((score, index) => {
+            const date = score.timestamp instanceof Date 
+              ? score.timestamp 
+              : new Date(score.timestamp || 0);
+            const dateStr = date.toLocaleString('ja-JP', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            console.log(`\n【${index + 1}件目】`);
+            console.log('  📅 日時:', dateStr);
+            console.log('  🎯 正解数:', score.correct || score.score || 0);
+            console.log('  📝 問題数:', score.total || 0);
+            console.log('  📈 正答率:', (score.accuracy || 0).toFixed(1) + '%');
+            console.log('  🆔 ID:', score.id);
+            console.log('  👤 ユーザー名:', score.userName || '匿名');
+          });
+          
+          // 最新5件を強調表示
+          const latest5 = aiScores.slice(0, Math.min(5, aiScores.length));
+          console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          console.log('⭐ 最新5件（グラフに表示されるデータ）');
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          latest5.forEach((score, index) => {
+            const date = score.timestamp instanceof Date 
+              ? score.timestamp 
+              : new Date(score.timestamp || 0);
+            const dateStr = date.toLocaleString('ja-JP', {
+              month: 'short',
+              day: 'numeric'
+            });
+            console.log(`${index + 1}. ${dateStr} - 正答率: ${(score.accuracy || 0).toFixed(1)}% (${score.correct || score.score || 0}/${score.total || 0})`);
+          });
+        }
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        
         currentScores = aiScores; // スコアを保存
         if (aiScores.length === 0) {
           console.log('スコアが0件のため、空のグラフを表示します');
