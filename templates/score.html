@@ -994,18 +994,6 @@
 
     // クイズ成績推移グラフ
     function updateMovieScoreChart(scores) {
-      // --- デバッグ用テストデータ ---
-      if (!scores || scores.length === 0) {
-        console.log('⚠️ テストデータを使用します（デバッグ用）');
-        scores = [
-          { accuracy: 80, timestamp: new Date() },
-          { accuracy: 95, timestamp: new Date(Date.now() - 86400000) }, // 1日前
-          { accuracy: 70, timestamp: new Date(Date.now() - 172800000) }, // 2日前
-          { accuracy: 85, timestamp: new Date(Date.now() - 259200000) }, // 3日前
-          { accuracy: 90, timestamp: new Date(Date.now() - 345600000) }  // 4日前
-        ];
-      }
-      // ---------------------------
       try {
         console.log('=== updateMovieScoreChart 開始 ===');
         console.log('Chart.js が利用可能か:', typeof Chart !== 'undefined');

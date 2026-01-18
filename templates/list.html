@@ -674,7 +674,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3; letter-spacing:0.08em; display:flex; align-items:center;">
-                    <span data-translate="site_title" style="vertical-align:middle;">医療管理アプリ</span>
+                    <span data-translate="site_title" style="vertical-align:middle;">結核治療アプリ</span>
                 </div>
             </div>
             <nav>
@@ -918,7 +918,7 @@
         item.innerHTML = `
           <div class="doctor-avatar">${patient.name ? patient.name.charAt(0) : '?'}</div>
           <div class="chat-info">
-            <div class="doctor-name">${patient.name || '名無しの患者'}さん</div>
+            <div class="doctor-name">${patient.name || t('unnamed_patient', '名無しの患者')}${t('honorific_suffix', 'さん')}</div>
           </div>
         `;
         item.onclick = () => {
@@ -1104,7 +1104,7 @@
       const currentDate = new Date().toISOString().split('T')[0];
       
       area.innerHTML = `
-        <h2><i class="fas fa-notes-medical"></i> ${patient.name} さんの診療メモ</h2>
+        <h2><i class="fas fa-notes-medical"></i> ${patient.name}${t('honorific_suffix', 'さん')} ${t('medical_memo', 'の診療メモ')}</h2>
         <form id="memoForm">
           <div class="memo-field">
             <label><i class="fas fa-calendar-alt"></i> 診察日</label>
