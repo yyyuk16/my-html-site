@@ -58,13 +58,43 @@ module.exports = async (req, res) => {
 
     const n = Math.min(Math.max(parseInt(count, 10) || 5, 1), 10);
 
-    const system = `
+    // 言語に応じたシステムプロンプト
+    const langMap = {
+      'ja': 'Japanese',
+      'en': 'English',
+      'zh': 'Chinese',
+      'ko': 'Korean'
+    };
+    const targetLanguage = langMap[language] || language;
+    
+    const system = language === 'ja' ? `
 あなたは医療教育のクイズ作成AIです。
 安全・正確・患者理解を最優先にし、ヘルスリテラシーに配慮して出題します。
 出力は指定の JSON 配列のみ。説明文や前後文は出力しないでください。
+    `.trim() : `
+You are a medical education quiz creation AI.
+Prioritize safety, accuracy, and patient understanding, with consideration for health literacy.
+Output only the specified JSON array. Do not output explanatory text or additional content.
     `.trim();
 
-    const user = `
+    // 言語に応じたユーザープロンプト
+    const questionGuideline = language === 'ja' 
+      ? '35〜80文字で患者向けに簡潔に'
+      : language === 'en'
+      ? 'concise 1 sentence for patients'
+      : language === 'zh'
+      ? '简洁的一句话，适合患者'
+      : '환자에게 적합한 간결한 한 문장';
+    
+    const explanationGuideline = language === 'ja'
+      ? '80文字以内'
+      : language === 'en'
+      ? 'within 120 characters'
+      : language === 'zh'
+      ? '120字以内'
+      : '120자 이내';
+    
+    const user = language === 'ja' ? `
 トピック: ${topic}
 難易度: ${difficulty}
 言語: ${language}
@@ -74,12 +104,30 @@ module.exports = async (req, res) => {
 
 [
   {
-    "question": "質問文（${language==="ja" ? "35〜80文字で患者向けに簡潔に" : "concise 1 sentence"}）",
+    "question": "質問文（${questionGuideline}）",
     "choices": ["選択肢A","選択肢B","選択肢C","選択肢D"],
     "answer": "正解の選択肢（choicesの中の文字列をそのまま）",
-    "explanation": "解説（${language==="ja" ? "80文字以内" : "within 120 chars"}）"
+    "explanation": "解説（${explanationGuideline}）"
   }
 ]
+    `.trim() : `
+Topic: ${topic}
+Difficulty: ${difficulty}
+Language: ${targetLanguage}
+Number of questions: ${n}
+
+Output **ONLY** the following strict JSON array (no code blocks, no additional text).
+
+[
+  {
+    "question": "Question text (${questionGuideline})",
+    "choices": ["Choice A", "Choice B", "Choice C", "Choice D"],
+    "answer": "Correct answer (exact string from choices array)",
+    "explanation": "Explanation (${explanationGuideline})"
+  }
+]
+
+IMPORTANT: All content (question, choices, answer, explanation) must be in ${targetLanguage}.
     `.trim();
 
     // OpenAI API呼び出し
