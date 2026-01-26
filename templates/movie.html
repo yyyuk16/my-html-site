@@ -29,7 +29,7 @@
           <span data-translate="site_title">結核対策アプリ</span>
         </div>
         <button class="user-name-btn" id="userNameBtn" onclick="window.location.href='setting.html'">
-          <span data-translate="settings">設定</span>
+          <span id="userNameDisplay">ゲスト</span><span id="userNameSuffix" data-translate="honorific_suffix"> さん</span>
         </button>
         <div class="header-right">
           <nav>
@@ -1061,15 +1061,20 @@ data-url-ko="https://www.youtube.com/embed/XXXXXXXX_KO_4_9">
       document.addEventListener('DOMContentLoaded', function() {
         updateUserName();
         // 多言語対応（他ページと同じ仕組みを利用）
-        // multilang.jsの初期化完了を待ってからupdateUIを呼び出す
+        // updateUI後に常にupdateUserNameを再実行して名前がゲストに戻らないようにする
         const waitForMultiLang = setInterval(() => {
           if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+            const _origUpdateUI = window.multiLang.updateUI.bind(window.multiLang);
+            window.multiLang.updateUI = function() {
+              _origUpdateUI();
+              updateUserName();
+            };
             try {
               window.multiLang.updateUI();
-              clearInterval(waitForMultiLang);
             } catch (e) {
               console.warn('updateUI error:', e);
             }
+            clearInterval(waitForMultiLang);
           }
         }, 100);
         
