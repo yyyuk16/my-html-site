@@ -336,9 +336,10 @@
         });
       }
 
-      // 初期レンダ後に翻訳を適用（multiLangの初期化を待ち、updateUI後に常にupdateUserNameを再実行する）
-      document.addEventListener('DOMContentLoaded', function(){
+      document.addEventListener('DOMContentLoaded', function() {
         updateUserName();
+        // 多言語対応（他ページと同じ仕組みを利用）
+        // updateUI後に常にupdateUserNameを再実行して名前がゲストに戻らないようにする
         const waitForMultiLang = setInterval(() => {
           if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
             const _origUpdateUI = window.multiLang.updateUI.bind(window.multiLang);
@@ -346,10 +347,16 @@
               _origUpdateUI();
               updateUserName();
             };
-            try { window.multiLang.updateUI(); } catch (e) { console.warn('updateUI error:', e); }
+            try {
+              window.multiLang.updateUI();
+            } catch (e) {
+              console.warn('updateUI error:', e);
+            }
             clearInterval(waitForMultiLang);
           }
         }, 100);
+        
+        // 5秒後にタイムアウト
         setTimeout(() => clearInterval(waitForMultiLang), 5000);
       });
     </script>
