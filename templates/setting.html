@@ -25,7 +25,7 @@
           <div class="logo-icon"></div>
           <span data-translate="site_title">結核対策アプリ</span>
         </div>
-        <button class="user-name-btn" id="userNameBtn">
+        <button class="user-name-btn" id="userNameBtn" onclick="window.location.href='profile.html'">
           <span id="userNameDisplay">ゲスト</span><span id="userNameSuffix" data-translate="honorific_suffix"> さん</span>
         </button>
         <div class="header-right">
@@ -336,17 +336,21 @@
         });
       }
 
-      // 初期レンダ後に翻訳を適用（updateUI後に常にupdateUserNameを再実行して名前がゲストに戻らないようにする）
+      // 初期レンダ後に翻訳を適用（multiLangの初期化を待ち、updateUI後に常にupdateUserNameを再実行する）
       document.addEventListener('DOMContentLoaded', function(){
         updateUserName();
-        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
-          const _origUpdateUI = window.multiLang.updateUI.bind(window.multiLang);
-          window.multiLang.updateUI = function() {
-            _origUpdateUI();
-            updateUserName();
-          };
-          try { window.multiLang.updateUI(); } catch (_) {}
-        }
+        const waitForMultiLang = setInterval(() => {
+          if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+            const _origUpdateUI = window.multiLang.updateUI.bind(window.multiLang);
+            window.multiLang.updateUI = function() {
+              _origUpdateUI();
+              updateUserName();
+            };
+            try { window.multiLang.updateUI(); } catch (e) { console.warn('updateUI error:', e); }
+            clearInterval(waitForMultiLang);
+          }
+        }, 100);
+        setTimeout(() => clearInterval(waitForMultiLang), 5000);
       });
     </script>
 
