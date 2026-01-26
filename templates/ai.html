@@ -263,6 +263,18 @@
   </style>
 
   <script>
+    // 翻訳ヘルパー（グローバルスコープで定義）
+    // 関数宣言はホイスティングされるため、どこからでもアクセス可能
+    function t(key, fallback){
+      try{
+        const lang = (window.multiLang && window.multiLang.currentLanguage) || 'ja';
+        const dict = (window.multiLang && window.multiLang.translations && window.multiLang.translations[lang]) || {};
+        return (dict && dict[key]) || fallback;
+      }catch(_){ return fallback; }
+    }
+    // window.t としても定義（念のため）
+    window.t = t;
+
     function startChat(type) {
       if (type === 'teacher') {
         window.location.href = 'teacher.html';
