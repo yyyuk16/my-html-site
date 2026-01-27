@@ -21,29 +21,8 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
-    <!-- 💚 ヘッダー -->
-    <header class="top-bar">
-      <div class="header-inner">
-        <div class="logo">
-          <div class="logo-icon"></div>
-          <span data-translate="site_title">結核対策アプリ</span>
-        </div>
-        <button class="user-name-btn" id="userNameBtn" onclick="window.location.href='setting.html'">
-          <span id="userNameDisplay">ゲスト</span><span id="userNameSuffix" data-translate="honorific_suffix"> さん</span>
-        </button>
-        <div class="header-right">
-          <nav>
-            <ul class="tab-menu">
-              <li><a href="ai.html"><span data-translate="chat">チャット</span></a></li>
-              <li><a href="score.html"><span data-translate="quiz">Q&A</span></a></li>
-              <li><a href="movie.html" class="active"><span data-translate="video_watching">動画</span></a></li>
-              <li><a href="setting.html"><span data-translate="settings">設定</span></a></li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-    </header>
-
+{% set active = 'movie' %}
+{% include 'header.html' %}
 
     <style>
       body {

@@ -693,28 +693,8 @@
 </head>
 
 <body>
-  <!-- 💚 ヘッダー（デザインは maintab.css に統一） -->
-  <header class="top-bar">
-    <div class="header-inner">
-      <div class="logo">
-        <div class="logo-icon"></div>
-        <span data-translate="site_title">結核対策アプリ</span>
-      </div>
-      <button class="user-name-btn" id="userNameBtn">
-        <span id="userNameDisplay">ゲスト</span><span id="userNameSuffix" data-translate="honorific_suffix"> さん</span>
-      </button>
-      <div class="header-right">
-        <nav>
-          <ul class="tab-menu">
-            <li><a href="ai.html"><span data-translate="chat">チャット</span></a></li>
-            <li><a href="score.html" class="active"><span data-translate="quiz">Q&A</span></a></li>
-            <li><a href="movie.html"><span data-translate="video_watching">動画</span></a></li>
-            <li><a href="setting.html"><span data-translate="settings">設定</span></a></li>
-          </ul>
-        </nav>
-      </div>
-    </div>
-  </header>
+{% set active = 'score' %}
+{% include 'header.html' %}
 
   <!-- 統計情報バー（ヘッダーの下） -->
   <div class="stats-bar" style="background: #fff; padding: 12px 0; border-bottom: 1px solid #e3e8ee;">
@@ -901,12 +881,29 @@
       }
     }
 
+    // テスト用スコアデータ（本番データがないときの表示用）
+    function getTestScores() {
+      const now = new Date();
+      const base = (d) => new Date(now.getFullYear(), now.getMonth(), now.getDate() - d);
+      return [
+        { id: 'test-1', quizType: 'ai', score: 6, total: 10, correct: 6, accuracy: 60,  timestamp: base(4), userName: 'テスト', userEmail: '', category: 'tuberculosis_quiz' },
+        { id: 'test-2', quizType: 'ai', score: 7, total: 10, correct: 7, accuracy: 70,  timestamp: base(3), userName: 'テスト', userEmail: '', category: 'tuberculosis_quiz' },
+        { id: 'test-3', quizType: 'ai', score: 8, total: 10, correct: 8, accuracy: 80,  timestamp: base(2), userName: 'テスト', userEmail: '', category: 'tuberculosis_quiz' },
+        { id: 'test-4', quizType: 'ai', score: 7, total: 10, correct: 7, accuracy: 70,  timestamp: base(1), userName: 'テスト', userEmail: '', category: 'tuberculosis_quiz' },
+        { id: 'test-5', quizType: 'ai', score: 9, total: 10, correct: 9, accuracy: 90,  timestamp: base(0), userName: 'テスト', userEmail: '', category: 'tuberculosis_quiz' }
+      ];
+    }
+
     // AIクイズスコアのみを取得し、グラフとカードに反映
     async function loadAIQuizScoresOnly(userId) {
       try {
         console.log('=== loadAIQuizScoresOnly 開始 ===');
         console.log('ユーザーID:', userId);
-        const aiScores = await loadAIQuizScores(userId);
+        let aiScores = await loadAIQuizScores(userId);
+        if (aiScores.length === 0) {
+          console.log('⚠️ 本番データがありません。テストデータでグラフを表示します。');
+          aiScores = getTestScores();
+        }
         console.log('取得したスコア数:', aiScores.length);
         console.log('取得したスコアデータ:', aiScores);
         
@@ -956,12 +953,6 @@
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         
         currentScores = aiScores; // スコアを保存
-        if (aiScores.length === 0) {
-          console.log('スコアが0件のため、空のグラフを表示します');
-          updateMovieScoreChart([]);
-          renderMovieScores([]);
-          return;
-        }
         console.log('グラフを更新します。スコア数:', aiScores.length);
         updateMovieScoreChart(aiScores);
         renderMovieScores(aiScores);

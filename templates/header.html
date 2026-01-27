@@ -1,0 +1,22 @@
+<!-- 💚 共通ヘッダー（Jinja2 include用）active: 'chat' | 'score' | 'movie' | 'settings' -->
+<header class="top-bar">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon"></div>
+      <span data-translate="site_title">結核対策アプリ</span>
+    </div>
+    <button class="user-name-btn" id="userNameBtn">
+      <span id="userNameDisplay">ゲスト</span><span id="userNameSuffix" data-translate="honorific_suffix"> さん</span>
+    </button>
+    <div class="header-right">
+      <nav>
+        <ul class="tab-menu">
+          <li><a href="/ai"{% if active == 'chat' %} class="active"{% endif %}><span data-translate="chat">チャット</span></a></li>
+          <li><a href="/score"{% if active == 'score' %} class="active"{% endif %}><span data-translate="quiz">Q&A</span></a></li>
+          <li><a href="/movie"{% if active == 'movie' %} class="active"{% endif %}><span data-translate="video_watching">動画</span></a></li>
+          <li><a href="/setting"{% if active == 'settings' %} class="active"{% endif %}><span data-translate="settings">設定</span></a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>

@@ -773,6 +773,21 @@
         const db = firebase.firestore();
         let userLanguage = 'ja';
 
+        // 翻訳ヘルパー関数（multilang.jsが読み込まれる前でも動作するように）
+        function t(key, fallback) {
+            try {
+                if (window.multiLang && window.multiLang.translations) {
+                    const lang = window.multiLang.currentLanguage || 'ja';
+                    const dict = window.multiLang.translations[lang] || {};
+                    return dict[key] || fallback;
+                }
+            } catch (e) {
+                console.warn('Translation error:', e);
+            }
+            return fallback;
+        }
+        window.t = t;
+
         const chatListDiv = document.getElementById('chatList');
         const chatListMobileDiv = document.getElementById('chatListMobile');
         let currentPatientId = null;
@@ -815,12 +830,20 @@
                 patients.forEach(patient => {
                     const chatItem = document.createElement('div');
                     chatItem.className = 'chat-item';
+                    const patientName = patient.name || t('unnamed', '名無し');
+                    const suffix = t('honorific_suffix', 'さん');
                     chatItem.innerHTML = `
                         <div class="doctor-avatar">${patient.name ? patient.name[0] : '?'}</div>
                         <div class="chat-info">
-                            <div class="doctor-name">${patient.name || t('unnamed', '名無し')}${t('honorific_suffix', 'さん')}</div>
+                            <div class="doctor-name">${patientName}${suffix}</div>
                         </div>`;
-                    chatItem.onclick = () => openChatMobile(patient.id, patient.name);
+                    // タップイベントを確実に設定
+                    chatItem.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openChatMobile(patient.id, patient.name);
+                    });
+                    chatItem.style.cursor = 'pointer';
                     chatListMobileDiv.appendChild(chatItem);
                 });
             }
@@ -843,16 +866,76 @@
             // 医師側は常に日本語へ翻訳
             userLanguage = 'ja';
 
-            // 担当患者取得
-            const patientsSnapshot = await db.collection('users')
-                .where('role', '==', 'patient')
-                .where('assignedDoctor', '==', user.uid)
-                .get();
-
-            const patients = [];
-            patientsSnapshot.forEach(doc => {
-                patients.push({ id: doc.id, ...doc.data() });
-            });
+            // 担当患者取得（assignedDoctor と assignedDoctorUid の両方をチェック）
+            console.log('担当患者を取得中... 医師UID:', user.uid);
+            
+            const patientMap = new Map();
+            
+            // assignedDoctor でクエリ
+            try {
+                const patientsSnapshot1 = await db.collection('users')
+                    .where('role', '==', 'patient')
+                    .where('assignedDoctor', '==', user.uid)
+                    .get();
+                
+                patientsSnapshot1.forEach(doc => {
+                    const data = doc.data();
+                    if (data.assignedDoctor === user.uid || data.assignedDoctorUid === user.uid) {
+                        patientMap.set(doc.id, { id: doc.id, ...data });
+                    }
+                });
+                console.log('assignedDoctor クエリで取得:', patientsSnapshot1.size, '件');
+            } catch (e) {
+                console.warn('assignedDoctor クエリエラー:', e);
+            }
+            
+            // assignedDoctorUid でクエリ（別フィールドの場合に対応）
+            try {
+                const patientsSnapshot2 = await db.collection('users')
+                    .where('role', '==', 'patient')
+                    .where('assignedDoctorUid', '==', user.uid)
+                    .get();
+                
+                patientsSnapshot2.forEach(doc => {
+                    const data = doc.data();
+                    if (data.assignedDoctor === user.uid || data.assignedDoctorUid === user.uid) {
+                        patientMap.set(doc.id, { id: doc.id, ...data });
+                    }
+                });
+                console.log('assignedDoctorUid クエリで取得:', patientsSnapshot2.size, '件');
+            } catch (e) {
+                console.warn('assignedDoctorUid クエリエラー（インデックス未作成の可能性）:', e);
+                // インデックスが未作成の場合、全患者を取得してクライアント側でフィルタリング
+                try {
+                    console.log('フォールバック: 全患者を取得してフィルタリング...');
+                    const allPatientsSnapshot = await db.collection('users')
+                        .where('role', '==', 'patient')
+                        .get();
+                    
+                    allPatientsSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data.assignedDoctor === user.uid || data.assignedDoctorUid === user.uid) {
+                            patientMap.set(doc.id, { id: doc.id, ...data });
+                        }
+                    });
+                    console.log('フォールバックで追加:', allPatientsSnapshot.size, '件中', patientMap.size, '件が該当');
+                } catch (fallbackError) {
+                    console.error('フォールバッククエリも失敗:', fallbackError);
+                }
+            }
+            
+            const patients = Array.from(patientMap.values());
+            console.log('最終的な患者数:', patients.length);
+            if (patients.length > 0) {
+                console.log('患者リスト:', patients.map(p => ({ 
+                    id: p.id, 
+                    name: p.name, 
+                    assignedDoctor: p.assignedDoctor, 
+                    assignedDoctorUid: p.assignedDoctorUid 
+                })));
+            } else {
+                console.warn('⚠️ 担当患者が見つかりませんでした。患者データの assignedDoctor または assignedDoctorUid フィールドを確認してください。');
+            }
 
             renderPatientList(patients);
 
@@ -911,40 +994,86 @@
 
         // ================= 患者選択（モバイル版） =================
         function openChatMobile(patientId, patientName) {
+            console.log('openChatMobile called:', patientId, patientName);
             currentPatientId = patientId;
             currentPatientName = patientName;
 
             // 患者リストを非表示、チャット画面を表示
-            document.querySelector('.mobile-patient-list-view').style.display = 'none';
-            document.getElementById('chatAreaMobile').style.display = 'flex';
-            document.getElementById('backBtnMobile').style.display = 'block';
+            const patientListView = document.querySelector('.mobile-patient-list-view');
+            const chatAreaMobile = document.getElementById('chatAreaMobile');
+            const backBtnMobile = document.getElementById('backBtnMobile');
+            
+            if (patientListView) {
+                patientListView.style.display = 'none';
+            }
+            if (chatAreaMobile) {
+                chatAreaMobile.style.display = 'flex';
+                chatAreaMobile.classList.add('active');
+            }
+            if (backBtnMobile) {
+                backBtnMobile.style.display = 'block';
+            }
 
-            document.getElementById('chatPatientNameMobile').textContent = patientName;
-            document.getElementById('patientInfoMobile').innerHTML =
-                `<span style="color:#666;font-size:0.9em;"><i class="fas fa-user"></i> ID: ${patientId}</span>`;
+            const chatPatientNameMobile = document.getElementById('chatPatientNameMobile');
+            const patientInfoMobile = document.getElementById('patientInfoMobile');
+            
+            if (chatPatientNameMobile) {
+                chatPatientNameMobile.textContent = patientName || t('unnamed', '名無し');
+            }
+            if (patientInfoMobile) {
+                patientInfoMobile.innerHTML =
+                    `<span style="color:#666;font-size:0.9em;"><i class="fas fa-user"></i> ID: ${patientId}</span>`;
+            }
 
             loadChatHistory(patientId, 'chatMessagesMobile');
             setupChatInput(patientId, 'messageInputMobile', 'sendBtnMobile');
             setupRealtimeChat(patientId, 'chatMessagesMobile');
+            
             // スクロール位置監視
             const chatMessages = document.getElementById('chatMessagesMobile');
             if (chatMessages) {
                 window.__chatUserAtBottomMobile = true;
-                chatMessages.addEventListener('scroll', () => {
-                    const nearBottom = (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight) < 24;
-                    window.__chatUserAtBottomMobile = nearBottom;
-                });
+                // 既存のリスナーを削除してから追加
+                chatMessages.removeEventListener('scroll', handleMobileScroll);
+                chatMessages.addEventListener('scroll', handleMobileScroll);
+            }
+        }
+        
+        // モバイル版スクロールハンドラ
+        function handleMobileScroll() {
+            const chatMessages = document.getElementById('chatMessagesMobile');
+            if (chatMessages) {
+                const nearBottom = (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight) < 24;
+                window.__chatUserAtBottomMobile = nearBottom;
             }
         }
 
         // 戻るボタンの処理
-        document.getElementById('backBtnMobile').onclick = function() {
-            document.querySelector('.mobile-patient-list-view').style.display = 'block';
-            document.getElementById('chatAreaMobile').style.display = 'none';
-            document.getElementById('backBtnMobile').style.display = 'none';
-            currentPatientId = null;
-            currentPatientName = null;
-        };
+        const backBtnMobile = document.getElementById('backBtnMobile');
+        if (backBtnMobile) {
+            backBtnMobile.onclick = function() {
+                const patientListView = document.querySelector('.mobile-patient-list-view');
+                const chatAreaMobile = document.getElementById('chatAreaMobile');
+                
+                if (patientListView) {
+                    patientListView.style.display = 'block';
+                }
+                if (chatAreaMobile) {
+                    chatAreaMobile.style.display = 'none';
+                    chatAreaMobile.classList.remove('active');
+                }
+                backBtnMobile.style.display = 'none';
+                currentPatientId = null;
+                currentPatientName = null;
+                
+                // リアルタイムリスナーをクリーンアップ
+                const listenerKey = 'chatListener_chatMessagesMobile';
+                if (window[listenerKey]) {
+                    window[listenerKey]();
+                    window[listenerKey] = null;
+                }
+            };
+        }
 
         // ================= チャット履歴 =================
         async function loadChatHistory(patientId, messagesElementId) {

@@ -823,12 +823,77 @@
         return;
       }
       currentUserId = user.uid;
-      // usersコレクションから担当患者を取得
-      const patientsSnapshot = await db.collection('users')
-        .where('role', '==', 'patient')
-        .where('assignedDoctor', '==', currentUserId)
-        .get();
-      patients = patientsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // usersコレクションから担当患者を取得（assignedDoctor と assignedDoctorUid の両方をチェック）
+      console.log('担当患者を取得中... 医師UID:', currentUserId);
+      
+      const patientMap = new Map();
+      
+      // assignedDoctor でクエリ
+      try {
+        const patientsSnapshot1 = await db.collection('users')
+          .where('role', '==', 'patient')
+          .where('assignedDoctor', '==', currentUserId)
+          .get();
+        
+        patientsSnapshot1.forEach(doc => {
+          const data = doc.data();
+          if (data.assignedDoctor === currentUserId || data.assignedDoctorUid === currentUserId) {
+            patientMap.set(doc.id, { id: doc.id, ...data });
+          }
+        });
+        console.log('assignedDoctor クエリで取得:', patientsSnapshot1.size, '件');
+      } catch (e) {
+        console.warn('assignedDoctor クエリエラー:', e);
+      }
+      
+      // assignedDoctorUid でクエリ
+      try {
+        const patientsSnapshot2 = await db.collection('users')
+          .where('role', '==', 'patient')
+          .where('assignedDoctorUid', '==', currentUserId)
+          .get();
+        
+        patientsSnapshot2.forEach(doc => {
+          const data = doc.data();
+          if (data.assignedDoctor === currentUserId || data.assignedDoctorUid === currentUserId) {
+            patientMap.set(doc.id, { id: doc.id, ...data });
+          }
+        });
+        console.log('assignedDoctorUid クエリで取得:', patientsSnapshot2.size, '件');
+      } catch (e) {
+        console.warn('assignedDoctorUid クエリエラー（インデックス未作成の可能性）:', e);
+        // インデックスが未作成の場合、全患者を取得してクライアント側でフィルタリング
+        try {
+          console.log('フォールバック: 全患者を取得してフィルタリング...');
+          const allPatientsSnapshot = await db.collection('users')
+            .where('role', '==', 'patient')
+            .get();
+          
+          allPatientsSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.assignedDoctor === currentUserId || data.assignedDoctorUid === currentUserId) {
+              patientMap.set(doc.id, { id: doc.id, ...data });
+            }
+          });
+          console.log('フォールバックで追加:', allPatientsSnapshot.size, '件中', patientMap.size, '件が該当');
+        } catch (fallbackError) {
+          console.error('フォールバッククエリも失敗:', fallbackError);
+        }
+      }
+      
+      patients = Array.from(patientMap.values());
+      console.log('最終的な患者数:', patients.length);
+      if (patients.length > 0) {
+        console.log('患者リスト:', patients.map(p => ({ 
+          id: p.id, 
+          name: p.name, 
+          assignedDoctor: p.assignedDoctor, 
+          assignedDoctorUid: p.assignedDoctorUid 
+        })));
+      } else {
+        console.warn('⚠️ 担当患者が見つかりませんでした。患者データの assignedDoctor または assignedDoctorUid フィールドを確認してください。');
+      }
+      
       renderPatientList(); // PC版
       renderPatientListMobile(); // モバイル版
     });
