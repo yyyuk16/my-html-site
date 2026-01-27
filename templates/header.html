@@ -1,4 +1,4 @@
-<!-- 💚 共通ヘッダー（Jinja2 include用）active: 'chat' | 'score' | 'movie' | 'settings' -->
+<!-- 💚 共通ヘッダー（JSで差し込み用） -->
 <header class="top-bar">
   <div class="header-inner">
     <div class="logo">
@@ -11,10 +11,10 @@
     <div class="header-right">
       <nav>
         <ul class="tab-menu">
-          <li><a href="/ai"{% if active == 'chat' %} class="active"{% endif %}><span data-translate="chat">チャット</span></a></li>
-          <li><a href="/score"{% if active == 'score' %} class="active"{% endif %}><span data-translate="quiz">Q&A</span></a></li>
-          <li><a href="/movie"{% if active == 'movie' %} class="active"{% endif %}><span data-translate="video_watching">動画</span></a></li>
-          <li><a href="/setting"{% if active == 'settings' %} class="active"{% endif %}><span data-translate="settings">設定</span></a></li>
+          <li><a href="ai.html" data-page="ai"><span data-translate="chat">チャット</span></a></li>
+          <li><a href="score.html" data-page="score"><span data-translate="quiz">Q&A</span></a></li>
+          <li><a href="movie.html" data-page="movie"><span data-translate="video_watching">動画</span></a></li>
+          <li><a href="setting.html" data-page="setting"><span data-translate="settings">設定</span></a></li>
         </ul>
       </nav>
     </div>
