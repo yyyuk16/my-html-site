@@ -1,0 +1,13 @@
+# Firebase 実設定ファイル（API キーなど）はコミットしない
+public/js/firebase-config.js
+
+# 一般的なPHPプロジェクト向け
+vendor/
+composer.lock
+
+# OS / エディタ系
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
