@@ -1041,8 +1041,8 @@
         area.classList.add('has-selection');
       }
       
-      // クイズ結果を取得
-      const quizResults = await getQuizResults(patient.email);
+      // クイズ結果を取得（Firebase: personalized_quiz_scores / ai_quiz_scores）
+      const quizResults = await getQuizResults(patient.email, patient.id);
       console.log('クイズ結果:', quizResults);
       
       // 戻るボタンを追加（モバイル版のみ）
@@ -1263,84 +1263,111 @@
       };
     }
 
-    // クイズ結果を取得する関数
-    async function getQuizResults(patientEmail) {
-      if (!patientEmail) {
+    // クイズ結果を取得する関数（personalized_quiz_scores と ai_quiz_scores の両方から取得してマージ）
+    async function getQuizResults(patientEmail, patientId) {
+      const emptyResult = {
+        totalQuizzes: 0,
+        averageAccuracy: 0,
+        bestScore: 0,
+        recentQuizzes: 0,
+        recentQuizzesList: []
+      };
+      if (!patientEmail && !patientId) {
+        return emptyResult;
+      }
+
+      // 1件のドキュメントを表示用の共通形式に正規化（score, total, createdAt: { seconds }）
+      function normalizeQuiz(doc) {
+        const data = doc.data ? doc.data() : doc;
+        const id = doc.id;
+        // personalized_quiz_scores: timestamp, correct/score, total, accuracy
+        // ai_quiz_scores: createdAt, score, total
+        const scoreVal = data.correct ?? data.score ?? 0;
+        const totalVal = data.total ?? 10;
+        const createdAt = data.timestamp || data.createdAt;
         return {
-          totalQuizzes: 0,
-          averageAccuracy: 0,
-          bestScore: 0,
-          recentQuizzes: 0,
-          recentQuizzesList: []
+          id,
+          score: scoreVal,
+          total: totalVal,
+          createdAt: createdAt || { seconds: Math.floor(Date.now() / 1000) }
         };
       }
-      
+
       try {
-        // ai_quiz_scoresコレクションから患者のクイズ結果を取得（orderByを削除してインデックスエラーを回避）
-        const quizSnapshot = await db.collection('ai_quiz_scores')
-          .where('userEmail', '==', patientEmail)
-          .get();
-        
-        if (quizSnapshot.empty) {
-          return {
-            totalQuizzes: 0,
-            averageAccuracy: 0,
-            bestScore: 0,
-            recentQuizzes: 0,
-            recentQuizzesList: []
-          };
+        const seenIds = new Set();
+        const allQuizzes = [];
+
+        // personalized_quiz_scores（score.html で保存されるクイズ結果）を取得
+        if (patientEmail) {
+          const personalizedSnapshot = await db.collection('personalized_quiz_scores')
+            .where('userEmail', '==', patientEmail)
+            .get();
+          personalizedSnapshot.docs.forEach(doc => {
+            if (!seenIds.has(doc.id)) {
+              seenIds.add(doc.id);
+              allQuizzes.push(normalizeQuiz(doc));
+            }
+          });
         }
-        
-        const quizzes = quizSnapshot.docs.map(doc => doc.data());
-        
-        // デバッグ用: 最初のクイズデータの構造を確認
-        if (quizzes.length > 0) {
-          console.log('クイズデータの例:', quizzes[0]);
+        if (patientId) {
+          const byUserIdSnapshot = await db.collection('personalized_quiz_scores')
+            .where('userId', '==', patientId)
+            .get();
+          byUserIdSnapshot.docs.forEach(doc => {
+            if (!seenIds.has(doc.id)) {
+              seenIds.add(doc.id);
+              allQuizzes.push(normalizeQuiz(doc));
+            }
+          });
         }
-        
-        // クライアント側でタイムスタンプ順にソート（createdAtフィールドを使用）
-        quizzes.sort((a, b) => {
-          const timestampA = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
-          const timestampB = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : 0;
-          return timestampB - timestampA; // 降順（新しい順）
+
+        // ai_quiz_scores からも取得（既存データとの互換）
+        if (patientEmail) {
+          const aiSnapshot = await db.collection('ai_quiz_scores')
+            .where('userEmail', '==', patientEmail)
+            .get();
+          aiSnapshot.docs.forEach(doc => {
+            if (!seenIds.has(doc.id)) {
+              seenIds.add(doc.id);
+              allQuizzes.push(normalizeQuiz(doc));
+            }
+          });
+        }
+
+        if (allQuizzes.length === 0) {
+          return emptyResult;
+        }
+
+        // クライアント側でタイムスタンプ順にソート（新しい順）
+        allQuizzes.sort((a, b) => {
+          const secA = a.createdAt && a.createdAt.seconds != null ? a.createdAt.seconds : 0;
+          const secB = b.createdAt && b.createdAt.seconds != null ? b.createdAt.seconds : 0;
+          return secB - secA;
         });
-        
-        const totalQuizzes = quizzes.length;
-        
-        // 平均正答率を計算（accuracyの値の範囲を確認して適切に処理）
+
+        const totalQuizzes = allQuizzes.length;
         let totalAccuracy = 0;
         let maxAccuracy = 0;
-        
-        quizzes.forEach(quiz => {
-          // Firebaseの実際のフィールド名を使用: score/totalから正答率を計算
-          const score = quiz.score || 0;
+
+        allQuizzes.forEach(quiz => {
           const total = quiz.total || 0;
-          let accuracy = 0;
-          
-          if (total > 0) {
-            accuracy = (score / total) * 100;
-          }
-          
+          const accuracy = total > 0 ? (quiz.score / total) * 100 : 0;
           totalAccuracy += accuracy;
           maxAccuracy = Math.max(maxAccuracy, accuracy);
         });
-        
+
         const averageAccuracy = Math.round(totalAccuracy / totalQuizzes);
         const bestScore = Math.round(maxAccuracy);
-        
-        // 最近7日間のクイズ数
+
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const recentQuizzes = quizzes.filter(quiz => {
-          // createdAtフィールドを使用
-          const quizDate = quiz.createdAt && quiz.createdAt.seconds ? 
-            new Date(quiz.createdAt.seconds * 1000) : new Date(0);
-          return quizDate >= sevenDaysAgo;
+        const recentQuizzes = allQuizzes.filter(quiz => {
+          const sec = quiz.createdAt && quiz.createdAt.seconds != null ? quiz.createdAt.seconds : 0;
+          return new Date(sec * 1000) >= sevenDaysAgo;
         }).length;
-        
-        // 最近のクイズ結果（最大5件）
-        const recentQuizzesList = quizzes.slice(0, 5);
-        
+
+        const recentQuizzesList = allQuizzes.slice(0, 5);
+
         return {
           totalQuizzes,
           averageAccuracy,
@@ -1348,16 +1375,9 @@
           recentQuizzes,
           recentQuizzesList
         };
-        
       } catch (error) {
         console.error('クイズ結果取得エラー:', error);
-        return {
-          totalQuizzes: 0,
-          averageAccuracy: 0,
-          bestScore: 0,
-          recentQuizzes: 0,
-          recentQuizzesList: []
-        };
+        return emptyResult;
       }
     }
 
