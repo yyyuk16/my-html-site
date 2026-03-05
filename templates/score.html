@@ -731,7 +731,6 @@
             クイズを生成します
           </p>
           <button onclick="generatePersonalizedQuiz()" class="quiz-btn" style="font-size: 1em; padding: 12px 24px;" data-translate="generate_quiz">クイズを生成する</button>
-          <button onclick="generatePersonalizedQuizMedium()" class="quiz-btn" style="font-size: 0.95em; padding: 10px 20px; margin-left: 8px; background: #5C6BC0; border-color: #3F51B5;" data-translate="generate_quiz_medium">判定が中のクイズ</button>
         </div>
         
         <div id="quiz-generation-status" style="text-align: center; color: #888; margin-bottom: 20px; font-size: 0.9em; min-height: 24px;"></div>
@@ -1430,8 +1429,8 @@
 
     function updateLearningProgress(scores) {
       if (!scores || scores.length === 0) {
-        // スコアがない場合はデフォルト値を表示
-        updateHeaderStats(0, 0, 0);
+        // スコアがない場合はデモデータを表示
+        updateHeaderStats(5, 3, 4);
         return;
       }
 
@@ -1518,56 +1517,6 @@
       if (headerWeeklyQuizzes) {
         headerWeeklyQuizzes.textContent = weeklyQuizzes + t('times_unit', '回');
       }
-    }
-
-    // スコア配列から学習継続日数・連続正解・今週のクイズ数を算出してヘッダーを更新（デモ表示用）
-    function updateHeaderStatsFromScores(scores) {
-      if (!scores || scores.length === 0) {
-        updateHeaderStats(0, 0, 0);
-        return;
-      }
-      const uniqueDates = [...new Set(scores.map(score => {
-        let date;
-        if (score.timestamp && typeof score.timestamp.toDate === 'function') {
-          date = score.timestamp.toDate();
-        } else if (score.timestamp) {
-          date = new Date(score.timestamp);
-        } else {
-          date = new Date();
-        }
-        return date.toDateString();
-      }))];
-      const learningDays = uniqueDates.length;
-
-      let currentStreak = 0;
-      let maxStreak = 0;
-      for (let i = scores.length - 1; i >= 0; i--) {
-        if ((parseFloat(scores[i].accuracy) || 0) >= 60) {
-          currentStreak++;
-          maxStreak = Math.max(maxStreak, currentStreak);
-        } else {
-          currentStreak = 0;
-        }
-      }
-
-      const now = new Date();
-      const dayOfWeek = now.getDay();
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - dayOfWeek);
-      startOfWeek.setHours(0, 0, 0, 0);
-      const weeklyQuizzes = scores.filter(score => {
-        let date;
-        if (score.timestamp && typeof score.timestamp.toDate === 'function') {
-          date = score.timestamp.toDate();
-        } else if (score.timestamp) {
-          date = new Date(score.timestamp);
-        } else {
-          return false;
-        }
-        return date >= startOfWeek;
-      }).length;
-
-      updateHeaderStats(learningDays, maxStreak, weeklyQuizzes);
     }
 
     function updateProgressBar(elementId, current, max, unit) {
@@ -1788,9 +1737,8 @@
             }
           }, 500);
         } else {
-          const demoScores = getTestScores();
-          // 未ログイン時も統計バー（学習継続日数・連続正解・今週のクイズ数）にデモデータを表示
-          updateHeaderStatsFromScores(demoScores);
+          // 未ログイン時も統計バッジにデモデータを表示
+          updateHeaderStats(5, 3, 4);
           const scoresContainer = document.getElementById('scores-container');
           if (scoresContainer) {
             scoresContainer.innerHTML = `
@@ -1803,7 +1751,7 @@
           `;
           }
           // 未ログイン時も折れ線グラフにデモデータを表示
-          updateMovieScoreChart(demoScores);
+          updateMovieScoreChart(getTestScores());
           if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
             try { window.multiLang.updateUI(); } catch (_) {}
           }
