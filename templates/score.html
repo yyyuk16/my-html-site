@@ -1749,6 +1749,8 @@
             </div>
           `;
           }
+          // 未ログイン時も折れ線グラフにデモデータを表示
+          updateMovieScoreChart(getTestScores());
           if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
             try { window.multiLang.updateUI(); } catch (_) {}
           }
