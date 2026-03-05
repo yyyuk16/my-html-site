@@ -85,9 +85,9 @@ async function generatePersonalizedQuiz() {
       patientText = userMessages.reverse().join('\n');
     }
     
-    // チャット履歴がない場合は、デフォルトレベルでクイズ生成
+    // チャット履歴がない場合は、対話ログの判定を「中」としてクイズ生成
     if (!patientText || patientText.trim().length < 10) {
-      statusDiv.innerHTML = `<p style="color:#888;">${t('insufficient_chat_history', 'チャット履歴が少ないため、基礎レベルのクイズを生成します')}</p>`;
+      statusDiv.innerHTML = `<p style="color:#888;">${t('insufficient_chat_history_medium', 'チャット履歴が少ないため、対話ログの判定を「中」としてクイズを生成します')}</p>`;
       await generateQuizByLevel(3, quizContainer, statusDiv);
       return;
     }
@@ -488,6 +488,32 @@ function showPersonalizedQuizResult(totalQuestions) {
   
   // スコアをFirebaseに保存
   savePersonalizedQuizScore(personalizedQuizScore, totalQuestions, accuracy);
+}
+
+// 対話ログの判定が「中」だとしたときのクイズを生成（レベル3固定：治療方法・服薬・副作用）
+async function generatePersonalizedQuizMedium() {
+  const statusDiv = document.getElementById('quiz-generation-status');
+  const quizContainer = document.getElementById('personalized-quiz-container');
+
+  if (!statusDiv || !quizContainer) return;
+
+  try {
+    const currentUser = firebase.auth().currentUser;
+    if (!currentUser) {
+      statusDiv.innerHTML = '<p style="color:#f44336;">ログインが必要です</p>';
+      return;
+    }
+
+    statusDiv.innerHTML = `<p>${t('generating_medium_quiz', '対話ログの判定が「中」として、クイズを生成中...')}</p>`;
+    quizContainer.innerHTML = '';
+
+    await generateQuizByLevel(3, quizContainer, statusDiv, null);
+  } catch (error) {
+    console.error('クイズ生成エラー:', error);
+    if (statusDiv) {
+      statusDiv.innerHTML = `<p style="color:#f44336;">${t('error', 'エラー')}: ${error.message || '不明なエラー'}</p>`;
+    }
+  }
 }
 
 // スコアをFirebaseに保存
