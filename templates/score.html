@@ -900,11 +900,9 @@
         console.log('=== loadAIQuizScoresOnly 開始 ===');
         console.log('ユーザーID:', userId);
         let aiScores = await loadAIQuizScores(userId);
-        if (aiScores.length === 0) {
-          console.log('⚠️ 本番データがありません。テストデータでグラフを表示します。');
-          aiScores = getTestScores();
-        }
-        console.log('取得したスコア数:', aiScores.length);
+        // デモデータを優先表示（常にデモでグラフ・統計を表示）
+        aiScores = getTestScores();
+        console.log('取得したスコア数（デモ）:', aiScores.length);
         console.log('取得したスコアデータ:', aiScores);
         
         // 最新のクイズ結果データを詳細にコンソールに出力
