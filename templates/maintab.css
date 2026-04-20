@@ -351,6 +351,7 @@ a.rl-icon-btn {
   justify-content: center;
 }
 
+/* KPI サブヘッダー（chat.html / docterprofile.html など） */
 .rl-subheader {
   max-width: 1280px;
   margin: 0.9rem auto 0;

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ヘルプ・操作ガイド - 結核治療アプリ</title>
+    <link rel="stylesheet" href="maintab.css">
+    <link rel="stylesheet" href="d_footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        body {
+            background: #f9f9ff;
+            color: #151c27;
+            padding-top: 70px;
+            padding-bottom: 100px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .help-wrap {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 16px 20px 40px;
+        }
+        .help-hero {
+            margin-bottom: 24px;
+        }
+        .help-hero h1 {
+            font-size: 1.5rem;
+            color: #0061a4;
+            margin: 0 0 8px 0;
+            font-weight: 700;
+        }
+        .help-hero p {
+            margin: 0;
+            color: #404752;
+            line-height: 1.65;
+            font-size: 0.95rem;
+        }
+        .help-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.06);
+        }
+        .help-card h2 {
+            font-size: 1.05rem;
+            color: #0061a4;
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .help-card h2 i {
+            opacity: 0.9;
+        }
+        .help-card ul {
+            margin: 0;
+            padding-left: 1.25rem;
+            color: #151c27;
+            line-height: 1.7;
+            font-size: 0.92rem;
+        }
+        .help-card li {
+            margin-bottom: 6px;
+        }
+        .help-note {
+            background: #f0f3ff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 0.88rem;
+            color: #404752;
+            line-height: 1.65;
+            margin-top: 10px;
+        }
+        .mobile-nav { display: none; }
+        @media (max-width: 768px) {
+            .tab-menu { display: none; }
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 70px;
+                background: rgba(249, 249, 255, 0.85);
+                backdrop-filter: blur(14px);
+                border-top: 1px solid rgba(191, 199, 212, 0.15);
+                justify-content: space-around;
+                align-items: center;
+                z-index: 1000;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            body { padding-bottom: 88px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="top-bar">
+        <div class="header-inner">
+            <div class="logo" style="font-size:1.35rem; font-weight:700; color:#2196f3; letter-spacing:0.05em;">
+                <span>結核治療アプリ</span>
+            </div>
+            <nav>
+                <ul class="tab-menu">
+                    <li><a href="list.html"><i class="fa-solid fa-clipboard-list"></i> <span>患者診療記録</span></a></li>
+                    <li><a href="chat.html"><i class="fa-solid fa-comments"></i> <span>チャット</span></a></li>
+                    <li><a href="docterprofile.html"><i class="fa-solid fa-user-md"></i> <span>プロフィール</span></a></li>
+                </ul>
+            </nav>
+            <div class="rl-header-actions">
+                <div class="rl-profile-pill">
+                    <span class="rl-avatar" id="headerStaffAvatar">?</span>
+                    <span class="rl-meta" id="headerStaffName"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="help-wrap">
+        <div class="help-hero">
+            <h1><i class="fas fa-book-medical"></i> ヘルプ・操作ガイド</h1>
+            <p>この画面は、本アプリを利用する<strong>保健師の方</strong>向けです。操作方法が分からなくなったときに、主な画面の役割と操作手順を確認できます。</p>
+        </div>
+
+        <section class="help-card" id="nav-overview">
+            <h2><i class="fas fa-bars"></i> 画面上部のメニュー</h2>
+            <ul>
+                <li><strong>患者診療記録</strong>：担当患者の一覧、クイズ結果や診察記録の確認ができます。</li>
+                <li><strong>チャット</strong>：担当患者とのメッセージのやり取りができます。</li>
+                <li><strong>プロフィール</strong>：ご自身の登録情報の確認・編集、ログアウトなどができます。</li>
+                <li>患者診療記録・チャット・プロフィールの各画面では、右上の<strong>？</strong>アイコンから、このヘルプ画面を開けます。</li>
+            </ul>
+        </section>
+
+        <section class="help-card" id="records">
+            <h2><i class="fas fa-clipboard-list"></i> 患者診療記録</h2>
+            <ul>
+                <li>左（スマホでは一覧画面）から<strong>患者を選ぶ</strong>と、右側にその方の情報が表示されます。</li>
+                <li>スマートフォンでは、<strong>患者一覧</strong>と<strong>詳細</strong>が別画面になります。詳細から「患者リストに戻る」で一覧へ戻れます。</li>
+                <li>検索欄に名前の一部を入れると、一覧を絞り込めます。</li>
+                <li>クイズ結果や診察記録の見方は、表示されている見出しに沿ってご確認ください。</li>
+            </ul>
+        </section>
+
+        <section class="help-card" id="chat">
+            <h2><i class="fas fa-comments"></i> チャット</h2>
+            <ul>
+                <li>左のリストから<strong>チャットする患者</strong>を選びます。</li>
+                <li>メッセージ入力欄に内容を入力し、「送信」で送れます。</li>
+                <li>患者からのメッセージは、必要に応じて表示が調整される場合があります。</li>
+            </ul>
+        </section>
+
+        <section class="help-card" id="profile">
+            <h2><i class="fas fa-user-md"></i> プロフィール</h2>
+            <ul>
+                <li>登録されている名前・連絡先などを確認できます。</li>
+                <li>「まとめて編集」などから、許可された項目を更新できます。</li>
+                <li><strong>ログアウト</strong>で、端末からログイン状態を終了できます。</li>
+            </ul>
+        </section>
+
+        <section class="help-card" id="trouble">
+            <h2><i class="fas fa-life-ring"></i> 困ったとき</h2>
+            <ul>
+                <li>画面が真っ白・ずっと読み込みのときは、通信状況を確認し、時間をおいて再度お試しください。</li>
+                <li>ログインできないときは、メールアドレス・パスワードをご確認のうえ、必要なら管理者・担当部署へお問い合わせください。</li>
+                <li>本アプリの利用方法・運用については、所属施設のルールに従ってください。</li>
+            </ul>
+            <div class="help-note">
+                表示や操作はアプリの更新で変わることがあります。最新の案内は、施設からのお知らせもあわせてご確認ください。
+            </div>
+        </section>
+
+        <p style="text-align:center; margin-top: 24px;">
+            <a href="list.html" style="color:#0061a4; font-weight:600; text-decoration:none;">← 患者診療記録へ戻る</a>
+        </p>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" data-translate="terms">利用規約</a>
+                    <a href="#" data-translate="privacy">プライバシーポリシー</a>
+                </div>
+                <div class="footer-copyright">
+                    <small data-translate="copyright_name">© 2024 医療管理アプリ. All rights reserved.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <nav class="mobile-nav">
+        <a href="list.html" class="nav-item">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span>患者診療記録</span>
+        </a>
+        <a href="chat.html" class="nav-item">
+            <i class="fa-solid fa-comments"></i>
+            <span>チャット</span>
+        </a>
+        <a href="docterprofile.html" class="nav-item">
+            <i class="fa-solid fa-user-md"></i>
+            <span>プロフィール</span>
+        </a>
+    </nav>
+
+    <script src="header-staff.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+            authDomain: "web01-2484d.firebaseapp.com",
+            databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+            projectId: "web01-2484d",
+            storageBucket: "web01-2484d.firebasestorage.app",
+            messagingSenderId: "90159472898",
+            appId: "1:90159472898:web:261ec71f9919611011e21b",
+            measurementId: "G-9TGR07ZSY9"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        firebase.auth().onAuthStateChanged(async function (user) {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const snap = await db.collection('users').doc(user.uid).get();
+            if (!snap.exists || snap.data().role !== 'staff') {
+                window.location.href = 'patient_home.html';
+                return;
+            }
+            try {
+                await updateHeaderStaffDisplay(user, db, snap.data());
+            } catch (e) {}
+        });
+    </script>
+</body>
+</html>

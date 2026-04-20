@@ -732,9 +732,9 @@
             </div>
             <nav>
                 <ul class="tab-menu">
-                    <li><a href="list.html" class="active">👥 <span data-translate="患者診療記録">患者診療記録</span></a></li>
-                    <li><a href="chat.html">📅 <span data-translate="チャット">チャット</span></a></li>
-                    <li><a href="docterprofile.html">🏥 <span data-translate="プロフィール">プロフィール</span></a></li>
+                    <li><a href="list.html" class="active"><i class="fa-solid fa-clipboard-list"></i> <span data-translate="患者診療記録">患者診療記録</span></a></li>
+                    <li><a href="chat.html"><i class="fa-solid fa-comments"></i> <span data-translate="チャット">チャット</span></a></li>
+                    <li><a href="docterprofile.html"><i class="fa-solid fa-user-md"></i> <span data-translate="プロフィール">プロフィール</span></a></li>
                 </ul>
             </nav>
             <div class="rl-header-actions">
@@ -742,26 +742,12 @@
                     <i class="fas fa-circle-question"></i>
                 </a>
                 <div class="rl-profile-pill">
-                    <span class="rl-avatar" id="headerStaffAvatar">保</span>
-                    <span class="rl-meta" id="headerStaffName">保健師</span>
+                    <span class="rl-avatar" id="headerStaffAvatar">?</span>
+                    <span class="rl-meta" id="headerStaffName"></span>
                 </div>
             </div>
         </div>
     </header>
-    <section class="rl-subheader">
-        <div class="rl-kpi-card">
-            <span class="rl-kpi-label">担当患者数</span>
-            <span class="rl-kpi-value" id="kpiListAssignedPatients">0名</span>
-        </div>
-        <div class="rl-kpi-card">
-            <span class="rl-kpi-label">要注意患者</span>
-            <span class="rl-kpi-value">-</span>
-        </div>
-        <div class="rl-kpi-card">
-            <span class="rl-kpi-label">最終同期</span>
-            <span class="rl-kpi-value" id="kpiListLastSync">--:--</span>
-        </div>
-    </section>
 
     <!-- サイドバーオーバーレイ -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -818,7 +804,7 @@
             <span data-translate="チャット">チャット</span>
         </a>
         <a href="docterprofile.html" class="nav-item">
-            <i class="fa-regular fa-user"></i>
+            <i class="fa-solid fa-user-md"></i>
             <span data-translate="プロフィール">プロフィール</span>
         </a>
     </nav>
@@ -922,10 +908,15 @@
       }
       currentUserId = user.uid;
       try {
-        await updateHeaderStaffDisplay(user, db);
+        var staffProfile = null;
+        try {
+          var staffSnap = await db.collection('users').doc(user.uid).get();
+          staffProfile = staffSnap.exists ? staffSnap.data() : null;
+        } catch (e) {}
+        await updateHeaderStaffDisplay(user, db, staffProfile || undefined);
       } catch (e) {}
       // usersコレクションから担当患者を取得（assignedDoctor と assignedDoctorUid の両方をチェック）
-      console.log('担当患者を取得中... 医師UID:', currentUserId);
+      console.log('担当患者を取得中... 保健師UID:', currentUserId);
       
       const patientMap = new Map();
       
@@ -984,10 +975,6 @@
       
       patients = Array.from(patientMap.values());
       console.log('最終的な患者数:', patients.length);
-      const assignedPatientsKpi = document.getElementById('kpiListAssignedPatients');
-      if (assignedPatientsKpi) {
-        assignedPatientsKpi.textContent = `${patients.length}名`;
-      }
       if (patients.length > 0) {
         console.log('患者リスト:', patients.map(p => ({ 
           id: p.id, 
@@ -1001,10 +988,6 @@
       
       renderPatientList(); // PC版
       renderPatientListMobile(); // モバイル版
-      const lastSyncKpi = document.getElementById('kpiListLastSync');
-      if (lastSyncKpi) {
-        lastSyncKpi.textContent = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-      }
     });
 
     function renderPatientList(targetDiv = null) {
@@ -1228,7 +1211,7 @@
             ${memos.length > 0 ? 
               memos.slice(0, 5).map(memo => `
                 <div class="memo-item">
-                  <div class="memo-date">${memo.date} - ${memo.doctorName || '医師'}</div>
+                  <div class="memo-date">${memo.date} - ${memo.doctorName || '保健師'}</div>
                   <div class="memo-content">
                     ${memo.condition ? `<strong>病状:</strong> ${memo.condition}<br>` : ''}
                     ${memo.prescription ? `<strong>処方:</strong> ${memo.prescription}<br>` : ''}
@@ -1298,7 +1281,7 @@
               <div class="memo-header">
                 <div class="memo-date"><i class="fas fa-calendar-day"></i> ${memo.date}</div>
                 <div class="memo-doctor" style="font-size:0.9em;color:#666;">
-                  <i class="fas fa-user-md"></i> ${memo.doctorName || '医師'}
+                  <i class="fas fa-user-md"></i> ${memo.doctorName || '保健師'}
                 </div>
               </div>
               <div class="memo-content">
@@ -1324,7 +1307,7 @@
           other: document.getElementById('memoInlineOther').value,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           doctorId: currentUserId,
-          doctorName: firebase.auth().currentUser?.displayName || '医師'
+          doctorName: firebase.auth().currentUser?.displayName || '保健師'
         };
         
         if (!newMemo.condition && !newMemo.prescription && !newMemo.other) {
@@ -1670,7 +1653,7 @@
           other: other,
           createdAt: new Date().toISOString(),
           doctorId: currentUserId,
-          doctorName: firebase.auth().currentUser?.displayName || '医師'
+          doctorName: firebase.auth().currentUser?.displayName || '保健師'
         };
 
         existingMemos.unshift(newMemo);
