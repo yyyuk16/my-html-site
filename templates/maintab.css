@@ -317,6 +317,10 @@ body {
   color: var(--rl-primary);
 }
 
+a.rl-icon-btn {
+  text-decoration: none;
+}
+
 .rl-profile-pill {
   display: inline-flex;
   align-items: center;
@@ -325,6 +329,13 @@ body {
   border-radius: 9999px;
   background: var(--rl-surface-low);
   color: var(--rl-on-surface);
+}
+
+#headerStaffName {
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rl-avatar {

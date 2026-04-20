@@ -369,15 +369,12 @@
                 </ul>
             </nav>
             <div class="rl-header-actions">
-                <button class="rl-icon-btn" type="button" title="通知">
-                    <i class="fas fa-bell"></i>
-                </button>
-                <button class="rl-icon-btn" type="button" title="ヘルプ">
+                <a href="help.html" class="rl-icon-btn" title="ヘルプ・操作ガイド" aria-label="ヘルプ・操作ガイド">
                     <i class="fas fa-circle-question"></i>
-                </button>
+                </a>
                 <div class="rl-profile-pill">
-                    <span class="rl-avatar">保</span>
-                    <span class="rl-meta">保健師</span>
+                    <span class="rl-avatar" id="headerStaffAvatar">保</span>
+                    <span class="rl-meta" id="headerStaffName">保健師</span>
                 </div>
             </div>
         </div>
@@ -452,6 +449,7 @@
         </div>
     </footer>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="header-staff.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
@@ -671,6 +669,9 @@
                 }
                 let data = doc.data();
                 currentData = data;
+                try {
+                    await updateHeaderStaffDisplay(user, db, data);
+                } catch (e) {}
                 renderProfile(data, false);
                 if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
                     try { window.multiLang.updateUI(); } catch (_) {}

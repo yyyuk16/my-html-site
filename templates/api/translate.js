@@ -28,6 +28,11 @@ module.exports = async (req, res) => {
 
     const lang = (targetLang || "ja").trim();
     
+    // 日本語の場合は翻訳をスキップして原文をそのまま返す
+    if (lang === 'ja') {
+      return res.status(200).json({ translated: text });
+    }
+    
     // 言語コードのマッピング
     const langMap = {
       'ja': 'Japanese',

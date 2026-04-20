@@ -2,23 +2,156 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Firebase リアルタイムチャット</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="chat.css">
     
   <style>
-    /* メッセージバブルのレイアウト調整 */
+    .msg-text[style*="opacity: 0.6"] {
+      font-style: italic;
+      opacity: 0.6;
+    }
+    
+    /* 吹き出しスタイル */
+    .message {
+      max-width: 75%;
+      display: flex;
+      margin: 8px 0;
+    }
+    
+    .message.self {
+      align-self: flex-end;
+      justify-content: flex-end;
+    }
+    
+    .message:not(.self) {
+      align-self: flex-start;
+      justify-content: flex-start;
+    }
+    
     .bubble {
+      position: relative;
       display: inline-flex;
       flex-direction: column;
       align-items: flex-start;
       gap: 4px;
+      padding: 12px 16px;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      word-wrap: break-word;
+      max-width: 100%;
     }
     
-    .msg-text[style*="opacity: 0.6"] {
-      font-style: italic;
-      opacity: 0.6;
+    /* ユーザーメッセージ（右側の吹き出し） */
+    .message.self .bubble {
+      background: #FF9800 !important;
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+    
+    /* 医師メッセージ（左側の吹き出し） */
+    .message:not(.self) .bubble {
+      background: #ffffff;
+      color: #222;
+      border: 1px solid #e0e0e0;
+      border-bottom-left-radius: 4px;
+    }
+    
+    /* 吹き出しの三角形（ユーザーメッセージ：右側） */
+    .message.self .bubble::after {
+      content: "";
+      position: absolute;
+      bottom: 8px;
+      right: -6px;
+      width: 12px;
+      height: 12px;
+      background: #FF9800;
+      transform: rotate(45deg);
+      border-radius: 0 0 4px 0;
+    }
+    
+    /* 吹き出しの三角形（医師メッセージ：左側） */
+    .message:not(.self) .bubble::before {
+      content: "";
+      position: absolute;
+      bottom: 8px;
+      left: -6px;
+      width: 12px;
+      height: 12px;
+      background: #ffffff;
+      border-left: 1px solid #e0e0e0;
+      border-bottom: 1px solid #e0e0e0;
+      transform: rotate(45deg);
+      border-radius: 0 0 0 4px;
+    }
+    
+    /* 時間表示のスタイル */
+    .msg-time {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      margin-top: 4px;
+      display: block;
+    }
+    
+    .message.self .msg-time {
+      color: rgba(255, 255, 255, 0.8);
+      text-align: right;
+    }
+    
+    .message:not(.self) .msg-time {
+      color: rgba(0, 0, 0, 0.6);
+      text-align: left;
+    }
+    
+    .msg-text {
+      white-space: pre-wrap;
+      word-break: break-word;
+      display: block;
+      line-height: 1.5;
+    }
+    
+    /* オレンジ色に変更 */
+    :root {
+      --primary: #FF9800;
+      --primary-hover: #F57C00;
+      --primary-light: #FFF3E0;
+    }
+    
+    #sendBtn {
+      background: #FF9800 !important;
+    }
+    
+    #sendBtn:hover {
+      background: #F57C00 !important;
+    }
+    
+    #voiceBtn.active {
+      background: #FF9800 !important;
+      border-color: #FF9800 !important;
+    }
+    
+    #voiceBtn:hover {
+      border-color: #FF9800 !important;
+      color: #FF9800 !important;
+    }
+    
+    #messageInput:focus {
+      border-color: #FF9800 !important;
+      box-shadow: 0 0 0 3px #FFF3E0 !important;
+    }
+    
+    #voiceBtn.active {
+      animation: pulse-orange 2s infinite;
+    }
+    
+    @keyframes pulse-orange {
+      0%, 100% {
+        box-shadow: var(--shadow-md);
+      }
+      50% {
+        box-shadow: 0 0 0 4px #FFF3E0;
+      }
     }
   </style>
     
@@ -91,8 +224,7 @@
         textSpan.textContent = '翻訳中...';
         textSpan.style.opacity = '0.6';
       }
-      chatDiv.appendChild(el);
-      chatDiv.scrollTop = chatDiv.scrollHeight;
+      // appendChildは呼び出し元で行うため、ここでは行わない
       return el;
     }
 
@@ -180,18 +312,23 @@
       return db.collection('chats').doc(chatRoomId).collection('messages')
         .orderBy('timestamp','asc')
         .onSnapshot((snapshot) => {
-          // 既存のメッセージ要素を保持するマップ
+          // 既存のメッセージ要素を保持するマップ（メッセージID -> DOM要素）
           const existingMessages = new Map();
           Array.from(chatDiv.children).forEach(child => {
             const msgId = child.dataset.messageId;
             if (msgId) existingMessages.set(msgId, child);
           });
 
-          chatDiv.innerHTML = '';
+          // スナップショットから取得したメッセージIDのセット
+          const snapshotMessageIds = new Set();
+          
+          // 既存のメッセージを一時的に保持（DOMから削除せずに）
+          const messageElements = [];
           
           snapshot.forEach(doc => {
             const m = doc.data();
             const msgId = doc.id;
+            snapshotMessageIds.add(msgId);
             const ts = m.timestamp?.toMillis?.() ?? (typeof m.timestamp?.seconds === 'number' ? m.timestamp.seconds*1000 : m.clientTimeMs);
             const isSelf = m.senderId === currentUserUid;
             const text = m.text || '';
@@ -199,10 +336,34 @@
             // 既存の要素があれば再利用、なければ新規作成
             let el = existingMessages.get(msgId);
             if (!el) {
+              // 新規メッセージ：新しく作成
               el = appendMessageBubble(text, isSelf, ts, msgId);
+              messageElements.push({ el, msgId, isSelf, text });
             } else {
-              // 既存要素を再配置
-              chatDiv.appendChild(el);
+              // 既存メッセージ：そのまま使用
+              messageElements.push({ el, msgId, isSelf, text });
+            }
+          });
+          
+          // 既存のメッセージで、スナップショットに存在しないもの（削除されたメッセージ）を削除
+          existingMessages.forEach((el, msgId) => {
+            if (!snapshotMessageIds.has(msgId)) {
+              el.remove();
+            }
+          });
+          
+          // メッセージを正しい順序で再配置
+          // 既存のメッセージを一旦全て削除（ただし、要素への参照は保持されている）
+          const fragment = document.createDocumentFragment();
+          
+          messageElements.forEach(({ el, msgId, isSelf, text }) => {
+            // 既存の要素がDOMに存在する場合は、一旦削除してからfragmentに追加
+            if (el.parentNode === chatDiv) {
+              // 既存の要素をfragmentに移動（DOMから削除されるが、参照は保持）
+              fragment.appendChild(el);
+            } else {
+              // 新規メッセージの場合は、そのままfragmentに追加
+              fragment.appendChild(el);
             }
             
             // 相手メッセージで、まだ翻訳していない場合は翻訳を実行
@@ -239,6 +400,14 @@
               }
             }
           });
+          
+          // 既存のメッセージを一旦全て削除してから、正しい順序で再追加
+          // innerHTMLを使うと、既存の要素への参照が失われる可能性があるため、
+          // 既存の要素を全て削除してから、fragmentを追加する
+          while (chatDiv.firstChild) {
+            chatDiv.removeChild(chatDiv.firstChild);
+          }
+          chatDiv.appendChild(fragment);
           
           chatDiv.scrollTop = chatDiv.scrollHeight;
         });
