@@ -663,6 +663,41 @@
                 display: none;
             }
         }
+
+        /* ===== Restorative Ledger overrides ===== */
+        .patient-list-panel,
+        .patient-info-container,
+        .info-section {
+            background: #f9f9ff;
+            border: none;
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.06);
+        }
+
+        .patient-header {
+            background: linear-gradient(135deg, #0061a4, #2196f3);
+            border-radius: 16px;
+        }
+
+        .chat-item:hover,
+        .chat-item.selected {
+            background: #dce2f3;
+        }
+
+        .doctor-avatar {
+            background: linear-gradient(135deg, #0061a4, #2196f3);
+            color: #fff;
+        }
+
+        .search-box input {
+            background: #f0f3ff;
+            border: none;
+            border-bottom: 2px solid rgba(191, 199, 212, 0.4);
+        }
+
+        .search-box input:focus {
+            border-bottom-color: #0061a4;
+            background: #fff;
+        }
     </style>
 </head>
 <body>
@@ -684,8 +719,34 @@
                     <li><a href="docterprofile.html">🏥 <span data-translate="プロフィール">プロフィール</span></a></li>
                 </ul>
             </nav>
+            <div class="rl-header-actions">
+                <button class="rl-icon-btn" type="button" title="通知">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <button class="rl-icon-btn" type="button" title="ヘルプ">
+                    <i class="fas fa-circle-question"></i>
+                </button>
+                <div class="rl-profile-pill">
+                    <span class="rl-avatar">保</span>
+                    <span class="rl-meta">保健師</span>
+                </div>
+            </div>
         </div>
     </header>
+    <section class="rl-subheader">
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">担当患者数</span>
+            <span class="rl-kpi-value" id="kpiListAssignedPatients">0名</span>
+        </div>
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">要注意患者</span>
+            <span class="rl-kpi-value">-</span>
+        </div>
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">最終同期</span>
+            <span class="rl-kpi-value" id="kpiListLastSync">--:--</span>
+        </div>
+    </section>
 
     <!-- サイドバーオーバーレイ -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -705,7 +766,7 @@
         <div class="chat-list" id="patientListSidebarContent"></div>
     </div>
         
-    <div class="flex-container">
+    <div class="flex-container" style="padding-top: 16px;">
         <div class="patient-list-panel">
             <h2><i class="fas fa-user-friends"></i> <span data-translate="担当患者リスト">担当患者リスト</span></h2>
             <div class="search-box">
@@ -799,7 +860,7 @@
 
     <script>
     const firebaseConfig = {
-  //apiKey: "",
+  apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
   authDomain: "web01-2484d.firebaseapp.com",
   databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
   projectId: "web01-2484d",
@@ -883,6 +944,10 @@
       
       patients = Array.from(patientMap.values());
       console.log('最終的な患者数:', patients.length);
+      const assignedPatientsKpi = document.getElementById('kpiListAssignedPatients');
+      if (assignedPatientsKpi) {
+        assignedPatientsKpi.textContent = `${patients.length}名`;
+      }
       if (patients.length > 0) {
         console.log('患者リスト:', patients.map(p => ({ 
           id: p.id, 
@@ -896,6 +961,10 @@
       
       renderPatientList(); // PC版
       renderPatientListMobile(); // モバイル版
+      const lastSyncKpi = document.getElementById('kpiListLastSync');
+      if (lastSyncKpi) {
+        lastSyncKpi.textContent = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+      }
     });
 
     function renderPatientList(targetDiv = null) {

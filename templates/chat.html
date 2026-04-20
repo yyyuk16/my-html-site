@@ -27,8 +27,11 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            background: #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: rgba(249, 249, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(191, 199, 212, 0.15);
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.06);
         }
         
         /* フッターの固定 */
@@ -618,6 +621,68 @@
                 padding-right: 6px;
             }
         }
+
+        /* ===== Restorative Ledger overrides ===== */
+        .patient-list-panel {
+            background: #f9f9ff;
+            border: none;
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.06);
+        }
+
+        .chat-area {
+            background: #f9f9ff;
+            border: none;
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.06);
+        }
+
+        .chat-header {
+            border-bottom: 1px solid rgba(191, 199, 212, 0.15);
+            background: rgba(249, 249, 255, 0.88);
+            backdrop-filter: blur(8px);
+        }
+
+        .chat-item:hover, .chat-item.active {
+            background: #dce2f3;
+        }
+
+        .doctor-avatar {
+            background: linear-gradient(135deg, #0061a4, #2196f3);
+            color: #fff;
+        }
+
+        .chat-messages {
+            background: #f0f3ff;
+        }
+
+        .message.received .message-content {
+            background: #dce2f3;
+            color: #151c27;
+        }
+
+        .message.sent .message-content {
+            background: linear-gradient(135deg, #0061a4, #2196f3);
+            color: #fff;
+        }
+
+        .chat-input-container {
+            background: rgba(249, 249, 255, 0.9);
+            border-top: 1px solid rgba(191, 199, 212, 0.15);
+        }
+
+        #messageInput, #messageInputMobile {
+            border: none;
+            background: #f0f3ff;
+            border-radius: 9999px;
+            padding: 10px 14px;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #0061a4, #2196f3);
+            border: none;
+            border-radius: 9999px;
+            color: #fff;
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -639,11 +704,37 @@
                     <li><a href="docterprofile.html">🏥 プロフィール</a></li>
                 </ul>
             </nav>
+            <div class="rl-header-actions">
+                <button class="rl-icon-btn" type="button" title="通知">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <button class="rl-icon-btn" type="button" title="ヘルプ">
+                    <i class="fas fa-circle-question"></i>
+                </button>
+                <div class="rl-profile-pill">
+                    <span class="rl-avatar">保</span>
+                    <span class="rl-meta">保健師</span>
+                </div>
+            </div>
         </div>
     </header>
+    <section class="rl-subheader" style="margin-top: 88px;">
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">担当患者数</span>
+            <span class="rl-kpi-value" id="kpiAssignedPatients">0名</span>
+        </div>
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">要注意患者</span>
+            <span class="rl-kpi-value">-</span>
+        </div>
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">最終同期</span>
+            <span class="rl-kpi-value" id="kpiLastSync">--:--</span>
+        </div>
+    </section>
 
     <!-- PC版：横並びレイアウト -->
-    <div class="flex-container" style="margin-top:32px;">
+    <div class="flex-container" style="margin-top:18px;">
         <!-- サイドバー：患者リスト -->
         <aside class="patient-list-panel">
             <h2><i class="fas fa-user-injured"></i> 担当患者一覧</h2>
@@ -926,6 +1017,10 @@
             
             const patients = Array.from(patientMap.values());
             console.log('最終的な患者数:', patients.length);
+            const assignedPatientsKpi = document.getElementById('kpiAssignedPatients');
+            if (assignedPatientsKpi) {
+                assignedPatientsKpi.textContent = `${patients.length}名`;
+            }
             if (patients.length > 0) {
                 console.log('患者リスト:', patients.map(p => ({ 
                     id: p.id, 
@@ -938,6 +1033,10 @@
             }
 
             renderPatientList(patients);
+            const lastSyncKpi = document.getElementById('kpiLastSync');
+            if (lastSyncKpi) {
+                lastSyncKpi.textContent = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+            }
 
             // 検索機能（PC版）
             const patientSearch = document.getElementById('patientSearch');

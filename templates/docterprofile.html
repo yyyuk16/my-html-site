@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-translate="医師プロフィール">医師プロフィール</title>
+    <title data-translate="保健師プロフィール">保健師プロフィール</title>
     <link rel="stylesheet" href="maintab.css">
     <link rel="stylesheet" href="d_footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -26,8 +26,11 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            background: #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: rgba(249, 249, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(191, 199, 212, 0.15);
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.06);
         }
 
         .profile-container {
@@ -316,6 +319,39 @@
                 max-width: 300px;
             }
         }
+
+        /* ===== Restorative Ledger overrides ===== */
+        .profile-container {
+            background: #f9f9ff;
+            border: none;
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.06);
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #0061a4, #2196f3);
+        }
+
+        .profile-avatar {
+            border-color: #dce2f3;
+            color: #0061a4;
+        }
+
+        .profile-row {
+            border-bottom: 1px solid rgba(191, 199, 212, 0.25);
+        }
+
+        .profile-label {
+            color: #0061a4;
+        }
+
+        .edit-btn, .save-btn, .logout-btn {
+            background: linear-gradient(135deg, #0061a4, #2196f3);
+        }
+
+        .cancel-btn {
+            background: #e2e8f8;
+            color: #151c27;
+        }
     </style>
 </head>
 <body>
@@ -332,8 +368,34 @@
                     <li><a href="docterprofile.html" class="active">🏥 <span data-translate="プロフィール">プロフィール</span></a></li>
                 </ul>
             </nav>
+            <div class="rl-header-actions">
+                <button class="rl-icon-btn" type="button" title="通知">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <button class="rl-icon-btn" type="button" title="ヘルプ">
+                    <i class="fas fa-circle-question"></i>
+                </button>
+                <div class="rl-profile-pill">
+                    <span class="rl-avatar">保</span>
+                    <span class="rl-meta">保健師</span>
+                </div>
+            </div>
         </div>
     </header>
+    <section class="rl-subheader" style="margin-top: 86px;">
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">所属</span>
+            <span class="rl-kpi-value">結核管理科</span>
+        </div>
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">ロール</span>
+            <span class="rl-kpi-value">保健師</span>
+        </div>
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">アカウント状態</span>
+            <span class="rl-kpi-value">有効</span>
+        </div>
+    </section>
 
      <!-- メインコンテンツ -->
      <div class="profile-container">
@@ -341,7 +403,7 @@
              <div class="profile-avatar">
                  <span id="profileInitial">?</span>
                     </div>
-             <h1 class="profile-title" data-translate="医師プロフィール">医師プロフィール</h1>
+             <h1 class="profile-title" data-translate="保健師プロフィール">保健師プロフィール</h1>
              <p class="profile-subtitle" data-translate="ご登録情報の確認">ご登録情報の確認</p>
                 </div>
          <div class="profile-content">

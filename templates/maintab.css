@@ -207,3 +207,198 @@ body {
     margin: 0;
     min-height: 100vh;
 }
+
+/* ===============================
+   Restorative Ledger Redesign
+   =============================== */
+:root {
+  --rl-primary: #0061A4;
+  --rl-primary-container: #2196F3;
+  --rl-on-surface: #151C27;
+  --rl-on-surface-variant: #404752;
+  --rl-surface: #F9F9FF;
+  --rl-surface-bright: #F9F9FF;
+  --rl-surface-low: #F0F3FF;
+  --rl-surface-high: #E2E8F8;
+  --rl-surface-highest: #DCE2F3;
+  --rl-outline-ghost: rgba(191, 199, 212, 0.15);
+  --rl-shadow-soft: 0 4px 24px rgba(0, 97, 164, 0.06);
+  --rl-gradient-primary: linear-gradient(135deg, #0061A4, #2196F3);
+}
+
+body {
+  background: var(--rl-surface-bright);
+  color: var(--rl-on-surface);
+}
+
+.top-bar {
+  background: rgba(249, 249, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: none;
+  border-bottom: 1px solid var(--rl-outline-ghost);
+  box-shadow: var(--rl-shadow-soft);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.logo span,
+.site-title {
+  color: var(--rl-primary);
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+}
+
+.tab-menu {
+  gap: 1rem;
+}
+
+.tab-menu li a {
+  color: var(--rl-on-surface-variant);
+  border-bottom: none;
+  border-radius: 9999px;
+  padding: 0.55rem 0.95rem;
+  font-weight: 600;
+}
+
+.tab-menu li a:hover {
+  color: var(--rl-primary);
+  background: var(--rl-surface-low);
+  border-bottom-color: transparent;
+}
+
+.tab-menu li a.active {
+  color: var(--rl-primary);
+  background: var(--rl-surface-highest);
+  border-bottom-color: transparent;
+}
+
+.user-name-btn {
+  background: var(--rl-surface-high);
+  color: var(--rl-on-surface);
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+.user-name-btn:hover {
+  background: var(--rl-surface-highest);
+}
+
+.rl-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.rl-icon-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: var(--rl-on-surface-variant);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.rl-icon-btn:hover {
+  background: var(--rl-surface-low);
+  color: var(--rl-primary);
+}
+
+.rl-profile-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+  border-radius: 9999px;
+  background: var(--rl-surface-low);
+  color: var(--rl-on-surface);
+}
+
+.rl-avatar {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 9999px;
+  background: var(--rl-gradient-primary);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rl-subheader {
+  max-width: 1280px;
+  margin: 0.9rem auto 0;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.rl-kpi-card {
+  background: var(--rl-surface-low);
+  border-radius: 1rem;
+  padding: 0.8rem 0.9rem;
+  box-shadow: var(--rl-shadow-soft);
+}
+
+.rl-kpi-label {
+  font-size: 0.72rem;
+  color: var(--rl-on-surface-variant);
+  display: block;
+}
+
+.rl-kpi-value {
+  color: var(--rl-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.mobile-nav {
+  background: rgba(249, 249, 255, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--rl-outline-ghost);
+  box-shadow: 0 -4px 24px rgba(0, 97, 164, 0.06);
+}
+
+.mobile-nav .nav-item {
+  color: var(--rl-on-surface-variant);
+}
+
+.mobile-nav .nav-item.active {
+  color: var(--rl-primary);
+  background: var(--rl-surface-highest);
+  border-radius: 1rem;
+  padding: 0.35rem 0.7rem;
+}
+
+.footer {
+  background: var(--rl-surface);
+  border-top: 1px solid var(--rl-outline-ghost);
+}
+
+@media (max-width: 900px) {
+  .rl-subheader {
+    grid-template-columns: 1fr;
+    margin-top: 0.6rem;
+  }
+
+  .rl-profile-pill .rl-meta {
+    display: none;
+  }
+}
