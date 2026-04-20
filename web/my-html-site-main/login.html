@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ユーザー情報閲覧ページ</title>
+  <style>
+    :root {
+      /* ピンクメインのカラーパレット */
+      --color-pink-light: #FFE4E1;
+      --color-pink-medium: #FFB6C1;
+      --color-pink-dark: #FF69B4;
+      --color-pink-accent: #FFC0CB;
+      --color-pink-gradient: #FFB6C1;
+
+      /* アプリケーションで使用する色変数 */
+      --primary-color: var(--color-pink-medium);
+      --secondary-color: var(--color-pink-dark);
+      --accent-color: var(--color-pink-accent);
+      --background-color: var(--color-pink-light);
+      --text-color: #1A1A1A;
+      --shadow-color: rgba(0,0,0,0.08);
+      --card-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--color-pink-light), var(--color-pink-accent));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    .container {
+      padding: 25px;
+      max-width: 1000px;
+      width: 95%;
+      margin: 30px auto;
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+      text-align: center;
+      min-height: 80vh;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 28px;
+      color: var(--text-color);
+    }
+
+    .tab-container {
+      margin-bottom: 25px;
+    }
+
+    .tab-header {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      background-color: var(--primary-color);
+      border-radius: 25px;
+      padding: 6px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+    }
+
+    .tab-button {
+      padding: 12px 25px;
+      background: transparent;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.8);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-button.active {
+      background: white;
+      color: var(--primary-color);
+      box-shadow: 0 2px 10px var(--shadow-color);
+    }
+
+    .info-box {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+      margin: 20px 0;
+      width: 90%;
+      max-width: 800px;
+    }
+
+    .info-box h2 {
+      margin-top: 0;
+      border-bottom: 2px solid var(--color-pink-light);
+      padding-bottom: 10px;
+      color: var(--secondary-color);
+    }
+
+    .info-item {
+      margin: 12px 0;
+      font-size: 16px;
+    }
+
+    .label {
+      font-weight: 500;
+      color: var(--accent-color);
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      margin: 10px 0;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow-color);
+    }
+
+    @media (max-width: 600px) {
+      .tab-header {
+        flex-direction: column;
+      }
+      
+      .tab-button {
+        width: 100%;
+        margin: 5px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>ログインユーザー情報</h1>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="basic">基本情報</button>
+    <button class="tab" data-tab="auth">認証情報</button>
+    <button class="tab" data-tab="firestore">Firestore情報</button>
+    <button class="tab" data-tab="settings">設定</button>
+  </div>
+
+  <div id="basicInfo" class="info-box tab-content active" data-tab="basic">
+    <h2>基本情報</h2>
+    <div class="info-item"><span class="label">名前:</span> <span id="name">読み込み中...</span></div>
+    <div class="info-item"><span class="label">年齢:</span> <span id="age">読み込み中...</span></div>
+    <div class="info-item"><span class="label">性別:</span> <span id="gender">読み込み中...</span></div>
+  </div>
+
+  <div id="authInfo" class="info-box tab-content" data-tab="auth">
+    <h2>Firebase Authentication 情報</h2>
+    <div class="info-item"><span class="label">UID:</span> <span id="uid">読み込み中...</span></div>
+    <div class="info-item"><span class="label">メールアドレス:</span> <span id="email">読み込み中...</span></div>
+    <div class="info-item"><span class="label">表示名:</span> <span id="displayName">読み込み中...</span></div>
+    <div class="info-item"><span class="label">メール認証済み:</span> <span id="emailVerified">読み込み中...</span></div>
+  </div>
+
+  <div id="firestoreInfo" class="info-box tab-content" data-tab="firestore">
+    <h2>Firestore ユーザー情報 (users コレクション)</h2>
+    <div class="info-item"><span class="label">ユーザー名 (userName):</span> <span id="userName">読み込み中...</span></div>
+    <div class="info-item"><span class="label">言語設定 (language):</span> <span id="language">読み込み中...</span></div>
+  </div>
+
+  <div id="settingsInfo" class="info-box tab-content" data-tab="settings">
+    <h2>設定</h2>
+    <div class="info-item">
+      <span class="label">通知設定:</span>
+      <label>
+        <input type="checkbox" id="notificationSetting"> メール通知を受け取る
+      </label>
+    </div>
+    <div class="info-item">
+      <span class="label">テーマ:</span>
+      <select id="themeSelect">
+        <option value="light">ライト</option>
+        <option value="dark">ダーク</option>
+        <option value="system">システム設定に従う</option>
+      </select>
+    </div>
+  </div>
+
+   <button onclick="window.location.href='choise.html'" style="margin-left: 10px;">戻る</button>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+      authDomain: "web01-2484d.firebaseapp.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.appspot.com",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:8a33ef04b4474b9911e21b",
+      measurementId: "G-148XJR01WS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
+
+    const nameElem = document.getElementById("name");
+    const ageElem = document.getElementById("age");
+    const genderElem = document.getElementById("gender");
+    const uidElem = document.getElementById("uid");
+    const emailElem = document.getElementById("email");
+    const displayNameElem = document.getElementById("displayName");
+    const emailVerifiedElem = document.getElementById("emailVerified");
+    const userNameElem = document.getElementById("userName");
+    const languageElem = document.getElementById("language");
+    const notificationSetting = document.getElementById("notificationSetting");
+    const themeSelect = document.getElementById("themeSelect");
+
+    // タブ切り替え機能
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // アクティブなタブを更新
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // タブコンテンツを更新
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => content.classList.remove('active'));
+        document.querySelector(`.tab-content[data-tab="${tab.dataset.tab}"]`).classList.add('active');
+      });
+    });
+
+    // ユーザーのFirestore情報取得
+    async function loadFirestoreUserInfo(uid) {
+      try {
+        const userDocRef = doc(firestore, "users", uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const data = userDocSnap.data();
+          nameElem.textContent = data.name || "未設定";
+          ageElem.textContent = data.age || "未設定";
+          genderElem.textContent = data.gender || "未設定";
+          userNameElem.textContent = data.userName || "未設定";
+          languageElem.textContent = data.language || "未設定";
+        } else {
+          nameElem.textContent = "ドキュメントなし";
+          ageElem.textContent = "ドキュメントなし";
+          genderElem.textContent = "ドキュメントなし";
+          userNameElem.textContent = "ドキュメントなし";
+          languageElem.textContent = "ドキュメントなし";
+        }
+      } catch (error) {
+        nameElem.textContent = "読み込み失敗";
+        ageElem.textContent = "読み込み失敗";
+        genderElem.textContent = "読み込み失敗";
+        userNameElem.textContent = "読み込み失敗";
+        languageElem.textContent = "読み込み失敗";
+        console.error("Firestore ユーザー情報取得エラー:", error);
+      }
+    }
+
+    // ログイン状態を監視
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        uidElem.textContent = user.uid;
+        emailElem.textContent = user.email || "なし";
+        displayNameElem.textContent = user.displayName || "なし";
+        emailVerifiedElem.textContent = user.emailVerified ? "はい" : "いいえ";
+
+        loadFirestoreUserInfo(user.uid);
+      } else {
+        uidElem.textContent = "ログインしていません";
+        emailElem.textContent = "-";
+        displayNameElem.textContent = "-";
+        emailVerifiedElem.textContent = "-";
+        nameElem.textContent = "-";
+        ageElem.textContent = "-";
+        genderElem.textContent = "-";
+        userNameElem.textContent = "-";
+        languageElem.textContent = "-";
+        alert("ログインが必要です。ログインページへ移動します。");
+        // 例: ログインページへリダイレクト
+        // location.href = "login.html";
+      }
+    });
+
+    // ログアウトボタン処理
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      signOut(auth).then(() => {
+        alert("ログアウトしました");
+        location.reload();
+      }).catch((error) => {
+        alert("ログアウト失敗:" + error.message);
+      });
+    });
+  </script>
+</body>
+</html>

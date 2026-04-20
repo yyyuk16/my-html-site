@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>結核クイズ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .container {
+            min-height: 100vh;
+        }
+        .message-box {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            color: white;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 100;
+        }
+        .message-box.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center">
+    <!-- メッセージボックス -->
+    <div id="message-box" class="message-box shadow-lg"></div>
+
+    <div class="container bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl mx-auto flex flex-col justify-center items-center">
+        <h1 class="text-4xl font-bold text-gray-800 mb-6">結核に関するクイズ</h1>
+        <div id="loading" class="text-center text-gray-600 mb-6 hidden">
+            <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-2">新しいクイズを生成中...</p>
+        </div>
+        <div id="quiz-container" class="w-full">
+            <p id="question" class="text-2xl font-semibold text-gray-700 mb-6"></p>
+            <div id="options-container" class="grid grid-cols-1 gap-4">
+                <!-- 選択肢がここに動的に挿入されます -->
+            </div>
+            <button id="next-button" class="mt-8 px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-md hover:bg-blue-700 transition-colors hidden">次の問題へ</button>
+        </div>
+    </div>
+
+    <script>
+        // APIのエンドポイントURLを指定します。
+        // ここに表示されたngrokのURLを貼り付けてください。
+        const API_URL = "https://9b56b97037a6.ngrok-free.app";
+        
+        const questions = [
+            "結核はどのように感染しますか？",
+            "結核の主な症状は何ですか？",
+            "潜在性結核感染症とは何ですか？",
+            "結核の治療期間はどれくらいですか？",
+            "IGRA検査とは何ですか？",
+            "結核治療中に飲酒を控えるべき理由は何ですか？"
+        ];
+
+        let currentQuestionIndex = 0;
+        let isAnswered = false;
+
+        const questionElement = document.getElementById('question');
+        const optionsContainer = document.getElementById('options-container');
+        const loadingElement = document.getElementById('loading');
+        const nextButton = document.getElementById('next-button');
+        const messageBox = document.getElementById('message-box');
+
+        // メッセージを表示する関数
+        function showMessage(text, type) {
+            messageBox.textContent = text;
+            messageBox.className = `message-box show ${type === 'correct' ? 'bg-green-500' : 'bg-red-500'}`;
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+        // APIを呼び出してクイズを生成する関数
+        async function fetchQuiz(question) {
+            loadingElement.classList.remove('hidden');
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                generateQuizUI(data.question, data.answer);
+            } catch (error) {
+                console.error("Failed to fetch quiz:", error);
+                questionElement.textContent = "クイズの取得に失敗しました。APIサーバーが起動しているか確認してください。";
+                optionsContainer.innerHTML = '';
+            } finally {
+                loadingElement.classList.add('hidden');
+            }
+        }
+
+        // クイズUIを生成する関数
+        function generateQuizUI(question, correctAnswer) {
+            isAnswered = false;
+            questionElement.textContent = question;
+            optionsContainer.innerHTML = '';
+            nextButton.classList.add('hidden');
+
+            const options = generateOptions(correctAnswer);
+
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = "w-full p-4 bg-gray-200 text-gray-800 text-lg rounded-xl shadow-sm hover:bg-gray-300 transition-colors";
+                button.onclick = () => handleAnswer(button, option, correctAnswer);
+                optionsContainer.appendChild(button);
+            });
+        }
+        
+        // 選択肢を生成する関数
+        // この関数は、APIの回答を基にダミーの選択肢も作成します。
+        function generateOptions(correctAnswer) {
+            const allOptions = [correctAnswer];
+            // 簡単なロジックでダミーの選択肢を生成
+            const dummyOptions = [
+                "風邪と似た症状なので区別が難しい。",
+                "治療期間は通常6ヶ月から9ヶ月です。",
+                "感染の連鎖を断つために接触者健診が重要です。",
+                "潜在性結核感染症は感染力がありません。",
+                "治療薬は肝臓に負担をかけるため飲酒を控えるべきです。"
+            ];
+
+            while (allOptions.length < 4) {
+                const randomIndex = Math.floor(Math.random() * dummyOptions.length);
+                const dummyOption = dummyOptions[randomIndex];
+                if (!allOptions.includes(dummyOption) && dummyOption !== correctAnswer) {
+                    allOptions.push(dummyOption);
+                }
+            }
+            
+            // 選択肢をシャッフル
+            allOptions.sort(() => Math.random() - 0.5);
+            return allOptions;
+        }
+
+        // ユーザーの回答を処理する関数
+        function handleAnswer(button, selectedOption, correctAnswer) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            optionsContainer.childNodes.forEach(child => {
+                child.disabled = true;
+                if (child.textContent === correctAnswer) {
+                    child.classList.remove('bg-gray-200');
+                    child.classList.add('bg-green-500', 'text-white');
+                } else {
+                    child.classList.remove('bg-gray-200');
+                    child.classList.add('bg-red-500', 'text-white');
+                }
+            });
+
+            if (selectedOption === correctAnswer) {
+                showMessage("正解です！", "correct");
+            } else {
+                showMessage(`不正解です... 正解は「${correctAnswer}」です。`, "incorrect");
+            }
+            
+            nextButton.classList.remove('hidden');
+        }
+
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex = (currentQuestionIndex + 1) % questions.length;
+            fetchQuiz(questions[currentQuestionIndex]);
+        });
+
+        // アプリの開始
+        fetchQuiz(questions[currentQuestionIndex]);
+    </script>
+</body>
+</html>

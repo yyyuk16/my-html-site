@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>保健師チャット - 結核治療アプリ</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Public+Sans:wght@700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#6d3900",
+                        "on-surface": "#151c27",
+                        "outline": "#707883",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#28496b",
+                        "primary-container": "#2196f3",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#db7900",
+                        "surface-container-low": "#f0f3ff",
+                        "on-primary-fixed-variant": "#00497d",
+                        "inverse-surface": "#2a313d",
+                        "on-secondary-fixed": "#001d36",
+                        "surface-container-highest": "#dce2f3",
+                        "on-primary-fixed": "#001d36",
+                        "on-secondary-container": "#3c5c7f",
+                        "surface-variant": "#dce2f3",
+                        "surface-bright": "#f9f9ff",
+                        "primary-fixed": "#d1e4ff",
+                        "error": "#ba1a1a",
+                        "on-background": "#151c27",
+                        "on-surface-variant": "#404752",
+                        "secondary": "#416084",
+                        "secondary-fixed": "#d1e4ff",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#2e1500",
+                        "inverse-primary": "#9ecaff",
+                        "surface": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#d3daea",
+                        "tertiary": "#904d00",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#452200",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "outline-variant": "#bfc7d4",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffdcc2",
+                        "background": "#f9f9ff",
+                        "primary": "#0061a4",
+                        "secondary-container": "#b4d4fe",
+                        "primary-fixed-dim": "#9ecaff",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#e2e8f8",
+                        "surface-tint": "#0061a4",
+                        "on-primary-container": "#002c4f",
+                        "surface-container": "#e7eefe",
+                        "secondary-fixed-dim": "#a9c9f2",
+                        "inverse-on-surface": "#ebf1ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Public Sans", "sans-serif"],
+                        "body": ["Inter", "Noto Sans JP", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', 'Noto Sans JP', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .font-headline { font-family: 'Public Sans', sans-serif; }
+        
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(249, 249, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Ambient Shadow */
+        .ambient-shadow {
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.06);
+        }
+
+        /* Ghost Border */
+        .ghost-border-bottom {
+            border-bottom: 1px solid rgba(191, 199, 212, 0.15);
+        }
+
+        /* Custom Scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #bfc7d4;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col antialiased">
+<!-- TopAppBar (Shared Component) -->
+<header class="bg-[#F9F9FF] dark:bg-slate-950 docked full-width top-0 bg-[#F0F3FF] dark:bg-slate-900 flex justify-between items-center w-full px-6 py-4 max-w-full z-40 relative">
+<div class="flex items-center gap-4">
+<span class="text-xl font-black text-[#0061A4] dark:text-blue-400 tracking-tighter">The Restorative Ledger</span>
+<span class="text-on-surface-variant text-sm font-medium ml-4 hidden md:inline-block border-l border-outline-variant/30 pl-4">保健師チャット</span>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-[#404752] dark:text-slate-400 hover:bg-[#F0F3FF] dark:hover:bg-slate-800 transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="text-[#404752] dark:text-slate-400 hover:bg-[#F0F3FF] dark:hover:bg-slate-800 transition-colors p-2 rounded-full relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2.5 h-2.5 bg-error rounded-full border-2 border-surface"></span>
+</button>
+<button class="text-[#404752] dark:text-slate-400 hover:bg-[#F0F3FF] dark:hover:bg-slate-800 transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-outline-variant/30">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-semibold text-on-surface">山田 太郎</p>
+<p class="text-xs text-on-surface-variant">結核管理科</p>
+</div>
+<img alt="Nurse Profile" class="w-10 h-10 rounded-full object-cover border-2 border-surface-container-high" data-alt="Professional portrait of a male medical worker in scrubs, bright clinical lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2oIqXCoFYkbLULiuqyol0oX2nYBieisKqXBP9jPQDLOpcVoDKNcKzrN9ppmKqjqK-sIE9D1AVB29SLsg0xGUl7Ksbs-f7CebSygxfeYgr6MCP_tzz5fEucP3SN-x0nUt2UpQWt-HVpWn1o4tl4LtI1XEtCwq58W6_2zM-rdXxZhTqe_4gjX5Idw6kf6U9dAaT8JeLgodNy-laLjUFw3y37T6SyvUB_5wmu6h4H-N6Bs-vzb1LLOkXGQWzougaZNnCZdxNq3XHKpZP"/>
+</div>
+</div>
+</header>
+<!-- Main Layout -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Left Column: Patient List (Sidebar) -->
+<aside class="w-full md:w-80 lg:w-96 bg-surface flex flex-col h-full border-r border-outline-variant/15 flex-shrink-0">
+<!-- Search -->
+<div class="p-6 pb-2">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+<input class="w-full bg-surface-variant/50 border-none rounded-DEFAULT pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary focus:bg-surface transition-colors placeholder:text-on-surface-variant/70" placeholder="患者を検索..." type="text"/>
+</div>
+</div>
+<!-- List -->
+<div class="flex-1 overflow-y-auto px-4 py-2 space-y-6">
+<!-- Active Patient Item -->
+<div class="p-4 rounded-lg bg-surface-container-highest cursor-pointer flex items-start gap-4 transition-colors">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-lg">
+                            佐
+                        </div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-tertiary-container rounded-full border-2 border-surface flex items-center justify-center" title="Warning Risk">
+<span class="material-symbols-outlined text-[10px] text-white">priority_high</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-headline font-bold text-base text-on-surface truncate">佐藤 花子</h3>
+<span class="text-xs text-on-surface-variant">10:42</span>
+</div>
+<p class="text-sm text-on-surface-variant truncate">お薬の確認をお願いします。</p>
+<div class="mt-2 flex gap-2">
+<span class="inline-block px-2 py-0.5 rounded-full bg-tertiary-container/20 text-tertiary font-medium text-[10px]">要注意</span>
+</div>
+</div>
+</div>
+<!-- Inactive Patient Item -->
+<div class="p-4 rounded-lg hover:bg-surface-container-low cursor-pointer flex items-start gap-4 transition-colors">
+<div class="relative">
+<img alt="Patient Profile" class="w-12 h-12 rounded-full object-cover" data-alt="Portrait of an elderly Japanese woman looking calm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8c4egfWu9IiVYr1A36dVU32RieNtl8QeUCV92M4ucwrqvTG7zE_p4dEF1CSDDW3o3K4xN4q3OdnxIHq6ohSJCcgigXoyJWhEWqRRRTYzgypEWwyhRAl9Vk8LqqwGMnFyi3uKdJSfwKhdtnuM5P7jgyxReNjsmJmqyeQArCM1mBWKa4U3gX8eGRA2Vxhics7ucnzHXVOyGKK1oX0S5_KQkJdW25o8WLMXxH7XpM6oI1sNLGbhoYKGTJWHO4UJK3QboLbuI7s93kl_i"/>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-surface-container rounded-full border-2 border-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] text-green-700">check</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-headline font-bold text-base text-on-surface truncate">鈴木 一郎</h3>
+<span class="text-xs text-on-surface-variant">昨日</span>
+</div>
+<p class="text-sm text-on-surface-variant truncate font-medium text-on-surface">本日は体調が良いです。</p>
+</div>
+<div class="flex flex-col items-end justify-between h-full">
+<div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-bold">1</div>
+</div>
+</div>
+<!-- Inactive Patient Item -->
+<div class="p-4 rounded-lg hover:bg-surface-container-low cursor-pointer flex items-start gap-4 transition-colors">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary font-bold text-lg">
+                            高
+                        </div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-headline font-bold text-base text-on-surface truncate">高橋 健太</h3>
+<span class="text-xs text-on-surface-variant">3日前</span>
+</div>
+<p class="text-sm text-on-surface-variant truncate">次回の受診日について...</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Right Column: Main Chat Area -->
+<section class="flex-1 bg-surface-bright flex flex-col h-full relative md:flex hidden">
+<!-- Patient Header -->
+<div class="px-8 py-5 flex items-center justify-between border-b border-outline-variant/15 bg-surface/50 backdrop-blur-md z-10">
+<div class="flex items-center gap-5">
+<div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-2xl">
+                        佐
+                    </div>
+<div>
+<div class="flex items-center gap-3">
+<h2 class="font-headline font-bold text-2xl text-on-surface tracking-tight">佐藤 花子</h2>
+<span class="px-3 py-1 rounded-full bg-surface-container-high text-on-surface text-xs font-medium tracking-wide">ID: 12345</span>
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wide">治療中</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="p-2 rounded-full hover:bg-surface-container-low text-primary transition-colors" title="Patient Details">
+<span class="material-symbols-outlined">info</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Chat Messages Area -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8 flex flex-col">
+<!-- Date Divider -->
+<div class="flex justify-center">
+<span class="text-xs font-medium text-on-surface-variant bg-surface-container px-4 py-1 rounded-full">今日</span>
+</div>
+<!-- AI Quiz Result (Floating Card) -->
+<div class="self-center w-full max-w-2xl bg-surface-container-low rounded-xl p-5 ambient-shadow border border-outline-variant/10 relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-tertiary-container"></div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2 text-tertiary-container">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-bold text-sm">AI 日常クイズ分析結果</span>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+<p class="text-sm text-on-surface leading-relaxed mb-4">
+                        昨日の服薬確認クイズにて、副作用に関する項目で誤答がありました。吐き気などの症状が出ていないか、確認を推奨します。
+                    </p>
+<div class="flex gap-3">
+<button class="bg-primary/10 text-primary px-4 py-1.5 rounded-DEFAULT text-xs font-semibold hover:bg-primary/20 transition-colors">確認メッセージを自動入力</button>
+<button class="text-on-surface-variant px-4 py-1.5 text-xs font-medium hover:bg-surface-container transition-colors rounded-DEFAULT">無視</button>
+</div>
+</div>
+<!-- Message: Patient -->
+<div class="flex items-end gap-3 max-w-3xl">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex-shrink-0 flex items-center justify-center text-primary font-bold text-xs">佐</div>
+<div class="flex flex-col gap-1">
+<div class="bg-surface-container-highest px-5 py-3 rounded-2xl rounded-bl-sm text-on-surface text-sm leading-relaxed">
+                            おはようございます。昨晩から少し胃がムカムカするのですが、お薬の影響でしょうか？
+                        </div>
+<span class="text-[10px] text-on-surface-variant ml-1">10:42</span>
+</div>
+</div>
+<!-- Message: Nurse (Self) -->
+<div class="flex items-end gap-3 max-w-3xl self-end flex-row-reverse">
+<div class="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden">
+<img alt="Nurse Profile" class="w-full h-full object-cover" data-alt="Professional portrait of a male medical worker in scrubs, bright clinical lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtFMo8dfLcH_yKp4Tii79yaKHuAB82MVZhH5NxGm1YEjLlqy4BK5H6Jbwg3AMAAxsveTkYoSKQhodr8yD9EpZZvJO83imvm14gz8YY66e68EH-3ITWF3LTcroRvPbhEsOn753mTTYbLt-OSEfg5y6CLAnwG5t56reKZwJ709LUmtORNnfp-e7j3HtjjU7fcHOM8MBxbdqevlPRadIeN-lI7MX4WUYQafPPTdzQ2n9zbacPcvt0xZkgLf8ODrMl5p64vf7mlsjSmmqt"/>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<div class="bg-primary text-white px-5 py-3 rounded-2xl rounded-br-sm text-sm leading-relaxed shadow-sm">
+                            佐藤さん、ご連絡ありがとうございます。<br/>
+                            結核のお薬（特にピラジナミドなど）は、飲み始めに胃腸の不調が出ることがあります。<br/>
+                            水分を多めに取っていただき、もし嘔吐してしまうようであれば、すぐにお知らせください。本日の体温は何度でしたか？
+                        </div>
+<span class="text-[10px] text-on-surface-variant mr-1">10:45</span>
+</div>
+</div>
+</div>
+<!-- Bottom Chat Input -->
+<div class="p-6 bg-surface z-10 border-t border-outline-variant/15">
+<div class="max-w-4xl mx-auto flex gap-4 items-end bg-surface-container-lowest rounded-xl p-2 shadow-sm border border-outline-variant/20 focus-within:ring-2 focus-within:ring-primary/50 transition-shadow">
+<button class="p-3 text-on-surface-variant hover:text-primary transition-colors rounded-lg flex-shrink-0">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<textarea class="w-full bg-transparent border-none resize-none focus:ring-0 text-sm text-on-surface py-3 min-h-[60px] max-h-32" placeholder="メッセージを入力 (Shift+Enterで改行)" rows="2"></textarea>
+<button class="p-3 bg-gradient-to-br from-primary to-primary-container text-white rounded-lg flex-shrink-0 hover:opacity-90 transition-opacity flex items-center justify-center h-12 w-12 mb-0.5">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</section>
+<!-- BottomNavBar (Shared Component) for Mobile -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-3xl border-t-[0.5px] border-blue-100/10 bg-[#F9F9FF]/80 dark:bg-slate-950/80 backdrop-blur-xl md:hidden">
+<div class="flex justify-around items-center px-4 pb-6 pt-3 shadow-[0_-4px_24px_rgba(0,97,164,0.06)]">
+<button class="flex flex-col items-center justify-center text-[#404752] dark:text-slate-500 px-5 py-2 hover:text-[#0061A4] dark:hover:text-blue-300 transition-colors">
+<span class="material-symbols-outlined mb-1 text-xl">assignment</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-widest">Records</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-[#DCE2F3] dark:bg-blue-900/40 text-[#0061A4] dark:text-blue-100 rounded-2xl px-5 py-2 scale-105 transition-transform duration-150">
+<span class="material-symbols-outlined mb-1 text-xl" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-widest font-bold">Chat</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#404752] dark:text-slate-500 px-5 py-2 hover:text-[#0061A4] dark:hover:text-blue-300 transition-colors">
+<span class="material-symbols-outlined mb-1 text-xl">person</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-widest">Profile</span>
+</button>
+</div>
+</nav>
+</main>
+</body></html>

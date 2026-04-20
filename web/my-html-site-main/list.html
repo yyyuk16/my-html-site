@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="患者診療記録">患者診療記録</title>
+    <link rel="stylesheet" href="d_maintab.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- 翻訳機能 -->
+    <script src="translation.js"></script>
+   
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-translate="医療管理アプリ">医療管理アプリ</h1>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button" onclick="location.href='home.html'">
+                    <span class="tab-icon">🏥</span>
+                    <span class="tab-text" data-translate="HOME">HOME</span>
+                </button>
+                <button class="tab-button active" onclick="location.href='list.html'">
+                    <span class="tab-icon">👥</span>
+                    <span class="tab-text" data-translate="患者診療記録">患者診療記録</span>
+                </button>
+                <button class="tab-button" onclick="location.href='chat.html'">
+                    <span class="tab-icon">📅</span>
+                    <span class="tab-text" data-translate="チャット">チャット</span>
+                </button>
+                <button class="tab-button" onclick="location.href='docterprofile.html'">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text" data-translate="プロフィール">プロフィール</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="flex-container">
+            <div class="patient-list-panel">
+                <h2><i class="fas fa-user-friends"></i> <span data-translate="担当患者リスト">担当患者リスト</span></h2>
+                <div class="search-box">
+                    <input type="text" id="patientSearch" data-translate="患者を検索..." placeholder="患者を検索...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="chat-list" id="patientList"></div>
+            </div>
+            <div class="memo-area" id="memoArea">
+                <!-- 選択中の患者の診療メモフォーム＋履歴がここに表示される -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+      authDomain: "web01-2484d.firebaseapp.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.appspot.com",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    let currentUserId = null;
+    let patients = [];
+    let selectedPatientId = null;
+
+    // 担当患者リスト取得
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) {
+        alert('ログインしてください');
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUserId = user.uid;
+      // usersコレクションから担当患者を取得
+      const patientsSnapshot = await db.collection('users')
+        .where('role', '==', 'patient')
+        .where('assignedDoctor', '==', currentUserId)
+        .get();
+      patients = patientsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderPatientList();
+    });
+
+    function renderPatientList() {
+      const listDiv = document.getElementById('patientList');
+      listDiv.innerHTML = '';
+      if (patients.length === 0) {
+        listDiv.innerHTML = '<p style="color:var(--text-color-muted,#4A4A4A);text-align:center;margin:32px 0;">担当患者が登録されていません</p>';
+        document.getElementById('memoArea').innerHTML = '';
+        return;
+      }
+      patients.forEach(patient => {
+        const item = document.createElement('div');
+        item.className = 'chat-item' + (selectedPatientId === patient.id ? ' selected' : '');
+        item.innerHTML = `
+          <div class="doctor-avatar">${patient.name ? patient.name.charAt(0) : '?'}</div>
+          <div class="chat-info">
+            <div class="doctor-name">${patient.name || '名無しの患者'}</div>
+            <div class="last-message">${patient.age ? patient.age + '歳' : ''}</div>
+          </div>
+        `;
+        item.onclick = () => {
+          window.location.href = `log.html?uid=${patient.id}`;
+        };
+        listDiv.appendChild(item);
+      });
+      // 最初の患者を自動選択
+      if (!selectedPatientId && patients.length > 0) {
+        selectPatient(patients[0].id);
+      }
+    }
+
+    async function selectPatient(patientId) {
+      selectedPatientId = patientId;
+      const patient = patients.find(p => p.id === patientId);
+      if (!patient) return;
+      // 最新データ取得
+      const doc = await db.collection('users').doc(patientId).get();
+      const data = doc.data();
+      const memos = data.memos || [];
+      renderMemoArea(patient, memos);
+    }
+
+    function renderMemoArea(patient, memos) {
+      const area = document.getElementById('memoArea');
+      const currentDate = new Date().toISOString().split('T')[0];
+      
+      area.innerHTML = `
+        <h2><i class="fas fa-notes-medical"></i> ${patient.name} さんの診療メモ</h2>
+        <form id="memoForm">
+          <div class="memo-field">
+            <label><i class="fas fa-calendar-alt"></i> 診察日</label>
+            <input type="date" class="memo-input" id="memoDate" value="${currentDate}">
+          </div>
+          <div class="memo-field">
+            <label><i class="fas fa-stethoscope"></i> 病状 <span style="color:#666;font-size:0.9em;">(必須)</span></label>
+            <textarea class="memo-input" id="memoCondition" rows="3" placeholder="患者の症状や病状を記録してください"></textarea>
+          </div>
+          <div class="memo-field">
+            <label><i class="fas fa-pills"></i> 処方箋</label>
+            <textarea class="memo-input" id="memoPrescription" rows="3" placeholder="処方した薬や治療内容を記録してください"></textarea>
+          </div>
+          <div class="memo-field">
+            <label><i class="fas fa-pen"></i> その他のメモ</label>
+            <textarea class="memo-input" id="memoOther" rows="2" placeholder="その他の注意事項やメモがあれば記録してください"></textarea>
+          </div>
+          <button class="save-btn" type="submit"><i class="fas fa-save"></i> 診断メモを保存</button>
+        </form>
+        <div class="memo-history">
+          <h3><i class="fas fa-history"></i> メモ履歴 (${memos.length}件)</h3>
+          ${memos.length === 0 ? '<p style="color:var(--text-color-muted,#4A4A4A);margin:12px 0;">メモはまだありません</p>' : memos.map(memo => `
+            <div class="memo-entry">
+              <div class="memo-header">
+                <div class="memo-date"><i class="fas fa-calendar-day"></i> ${memo.date}</div>
+                <div class="memo-doctor" style="font-size:0.9em;color:#666;">
+                  <i class="fas fa-user-md"></i> ${memo.doctorName || '医師'}
+                </div>
+              </div>
+              <div class="memo-content">
+                ${memo.condition ? `<div class="memo-item"><span class="memo-label"><i class="fas fa-stethoscope"></i> 病状:</span><span>${memo.condition}</span></div>` : ''}
+                ${memo.prescription ? `<div class="memo-item"><span class="memo-label"><i class="fas fa-pills"></i> 処方箋:</span><span>${memo.prescription}</span></div>` : ''}
+                ${memo.other ? `<div class="memo-item"><span class="memo-label"><i class="fas fa-pen"></i> その他:</span><span>${memo.other}</span></div>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      document.getElementById('memoForm').onsubmit = async function(e) {
+        e.preventDefault();
+        
+        // 現在の日時を取得
+        const now = new Date();
+        const currentDate = now.toISOString().split('T')[0];
+        
+        const newMemo = {
+          date: document.getElementById('memoDate').value || currentDate,
+          condition: document.getElementById('memoCondition').value,
+          prescription: document.getElementById('memoPrescription').value,
+          other: document.getElementById('memoOther').value,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          doctorId: currentUserId,
+          doctorName: firebase.auth().currentUser?.displayName || '医師'
+        };
+        
+        if (!newMemo.condition && !newMemo.prescription && !newMemo.other) {
+          alert('少なくとも病状、処方箋、その他のいずれかを入力してください');
+          return;
+        }
+        
+        try {
+          // 既存のメモ配列を取得
+          const patientDoc = await db.collection('users').doc(patient.id).get();
+          const existingMemos = patientDoc.data().memos || [];
+          
+          // 新しいメモを配列の先頭に追加
+          existingMemos.unshift(newMemo);
+          
+          // Firebaseに保存
+          await db.collection('users').doc(patient.id).update({ 
+            memos: existingMemos,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          
+          // 成功メッセージ
+          alert('診断メモが正常に保存されました！');
+          
+          // フォームをクリア
+          document.getElementById('memoCondition').value = '';
+          document.getElementById('memoPrescription').value = '';
+          document.getElementById('memoOther').value = '';
+          document.getElementById('memoDate').value = currentDate;
+          
+          // 患者情報を再読み込み
+          await selectPatient(patient.id);
+          
+        } catch (error) {
+          console.error('メモ保存エラー:', error);
+          alert('メモの保存に失敗しました: ' + error.message);
+        }
+      };
+    }
+
+    document.getElementById('patientSearch').addEventListener('input', function(e) {
+        const searchText = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.chat-item');
+        items.forEach(item => {
+            const name = item.querySelector('.doctor-name').textContent.toLowerCase();
+            item.style.display = name.includes(searchText) ? 'flex' : 'none';
+        });
+    });
+    </script>
+</body>
+</html>
