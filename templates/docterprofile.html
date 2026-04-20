@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="保健師プロフィール">保健師プロフィール</title>
+    <link rel="stylesheet" href="maintab.css">
+    <link rel="stylesheet" href="d_footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        body {
+            background: #e3f0fc;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-top: 70px; /* ヘッダーのスペース */
+        }
+
+        /* ヘッダーの固定 */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(249, 249, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(191, 199, 212, 0.15);
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.06);
+        }
+
+        .profile-container {
+            max-width: 500px;
+            margin: 30px auto;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(33, 150, 243, 0.08);
+            overflow: hidden;
+        }
+
+        .profile-header {
+            background: #2196f3;
+            color: #fff;
+            padding: 24px 0 18px 0;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            background: #fff;
+            color: #2196f3;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2em;
+            font-weight: bold;
+            margin: 0 auto 12px;
+            border: 2px solid #90caf9;
+        }
+
+        .profile-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin: 0 0 6px 0;
+        }
+
+        .profile-subtitle {
+            font-size: 1em;
+            opacity: 0.85;
+            margin: 0;
+        }
+
+        .profile-content {
+            padding: 22px 18px;
+        }
+
+        .profile-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e3f0fc;
+        }
+
+        .profile-row:last-child {
+            border-bottom: none;
+        }
+
+        .profile-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1976d2;
+            font-weight: 600;
+            min-width: 100px;
+            font-size: 1em;
+        }
+
+        .profile-label i {
+            font-size: 1.1em;
+            width: 18px;
+            text-align: center;
+        }
+
+        .profile-value {
+            color: #222;
+            font-size: 1em;
+            flex: 1;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .profile-edit-form-btns {
+            text-align: center;
+            margin-top: 22px;
+        }
+
+        .edit-btn {
+            background: #2196f3;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .edit-btn:hover {
+            background: #1976d2;
+        }
+
+        .profile-edit-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1.5px solid #bbdefb;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.2s;
+        }
+
+        .profile-edit-input:focus {
+            outline: none;
+            border-color: #2196f3;
+            box-shadow: 0 0 0 2px #e3f2fd;
+        }
+
+        .save-btn, .cancel-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin: 0 4px;
+        }
+
+        .save-btn {
+            background: #2196f3;
+            color: #fff;
+        }
+
+        .save-btn:hover {
+            background: #1976d2;
+        }
+
+        .cancel-btn {
+            background: #e3f0fc;
+            color: #1976d2;
+        }
+
+        .cancel-btn:hover {
+            background: #bbdefb;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .logout-btn, .delete-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            min-width: 120px;
+        }
+
+        .logout-btn {
+            background: #1976d2;
+            color: #fff;
+        }
+
+        .logout-btn:hover {
+            background: #1565c0;
+        }
+
+        .delete-btn {
+            background: #e3f0fc;
+            color: #d32f2f;
+        }
+
+        .delete-btn:hover {
+            background: #ffcdd2;
+        }
+
+        /* 1. デフォルト（PC）ではモバイル用ナビを隠す */
+        .mobile-nav {
+            display: none;
+        }
+
+        /* 2. モバイル画面（768px以下）の設定 */
+        @media (max-width: 768px) {
+            /* PC用ナビを隠す */
+            .tab-menu {
+                display: none;
+            }
+
+            /* ヘッダーを画像のようなシンプル構成に */
+            .top-bar {
+                padding: 10px 15px;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .header-inner {
+                justify-content: space-between;
+            }
+
+            .logo span {
+                font-size: 1.1rem;
+            }
+
+            /* 下部ナビゲーションを表示 */
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 70px;
+                background: #f8f9fa;
+                border-top: 1px solid #eee;
+                justify-content: space-around;
+                align-items: center;
+                z-index: 1000;
+                padding-bottom: env(safe-area-inset-bottom); /* iPhoneのバー対策 */
+            }
+
+            .nav-item {
+                text-decoration: none;
+                color: #888;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                font-size: 0.7rem;
+                gap: 4px;
+            }
+
+            .nav-item i {
+                font-size: 1.4rem;
+            }
+
+            .nav-item.active {
+                color: #333; /* 選択中の色 */
+            }
+
+            /* メインコンテンツの下部に余白を追加（ナビに被らないように） */
+            body {
+                padding-bottom: 80px;
+            }
+
+            /* PC版のフッターをスマホでは隠す（ナビがあるため） */
+            .footer {
+                display: none;
+            }
+
+            /* プロフィールコンテナのモバイル調整 */
+            .profile-container {
+                margin: 20px 2vw 80px 2vw;
+                border-radius: 10px;
+                max-width: 100%;
+            }
+            .profile-header {
+                padding: 14px 0 10px 0;
+            }
+            .profile-content {
+                padding: 12px 6px;
+            }
+            .profile-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .profile-label {
+                min-width: auto;
+            }
+            .profile-value {
+                text-align: left;
+            }
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .logout-btn, .delete-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* ===== Restorative Ledger overrides ===== */
+        .profile-container {
+            background: #f9f9ff;
+            border: none;
+            box-shadow: 0 4px 24px rgba(0, 97, 164, 0.06);
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #0061a4, #2196f3);
+        }
+
+        .profile-avatar {
+            border-color: #dce2f3;
+            color: #0061a4;
+        }
+
+        .profile-row {
+            border-bottom: 1px solid rgba(191, 199, 212, 0.25);
+        }
+
+        .profile-label {
+            color: #0061a4;
+        }
+
+        .edit-btn, .save-btn, .logout-btn {
+            background: linear-gradient(135deg, #0061a4, #2196f3);
+        }
+
+        .cancel-btn {
+            background: #e2e8f8;
+            color: #151c27;
+        }
+    </style>
+</head>
+<body>
+    <!-- 💚 ヘッダー -->
+    <header class="top-bar">
+        <div class="header-inner">
+            <div class="logo" style="font-size:2rem; font-weight:700; color:#2196f3; letter-spacing:0.08em; display:flex; align-items:center;">
+                <span data-translate="site_title" style="vertical-align:middle;">結核治療アプリ</span>
+            </div>
+            <nav>
+                <ul class="tab-menu">
+                    <li><a href="list.html">👥 <span data-translate="患者診療記録">患者診療記録</span></a></li>
+                    <li><a href="chat.html">📅 <span data-translate="チャット">チャット</span></a></li>
+                    <li><a href="docterprofile.html" class="active">🏥 <span data-translate="プロフィール">プロフィール</span></a></li>
+                </ul>
+            </nav>
+            <div class="rl-header-actions">
+                <button class="rl-icon-btn" type="button" title="通知">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <button class="rl-icon-btn" type="button" title="ヘルプ">
+                    <i class="fas fa-circle-question"></i>
+                </button>
+                <div class="rl-profile-pill">
+                    <span class="rl-avatar">保</span>
+                    <span class="rl-meta">保健師</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <section class="rl-subheader" style="margin-top: 86px;">
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">所属</span>
+            <span class="rl-kpi-value">結核管理科</span>
+        </div>
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">ロール</span>
+            <span class="rl-kpi-value">保健師</span>
+        </div>
+        <div class="rl-kpi-card">
+            <span class="rl-kpi-label">アカウント状態</span>
+            <span class="rl-kpi-value">有効</span>
+        </div>
+    </section>
+
+     <!-- メインコンテンツ -->
+     <div class="profile-container">
+         <div class="profile-header">
+             <div class="profile-avatar">
+                 <span id="profileInitial">?</span>
+                    </div>
+             <h1 class="profile-title" data-translate="保健師プロフィール">保健師プロフィール</h1>
+             <p class="profile-subtitle" data-translate="ご登録情報の確認">ご登録情報の確認</p>
+                </div>
+         <div class="profile-content">
+             <div id="profileList"></div>
+             <div class="action-buttons">
+                 <button id="logoutBtn" class="logout-btn">
+                     <i class="fas fa-sign-out-alt"></i>
+                     <span data-translate="ログアウト">ログアウト</span>
+                 </button>
+                 <button id="deleteAccountBtn" class="delete-btn">
+                    <i class="fas fa-user-times"></i>
+                    <span data-translate="退会（アカウント削除）">退会（アカウント削除）</span>
+                </button>
+             </div>
+        </div>
+    </div>
+
+    <!-- モバイル用ナビゲーション -->
+    <nav class="mobile-nav">
+        <a href="list.html" class="nav-item">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span data-translate="患者診療記録">患者診療記録</span>
+        </a>
+        <a href="chat.html" class="nav-item">
+            <i class="fa-solid fa-comments"></i>
+            <span data-translate="チャット">チャット</span>
+        </a>
+        <a href="docterprofile.html" class="nav-item active">
+            <i class="fa-regular fa-user"></i>
+            <span data-translate="プロフィール">プロフィール</span>
+        </a>
+    </nav>
+    
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" data-translate="terms">利用規約</a>
+                    <a href="#" data-translate="privacy">プライバシーポリシー</a>
+                </div>
+                <div class="footer-copyright">
+                    <small data-translate="copyright_name">© 2024 医療管理アプリ. All rights reserved.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+            authDomain: "web01-2484d.firebaseapp.com",
+            databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+            projectId: "web01-2484d",
+            storageBucket: "web01-2484d.firebasestorage.app",
+            messagingSenderId: "90159472898",
+            appId: "1:90159472898:web:261ec71f9919611011e21b",
+            measurementId: "G-9TGR07ZSY9"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const listDiv = document.getElementById('profileList');
+        let currentUser = null;
+        let currentData = {};
+        let isEditing = false;
+
+        function setLoading(message){
+            listDiv.innerHTML = `<div class='profile-row'><div class='profile-label'><i class="fas fa-circle-notch fa-spin"></i><span>読み込み中</span></div><span class='profile-value'>${message||''}</span></div>`;
+        }
+        function setMessage(iconHtml,label,value){
+            listDiv.innerHTML = `<div class='profile-row'><div class='profile-label'>${iconHtml}<span>${label}</span></div><span class='profile-value'>${value}</span></div>`;
+        }
+
+        // 医師用 編集可能なフィールド
+        const editableFields = {
+            name: {label:'名前', icon:'<i class="fas fa-user"></i>', type:'text', placeholder:'お名前'},
+            gender: {label:'性別', icon:'<i class="fas fa-venus-mars"></i>', type:'select', options:['男性','女性','その他']},
+            age: {label:'年齢', icon:'<i class="fas fa-birthday-cake"></i>', type:'number', min:20, max:120, placeholder:'年齢'},
+            email: {label:'メール', icon:'<i class="fas fa-envelope"></i>', type:'email', placeholder:'メールアドレス'},
+            specialty: {label:'専門', icon:'<i class="fas fa-stethoscope"></i>', type:'text', placeholder:'専門分野'},
+            hospital: {label:'病院', icon:'<i class="fas fa-hospital"></i>', type:'text', placeholder:'勤務先病院'},
+            experience: {label:'勤務年数', icon:'<i class="fas fa-clock"></i>', type:'number', min:0, max:80, placeholder:'勤務年数'}
+        };
+
+        // 医師用 表示順
+        const order = ['name','gender','age','email','specialty','hospital','experience'];
+
+        function renderProfile(data, editing = false) {
+            listDiv.innerHTML = '';
+            let initial = '？';
+            if (data.name && typeof data.name === 'string' && data.name.length > 0) initial = data.name[0];
+                            document.getElementById('profileInitial').textContent = initial;
+                            
+            if (!editing) {
+                // 通常表示
+                for (const key of order) {
+                    let value = data[key];
+                    let label = key;
+                    let icon = '';
+                    let skip = false;
+                    let isEditable = !!editableFields[key];
+                    let field = editableFields[key];
+
+                    switch(key){
+                        case 'name': label='名前'; icon='<i class="fas fa-user"></i>'; break;
+                        case 'gender': label='性別'; icon='<i class="fas fa-venus-mars"></i>'; break;
+                        case 'age': label='年齢'; value = value ? value + '歳' : ''; icon='<i class="fas fa-birthday-cake"></i>'; break;
+                        case 'email': label='メール'; icon='<i class="fas fa-envelope"></i>'; break;
+                        case 'specialty': label='専門'; icon='<i class="fas fa-stethoscope"></i>'; break;
+                        case 'hospital': label='病院'; icon='<i class="fas fa-hospital"></i>'; break;
+                        case 'experience': label='勤務年数'; value = value ? value + '年' : ''; icon='<i class="fas fa-clock"></i>'; break;
+                        default: skip = true; break;
+                    }
+                    if (skip) continue;
+
+                     listDiv.innerHTML += `
+                         <div class='profile-row'>
+                             <div class='profile-label'>${icon}<span>${label}</span></div>
+                             <span class='profile-value'>
+                                 ${value !== undefined ? value : '未登録'}
+                             </span>
+                         </div>
+                     `;
+                }
+                // 一括編集ボタン
+                listDiv.innerHTML += `
+                    <div class="profile-edit-form-btns">
+                        <button class="edit-btn" id="editAllBtn"><i class="fas fa-pen"></i> まとめて編集</button>
+                    </div>
+                `;
+                document.getElementById('editAllBtn').onclick = function() {
+                    isEditing = true;
+                    renderProfile(currentData, true);
+                };
+            } else {
+                // 編集フォーム
+                listDiv.innerHTML = `<form id="profileEditForm" autocomplete="off"></form>`;
+                const form = document.getElementById('profileEditForm');
+                for (const key of order) {
+                    let field = editableFields[key];
+                    let value = data[key];
+                    let label = '';
+                    let icon = '';
+                    let skip = false;
+                    switch(key){
+                        case 'name': label='名前'; icon='<i class="fas fa-user"></i>'; break;
+                        case 'gender': label='性別'; icon='<i class="fas fa-venus-mars"></i>'; break;
+                        case 'age': label='年齢'; icon='<i class="fas fa-birthday-cake"></i>'; break;
+                        case 'email': label='メール'; icon='<i class="fas fa-envelope"></i>'; break;
+                        case 'specialty': label='専門'; icon='<i class="fas fa-stethoscope"></i>'; break;
+                        case 'hospital': label='病院'; icon='<i class="fas fa-hospital"></i>'; break;
+                        case 'experience': label='勤務年数'; icon='<i class="fas fa-clock"></i>'; break;
+                        default: skip = true; break;
+                    }
+                    if (skip) continue;
+
+                    let inputHtml = '';
+                    if (field) {
+                        if (field.type === 'select') {
+                            inputHtml = `<select class="profile-edit-input" name="${key}" id="editInput_${key}">
+                                ${field.options.map(opt => `<option value="${opt}"${(value===opt)?' selected':''}>${opt}</option>`).join('')}
+                            </select>`;
+                                } else {
+                            inputHtml = `<input class="profile-edit-input" name="${key}" id="editInput_${key}" type="${field.type}" value="${value!==undefined?value:''}" 
+                                ${field.placeholder?`placeholder="${field.placeholder}"`:''}
+                                ${field.min!==undefined?`min="${field.min}"`:''}
+                                ${field.max!==undefined?`max="${field.max}"`:''}
+                            >`;
+                        }
+                    }
+                     form.innerHTML += `
+                         <div class='profile-row'>
+                             <div class='profile-label'>${icon}<span>${label}</span></div>
+                             <div class='profile-value'>
+                                 ${inputHtml}
+                             </div>
+                         </div>
+                     `;
+                }
+                // 保存・キャンセルボタン
+                form.innerHTML += `
+                    <div class="profile-edit-form-btns">
+                        <button type="submit" class="save-btn" id="saveAllBtn"><i class="fas fa-check"></i> 保存</button>
+                        <button type="button" class="cancel-btn" id="cancelAllBtn"><i class="fas fa-times"></i> キャンセル</button>
+                    </div>
+                `;
+
+                // 保存処理
+                form.onsubmit = async function(e) {
+                    e.preventDefault();
+                    let updateObj = {};
+                    let newEmail = null;
+                    for (const key of Object.keys(editableFields)) {
+                        let field = editableFields[key];
+                        let input = form.querySelector(`[name="${key}"]`);
+                        if (!input) continue;
+                        let newValue = input.value;
+                        // バリデーション
+                        if (field.type === 'number') {
+                            newValue = Number(newValue);
+                            if (isNaN(newValue) || (field.min!==undefined && newValue<field.min) || (field.max!==undefined && newValue>field.max)) {
+                                alert(`${field.label}は${field.min}～${field.max}の数値で入力してください`);
+                                input.focus();
+                                return;
+                            }
+                        }
+                        if (field.type === 'email') {
+                            if (!/^[^@]+@[^@]+\.[^@]+$/.test(newValue)) {
+                                alert('正しいメールアドレスを入力してください');
+                                input.focus();
+                                return;
+                            }
+                            newEmail = newValue;
+                        }
+                        if (field.type === 'text' && (!newValue || newValue.trim()==='')) {
+                            alert(`${field.label}を入力してください`);
+                            input.focus();
+                            return;
+                        }
+                        updateObj[key] = newValue;
+                    }
+                    setLoading('保存中...');
+                    try {
+                        const db = firebase.firestore();
+                        // メールアドレス変更はauthにも反映
+                        if (newEmail && newEmail !== currentUser.email) {
+                            await currentUser.updateEmail(newEmail);
+                        }
+                        // 上書き保存（merge: false で完全上書き、merge: true で部分上書き）
+                        await db.collection('users').doc(currentUser.uid).set(updateObj, { merge: false });
+                        // 画面上のcurrentDataも更新
+                        Object.assign(currentData, updateObj);
+                        isEditing = false;
+                        alert('更新しました');
+                        renderProfile(currentData, false);
+                    } catch (e) {
+                        alert('保存に失敗しました: ' + e.message);
+                        renderProfile(currentData, false);
+                    }
+                };
+                // キャンセル
+                document.getElementById('cancelAllBtn').onclick = function() {
+                    isEditing = false;
+                    renderProfile(currentData, false);
+                };
+            }
+        }
+
+        setLoading('プロフィールを取得しています...');
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) {
+                setMessage('<i class="fas fa-sign-in-alt"></i>','未ログイン','ログイン後にプロフィールが表示されます');
+                if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                    try { window.multiLang.updateUI(); } catch (_) {}
+                }
+                return;
+            }
+            currentUser = user;
+            try {
+                const db = firebase.firestore();
+                const doc = await db.collection('users').doc(user.uid).get();
+                if (!doc.exists) {
+                    setMessage('<i class="fas fa-user"></i>','データ未登録','プロフィール情報が見つかりません');
+                    return;
+                }
+                let data = doc.data();
+                currentData = data;
+                renderProfile(data, false);
+                if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                    try { window.multiLang.updateUI(); } catch (_) {}
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                setMessage('<i class="fas fa-triangle-exclamation"></i>','エラー','プロフィール取得に失敗しました');
+                if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+                    try { window.multiLang.updateUI(); } catch (_) {}
+                }
+            }
+        });
+
+        document.getElementById('deleteAccountBtn').onclick = async function(){
+            if (!confirm('本当に退会しますか？この操作は元に戻せません。')) return;
+            const user = firebase.auth().currentUser;
+            if (!user) return alert('ログイン情報がありません');
+            const db = firebase.firestore();
+            try {
+                await db.collection('users').doc(user.uid).delete();
+                try {
+                    await user.delete();
+                        alert('退会が完了しました');
+                        window.location.href = 'index.html';
+                } catch (error) {
+                        if (error.code === 'auth/requires-recent-login') {
+                            const pw = prompt('再認証のためパスワードを入力してください');
+                            if (!pw) return alert('パスワードが必要です');
+                            const cred = firebase.auth.EmailAuthProvider.credential(user.email, pw);
+                        await user.reauthenticateWithCredential(cred);
+                        await user.delete();
+                                    alert('退会が完了しました');
+                                    window.location.href = 'index.html';
+                        } else {
+                            alert('退会処理中にエラーが発生しました: ' + error.message);
+                        }
+                }
+            } catch (e) {
+                alert('退会処理中にエラーが発生しました: ' + e.message);
+            }
+        };
+
+        // ログアウトボタン処理
+        document.getElementById('logoutBtn').onclick = async function() {
+            try {
+                await firebase.auth().signOut();
+                window.location.href = 'index.html';
+            } catch (e) {
+                alert('ログアウトに失敗しました: ' + e.message);
+            }
+        };
+    </script>
+</body>
+</html>
