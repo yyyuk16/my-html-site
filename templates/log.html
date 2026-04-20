@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>患者ログ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="log.css">
+    
+    <style>
+        /* 背景を統一 */
+        body {
+            background: 
+                linear-gradient(rgba(67,160,71,0.15), rgba(67,160,71,0.25)),
+                url('./phote/S__8994818.jpg') center/cover no-repeat,
+                var(--background-color, #f7fafd);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="position:relative;display:flex;align-items:center;justify-content:center;min-height:60px;">
+            <button onclick="location.href='list.html'" class="back-btn">← 戻る</button>
+            <h1 style="flex:1;text-align:center;margin:0;">患者ログ</h1>
+        </div>
+
+        <div class="patient-info">
+            <h2>基本情報</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">名前</div>
+                    <div id="patientName">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">年齢</div>
+                    <div id="patientAge">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">性別</div>
+                    <div id="patientGender">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">最終診断日</div>
+                    <div id="lastVisit">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <h2>診断履歴</h2>
+            <div id="diagnosisHistory">
+                <!-- 診断履歴がここに動的に追加されます -->
+            </div>
+        </div>
+
+        <div class="history-section">
+            <h2>クイズ結果</h2>
+            <div class="quiz-results" id="quizResults">
+                <!-- クイズ結果がここに動的に追加されます -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script>
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyC31W-TEE7mIBGFwrRxJAuPugjnEFfWe_k",
+            authDomain: "web01-2484d.firebaseapp.com",
+            projectId: "web01-2484d",
+            storageBucket: "web01-2484d.appspot.com",
+            messagingSenderId: "90159472898",
+            appId: "1:90159472898:web:261ec71f9919611011e21b"
+        };
+
+        // Firebase初期化
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // URLから患者IDを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const patientId = urlParams.get('id') || urlParams.get('uid');
+
+        // 患者情報の取得と表示
+        async function loadPatientData() {
+            try {
+                // patientsコレクション優先、なければusersコレクションから取得
+                let data = null;
+                let docRef = await db.collection('patients').doc(patientId).get();
+                if (docRef.exists) {
+                    data = docRef.data();
+                } else {
+                    docRef = await db.collection('users').doc(patientId).get();
+                    if (docRef.exists) {
+                        data = docRef.data();
+                    }
+                }
+                if (data) {
+                    document.getElementById('patientName').textContent = data.name || '-';
+                    document.getElementById('patientAge').textContent = data.age || '-';
+                    document.getElementById('patientGender').textContent = data.gender || '-';
+                    
+                    // 最終診断日は診断履歴から取得するため、ここでは一時的に「-」を表示
+                    document.getElementById('lastVisit').textContent = '-';
+                }
+            } catch (error) {
+                console.error('患者データの取得に失敗しました:', error);
+            }
+        }
+
+        // 診断履歴の取得と表示
+        async function loadDiagnosisHistory() {
+            try {
+                const historyContainer = document.getElementById('diagnosisHistory');
+                historyContainer.innerHTML = '';
+
+                // usersコレクションから患者のメモ履歴を取得
+                const userDoc = await db.collection('users').doc(patientId).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const memos = userData.memos || [];
+
+                    if (memos.length === 0) {
+                        historyContainer.innerHTML = '<div class="diagnosis-entry">診断履歴はまだありません</div>';
+                        return;
+                    }
+
+                    // メモを日付順でソート（新しい順）
+                    memos.sort((a, b) => {
+                        const dateA = new Date(a.date);
+                        const dateB = new Date(b.date);
+                        return dateB - dateA;
+                    });
+
+                    memos.forEach(memo => {
+                        const historyCard = document.createElement('div');
+                        historyCard.className = 'diagnosis-entry';
+                        
+                        // 日付を日本語形式で表示
+                        const memoDate = new Date(memo.date);
+                        const formattedDate = memoDate.toLocaleDateString('ja-JP', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+
+                        historyCard.innerHTML = `
+                            <div style="font-weight: 600; color: #1976d2; margin-bottom: 8px;">
+                                📅 ${formattedDate}
+                            </div>
+                            ${memo.condition ? `
+                                <div style="margin-bottom: 6px;">
+                                    <span style="font-weight: 600; color: #666;">病状:</span> ${memo.condition}
+                                </div>
+                            ` : ''}
+                            ${memo.prescription ? `
+                                <div style="margin-bottom: 6px;">
+                                    <span style="font-weight: 600; color: #666;">処方箋:</span> ${memo.prescription}
+                                </div>
+                            ` : ''}
+                            ${memo.other ? `
+                                <div style="margin-bottom: 6px;">
+                                    <span style="font-weight: 600; color: #666;">その他:</span> ${memo.other}
+                                </div>
+                            ` : ''}
+                            <div style="font-size: 0.9em; color: #999; margin-top: 8px;">
+                                👨‍⚕️ 担当医師: ${memo.doctorName || '医師'}
+                            </div>
+                        `;
+                        historyContainer.appendChild(historyCard);
+                    });
+
+                    // 最終診断日を更新
+                    if (memos.length > 0) {
+                        // 日付を比較して最新のメモを特定
+                        let latestMemo = memos[0];
+                        let latestDate = new Date(memos[0].date);
+                        
+                        memos.forEach(memo => {
+                            const memoDate = new Date(memo.date);
+                            if (memoDate > latestDate) {
+                                latestDate = memoDate;
+                                latestMemo = memo;
+                            }
+                        });
+                        
+                        const lastVisitElement = document.getElementById('lastVisit');
+                        if (lastVisitElement) {
+                            lastVisitElement.textContent = latestDate.toLocaleDateString('ja-JP', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+                        }
+                    }
+                } else {
+                    historyContainer.innerHTML = '<div class="diagnosis-entry">患者データが見つかりません</div>';
+                }
+            } catch (error) {
+                console.error('診断履歴の取得に失敗しました:', error);
+                document.getElementById('diagnosisHistory').innerHTML = 
+                    '<div class="diagnosis-entry" style="color: #f44336;">診断履歴の読み込みに失敗しました</div>';
+            }
+        }
+
+        // クイズ結果の取得と表示
+        async function loadQuizResults() {
+            try {
+                let quizContainer = document.getElementById('quizResults');
+                quizContainer.innerHTML = '';
+                let quizList = [];
+
+                // 1. AIクイズ結果を取得（ai_quiz_scoresコレクション）
+                try {
+                    const aiQuizSnapshot = await db.collection('ai_quiz_scores')
+                        .where('userId', '==', patientId)
+                        .orderBy('timestamp', 'desc')
+                        .get();
+                    
+                    aiQuizSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        quizList.push({
+                            ...data,
+                            category: 'AIクイズ',
+                            date: data.timestamp && data.timestamp.toDate ? 
+                                data.timestamp.toDate().toLocaleDateString('ja-JP', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                }) : '-',
+                            scoreValue: data.accuracy ? `${Math.round(data.accuracy * 100)}%` : '-',
+                            quizName: 'AI診断クイズ',
+                            correctAnswers: data.correctAnswers || 0,
+                            totalQuestions: data.totalQuestions || 5
+                        });
+                    });
+                } catch (error) {
+                    console.log('AIクイズ結果の取得に失敗:', error);
+                }
+
+                // 2. 動画クイズ結果を取得（movie_quiz_scoresコレクション）
+                try {
+                    const movieQuizSnapshot = await db.collection('movie_quiz_scores')
+                        .where('userId', '==', patientId)
+                        .orderBy('timestamp', 'desc')
+                        .get();
+                    
+                    movieQuizSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        quizList.push({
+                            ...data,
+                            category: '動画クイズ',
+                            date: data.timestamp && data.timestamp.toDate ? 
+                                data.timestamp.toDate().toLocaleDateString('ja-JP', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                }) : '-',
+                            scoreValue: data.accuracy ? `${Math.round(data.accuracy * 100)}%` : '-',
+                            quizName: '動画学習クイズ',
+                            correctAnswers: data.correctAnswers || 0,
+                            totalQuestions: data.totalQuestions || 5
+                        });
+                    });
+                } catch (error) {
+                    console.log('動画クイズ結果の取得に失敗:', error);
+                }
+
+                // 3区分＋その他でグループ化
+                const CATEGORIES = ['基礎知識', '臨床', '倫理'];
+                const grouped = { '基礎知識': [], '臨床': [], '倫理': [], 'その他': [] };
+                quizList.forEach(q => {
+                    const cat = CATEGORIES.includes(q.category) ? q.category : 'その他';
+                    grouped[cat].push(q);
+                });
+                CATEGORIES.concat(['その他']).forEach(cat => {
+                    if (grouped[cat].length > 0) {
+                        const block = document.createElement('div');
+                        block.className = 'quiz-category-block';
+                        block.innerHTML = `<h3>${cat}</h3>`;
+                        grouped[cat].forEach(q => {
+                            const quizCard = document.createElement('div');
+                            quizCard.className = 'quiz-entry';
+                            quizCard.innerHTML = `
+                                <div style="font-weight: 600; color: #1976d2; margin-bottom: 8px;">
+                                    📅 ${q.date}
+                                </div>
+                                <div style="margin-bottom: 6px;">
+                                    <span style="font-weight: 600; color: #666;">クイズ名:</span> ${q.quizName || '-'}
+                                </div>
+                                <div style="margin-bottom: 6px;">
+                                    <span style="font-weight: 600; color: #666;">スコア:</span> ${q.scoreValue}
+                                </div>
+                                <div style="font-size: 0.9em; color: #999;">
+                                    🎯 正解: ${q.correctAnswers || 0}問 / 総問題数: ${q.totalQuestions || 5}問
+                                </div>
+                            `;
+                            block.appendChild(quizCard);
+                        });
+                        quizContainer.appendChild(block);
+                    }
+                });
+            } catch (error) {
+                console.error('クイズ結果の取得に失敗しました:', error);
+            }
+        }
+
+        // ページ読み込み時にデータを取得
+        window.addEventListener('load', () => {
+            if (patientId) {
+                loadPatientData();
+                loadDiagnosisHistory();
+                loadQuizResults();
+            } else {
+                console.error('患者IDが指定されていません');
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -13,8 +13,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <!-- 翻訳機能 -->
-    <script src="translation.js"></script>
+    <!-- 多言語（他ページと同様に multilang.js を使用） -->
+    <script src="multilang.js"></script>
     
     <style>
         /* 患者情報表示エリアのスタイル */
@@ -848,30 +848,30 @@
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
-                <form id="memoForm">
+                <form id="memoModalForm">
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-calendar-alt"></i> 診察日
                         </label>
-                        <input type="date" id="memoDate" class="form-input" required>
+                        <input type="date" id="memoModalDate" class="form-input" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-stethoscope"></i> 病状
                         </label>
-                        <textarea id="memoCondition" class="form-input form-textarea" placeholder="患者の症状や病状を記録してください" required></textarea>
+                        <textarea id="memoModalCondition" class="form-input form-textarea" placeholder="患者の症状や病状を記録してください" required></textarea>
                     </div>
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-pills"></i> 処方箋
                         </label>
-                        <textarea id="memoPrescription" class="form-input form-textarea" placeholder="処方した薬や治療内容を記録してください"></textarea>
+                        <textarea id="memoModalPrescription" class="form-input form-textarea" placeholder="処方した薬や治療内容を記録してください"></textarea>
                     </div>
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-pen"></i> その他のメモ
                         </label>
-                        <textarea id="memoOther" class="form-input form-textarea" placeholder="その他の注意事項やメモがあれば記録してください"></textarea>
+                        <textarea id="memoModalOther" class="form-input form-textarea" placeholder="その他の注意事項やメモがあれば記録してください"></textarea>
                     </div>
                 </form>
             </div>
@@ -884,6 +884,18 @@
 
     <script src="header-staff.js"></script>
     <script>
+    function t(key, fallback) {
+      try {
+        if (window.multiLang && window.multiLang.translations) {
+          const lang = window.multiLang.currentLanguage || 'ja';
+          const dict = window.multiLang.translations[lang] || {};
+          return dict[key] || fallback;
+        }
+      } catch (e) {}
+      return fallback;
+    }
+    window.t = t;
+
     const firebaseConfig = {
   apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
   authDomain: "web01-2484d.firebaseapp.com",
@@ -1260,22 +1272,22 @@
       
       area.innerHTML = `
         <h2><i class="fas fa-notes-medical"></i> ${patient.name}${t('honorific_suffix', 'さん')} ${t('medical_memo', 'の診療メモ')}</h2>
-        <form id="memoForm">
+        <form id="memoInlineForm">
           <div class="memo-field">
             <label><i class="fas fa-calendar-alt"></i> 診察日</label>
-            <input type="date" class="memo-input" id="memoDate" value="${currentDate}">
+            <input type="date" class="memo-input" id="memoInlineDate" value="${currentDate}">
           </div>
           <div class="memo-field">
             <label><i class="fas fa-stethoscope"></i> 病状 <span style="color:#666;font-size:0.9em;">(必須)</span></label>
-            <textarea class="memo-input" id="memoCondition" rows="3" placeholder="患者の症状や病状を記録してください"></textarea>
+            <textarea class="memo-input" id="memoInlineCondition" rows="3" placeholder="患者の症状や病状を記録してください"></textarea>
           </div>
           <div class="memo-field">
             <label><i class="fas fa-pills"></i> 処方箋</label>
-            <textarea class="memo-input" id="memoPrescription" rows="3" placeholder="処方した薬や治療内容を記録してください"></textarea>
+            <textarea class="memo-input" id="memoInlinePrescription" rows="3" placeholder="処方した薬や治療内容を記録してください"></textarea>
           </div>
           <div class="memo-field">
             <label><i class="fas fa-pen"></i> その他のメモ</label>
-            <textarea class="memo-input" id="memoOther" rows="2" placeholder="その他の注意事項やメモがあれば記録してください"></textarea>
+            <textarea class="memo-input" id="memoInlineOther" rows="2" placeholder="その他の注意事項やメモがあれば記録してください"></textarea>
           </div>
           <button class="save-btn" type="submit"><i class="fas fa-save"></i> 診断メモを保存</button>
         </form>
@@ -1298,7 +1310,7 @@
           `).join('')}
         </div>
       `;
-      document.getElementById('memoForm').onsubmit = async function(e) {
+      document.getElementById('memoInlineForm').onsubmit = async function(e) {
         e.preventDefault();
         
         // 現在の日時を取得
@@ -1306,10 +1318,10 @@
         const currentDate = now.toISOString().split('T')[0];
         
         const newMemo = {
-          date: document.getElementById('memoDate').value || currentDate,
-          condition: document.getElementById('memoCondition').value,
-          prescription: document.getElementById('memoPrescription').value,
-          other: document.getElementById('memoOther').value,
+          date: document.getElementById('memoInlineDate').value || currentDate,
+          condition: document.getElementById('memoInlineCondition').value,
+          prescription: document.getElementById('memoInlinePrescription').value,
+          other: document.getElementById('memoInlineOther').value,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           doctorId: currentUserId,
           doctorName: firebase.auth().currentUser?.displayName || '医師'
@@ -1321,9 +1333,13 @@
         }
         
         try {
-          // 既存のメモ配列を取得
           const patientDoc = await db.collection('users').doc(patient.id).get();
-          const existingMemos = patientDoc.data().memos || [];
+          if (!patientDoc.exists) {
+            alert('患者のデータが Firestore に見つかりません。');
+            return;
+          }
+          const pdata = patientDoc.data();
+          const existingMemos = (pdata && Array.isArray(pdata.memos)) ? pdata.memos : [];
           
           // 新しいメモを配列の先頭に追加
           existingMemos.unshift(newMemo);
@@ -1338,10 +1354,10 @@
           alert('診断メモが正常に保存されました！');
           
           // フォームをクリア
-          document.getElementById('memoCondition').value = '';
-          document.getElementById('memoPrescription').value = '';
-          document.getElementById('memoOther').value = '';
-          document.getElementById('memoDate').value = currentDate;
+          document.getElementById('memoInlineCondition').value = '';
+          document.getElementById('memoInlinePrescription').value = '';
+          document.getElementById('memoInlineOther').value = '';
+          document.getElementById('memoInlineDate').value = currentDate;
           
           // 患者情報を再読み込み
           await selectPatient(patient.id);
@@ -1571,16 +1587,21 @@
       
       currentPatientForMemos = patient;
       const modal = document.getElementById('memoModal');
-      const memoDateInput = document.getElementById('memoDate');
+      const memoDateInput = document.getElementById('memoModalDate');
       
-      // 今日の日付をデフォルト値として設定
       const today = new Date().toISOString().split('T')[0];
+      if (!memoDateInput) {
+        console.error('memoModalDate が見つかりません');
+        return;
+      }
       memoDateInput.value = today;
       
-      // フォームをリセット
-      document.getElementById('memoCondition').value = '';
-      document.getElementById('memoPrescription').value = '';
-      document.getElementById('memoOther').value = '';
+      const mc = document.getElementById('memoModalCondition');
+      const mp = document.getElementById('memoModalPrescription');
+      const mo = document.getElementById('memoModalOther');
+      if (mc) mc.value = '';
+      if (mp) mp.value = '';
+      if (mo) mo.value = '';
       
       modal.style.display = 'block';
       
@@ -1610,10 +1631,21 @@
         return;
       }
 
-      const condition = document.getElementById('memoCondition').value.trim();
-      const prescription = document.getElementById('memoPrescription').value.trim();
-      const other = document.getElementById('memoOther').value.trim();
-      const date = document.getElementById('memoDate').value;
+      const patientId = currentPatientForMemos.id;
+      const elDate = document.getElementById('memoModalDate');
+      const elCond = document.getElementById('memoModalCondition');
+      const elPre = document.getElementById('memoModalPrescription');
+      const elOth = document.getElementById('memoModalOther');
+      if (!elDate || !elCond || !elPre || !elOth) {
+        console.error('診察記録フォーム要素が見つかりません', { elDate, elCond, elPre, elOth });
+        alert('フォームの読み込みに失敗しました。ページを再読み込みしてください。');
+        return;
+      }
+
+      const condition = elCond.value.trim();
+      const prescription = elPre.value.trim();
+      const other = elOth.value.trim();
+      const date = elDate.value;
 
       if (!condition) {
         alert('病状を入力してください');
@@ -1621,13 +1653,16 @@
       }
 
       try {
-        console.log('Saving memo for patient:', currentPatientForMemos.id);
-        
-        // 既存の診察記録を取得
-        const patientDoc = await db.collection('users').doc(currentPatientForMemos.id).get();
-        const existingMemos = patientDoc.data().memos || [];
+        console.log('Saving memo for patient:', patientId);
 
-        // 新しい診察記録を作成
+        const patientDoc = await db.collection('users').doc(patientId).get();
+        if (!patientDoc.exists) {
+          alert('患者のデータが Firestore に見つかりません。管理者に連絡してください。');
+          return;
+        }
+        const pdata = patientDoc.data();
+        const existingMemos = (pdata && Array.isArray(pdata.memos)) ? pdata.memos : [];
+
         const newMemo = {
           date: date,
           condition: condition,
@@ -1638,11 +1673,9 @@
           doctorName: firebase.auth().currentUser?.displayName || '医師'
         };
 
-        // 新しい記録を配列に追加
         existingMemos.unshift(newMemo);
 
-        // Firebaseに保存
-        await db.collection('users').doc(currentPatientForMemos.id).update({
+        await db.collection('users').doc(patientId).update({
           memos: existingMemos,
           lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -1650,8 +1683,7 @@
         alert('診察記録が保存されました');
         closeMemoModal();
 
-        // 患者情報を再読み込み
-        await selectPatient(currentPatientForMemos.id);
+        await selectPatient(patientId);
 
       } catch (error) {
         console.error('診察記録保存エラー:', error);

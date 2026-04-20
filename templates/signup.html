@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title data-translate="title">患者新規登録</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <!-- 多言語対応 -->
+  <script src="multilang.js"></script>
+
+  <style>
+    :root {
+      --color-green-light: #e8f5e9;
+      --color-green-medium: #81c784;
+      --color-green-dark: #388e3c;
+      --color-green-accent: #a5d6a7;
+      --primary-color: var(--color-green-medium);
+      --secondary-color: var(--color-green-dark);
+      --accent-color: var(--color-green-accent);
+      --background-color: var(--color-green-light);
+      --text-color: #1A1A1A;
+      --shadow-color: rgba(56, 142, 60, 0.10);
+      --card-bg: rgba(255, 255, 255, 0.96);
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--color-green-light), var(--color-green-accent));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px var(--shadow-color);
+      width: 90%;
+      max-width: 500px;
+      margin: 2rem auto;
+    }
+
+    /* .lang-btn-group, .lang-btn styles are kept for possible future use, but not used in DOM */
+
+    h1 {
+      text-align: center;
+      color: var(--secondary-color);
+      margin-top: 1.5rem;
+      margin-bottom: 1.0rem;
+      text-shadow: 0 2px 10px #a5d6a7;
+      font-size: 1.5rem; /* 文字小さく */
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--secondary-color);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1.5px solid var(--accent-color);
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background: #f7fbf7;
+      transition: border 0.2s, box-shadow 0.2s;
+      outline: none;
+      color: var(--text-color);
+      margin-top: 0.1rem;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px #a5d6a7;
+      background: #fff;
+    }
+
+    select {
+      background-color: #fff;
+      cursor: pointer;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: #fff;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1rem;
+      transition: background-color 0.3s, box-shadow 0.2s, transform 0.15s;
+      box-shadow: 0 2px 8px var(--shadow-color);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    button:hover {
+      background-color: var(--secondary-color);
+      box-shadow: 0 4px 16px rgba(56, 142, 60, 0.18);
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    .back-link {
+      display: block;
+      margin-top: 1rem;
+      color: var(--secondary-color);
+      text-decoration: none;
+      text-align: center;
+      font-weight: 500;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+      color: var(--primary-color);
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 1.5rem;
+        margin: 1rem;
+      }
+
+      input, select, button {
+        padding: 0.7rem;
+      }
+      /* .lang-btn-group styles are kept for possible future use, but not used in DOM */
+    }
+
+    /* 言語セレクター（index.htmlと同じスタイル） */
+    .language-selector {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 5px;
+    }
+
+    .lang-btn {
+      padding: 5px 10px;
+      border: 1px solid var(--color-green-accent);
+      border-radius: 8px;
+      background: white;
+      font-size: 12px;
+      color: var(--primary-color);
+      cursor: pointer;
+    }
+
+    .lang-btn.active {
+      background: var(--primary-color);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+   <!-- 言語選択ボタン -->
+   <div class="language-selector" id="languageSelector">
+    <button class="lang-btn" data-lang="ja">JP</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="zh">ZH</button>
+  </div>
+  <div class="container">
+    <h1 data-translate="signup-title">患者新規登録</h1>
+    <form id="signupForm">
+      <div class="form-section">
+        <div class="form-grid">
+          <div class="form-group half-width">
+            <label for="name" data-translate="name">お名前</label>
+            <input type="text" id="name" required>
+          </div>
+          <div class="form-group half-width">
+            <label for="age" data-translate="age">年齢</label>
+            <input type="number" id="age" min="0" max="120" required>
+          </div>
+          <div class="form-group half-width">
+            <label for="gender" data-translate="gender">性別</label>
+            <select id="gender" required>
+              <option value="" data-translate="select">選択してください</option>
+              <option value="male" data-translate="male">男性</option>
+              <option value="female" data-translate="female">女性</option>
+              <option value="other" data-translate="other">その他</option>
+            </select>
+          </div>
+          <div class="form-group half-width">
+            <label for="language" data-translate="language">言語選択</label>
+            <select id="language" required>
+              <option value="" data-translate="select">選択してください</option>
+              <option value="ja" data-translate="ja">日本語</option>
+              <option value="en" data-translate="en">English</option>
+              <option value="zh" data-translate="zh">中文</option>
+              <option value="ko" data-translate="ko">한국어</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="email" data-translate="email">メールアドレス</label>
+            <input type="email" id="email" required>
+          </div>
+          <div class="form-group full-width">
+            <label for="doctorSelect" data-translate="select-doctor">担当医を選択</label>
+            <select id="doctorSelect" required>
+              <option value="" data-translate="選択してください">選択してください</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="password" data-translate="password">パスワード</label>
+            <input type="password" id="password" required>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword" data-translate="confirm-password">パスワード（確認）</label>
+            <input type="password" id="confirmPassword" required>
+          </div>
+        </div>
+      </div>
+      <button type="submit" data-translate="register">登録</button>
+    </form>
+    <a href="index.html" class="back-link" data-translate="back-to-login">← ログイン画面に戻る</a>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7TuGhOKbB4w7DDYt7KTejy-TrcxVZmpU",
+      authDomain: "web01-2484d.firebaseapp.com",
+      databaseURL: "https://web01-2484d-default-rtdb.firebaseio.com",
+      projectId: "web01-2484d",
+      storageBucket: "web01-2484d.firebasestorage.app",
+      messagingSenderId: "90159472898",
+      appId: "1:90159472898:web:261ec71f9919611011e21b",
+      measurementId: "G-9TGR07ZSY9"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    // 翻訳取得ヘルパー関数（multilang.jsを使用）
+    function getTranslation(key, fallback) {
+      if (window.multiLang && window.multiLang.translations && window.multiLang.currentLanguage) {
+        return window.multiLang.translations[window.multiLang.currentLanguage]?.[key] || fallback;
+      }
+      return fallback;
+    }
+
+    function loadDoctors() {
+      const doctorSelect = document.getElementById('doctorSelect');
+      firebase.firestore().collection('users')
+        .where('role', '==', 'staff')
+        .get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            const doctor = doc.data();
+            const option = document.createElement('option');
+            option.value = doc.id; // 医者のUID
+            option.textContent = doctor.name || doctor.email || '医者';
+            doctorSelect.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.error('医者の取得に失敗しました:', error);
+        });
+    }
+
+    // 言語切り替えボタンの処理（index.htmlと同じ）
+    const initLanguageSwitcher = async () => {
+      if (!window.multiLang) {
+        setTimeout(initLanguageSwitcher, 100);
+        return;
+      }
+
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const lang = btn.getAttribute('data-lang');
+          await window.multiLang.switchLanguage(lang);
+          document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          // UIを更新（念のため明示的に呼び出し）
+          if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+            window.multiLang.updateUI();
+          }
+        });
+      });
+
+      // 初期表示時に現在の言語に応じてボタンをアクティブにする
+      const currentLang = window.multiLang.currentLanguage || 'ja';
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.getAttribute('data-lang') === currentLang) {
+          btn.classList.add('active');
+        }
+      });
+    };
+
+    window.onload = function() {
+      loadDoctors();
+      // 言語切り替えボタンの初期化
+      setTimeout(initLanguageSwitcher, 200);
+      // 初期翻訳を適用（multilang.jsの初期化完了を待つ）
+      const applyInitialTranslation = () => {
+        if (window.multiLang && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+          window.multiLang.updateUI();
+        } else {
+          setTimeout(applyInitialTranslation, 100);
+        }
+      };
+      setTimeout(applyInitialTranslation, 300);
+      
+      // 言語セレクトボックスの変更時にも翻訳を更新
+      const langSelect = document.getElementById('language');
+      if (langSelect) {
+        langSelect.addEventListener('change', async function() {
+          if (langSelect.value && window.multiLang) {
+            await window.multiLang.switchLanguage(langSelect.value);
+            window.multiLang.updateUI();
+          }
+        });
+      }
+    };
+
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const age = document.getElementById('age').value;
+      const gender = document.getElementById('gender').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const language = document.getElementById('language').value || 'ja';
+
+      const doctorSelect = document.getElementById('doctorSelect');
+      const assignedDoctorUid = doctorSelect.value;
+
+      if (password !== confirmPassword) {
+        alert(getTranslation('password_mismatch', 'パスワードが一致しません'));
+        return;
+      }
+      if (!assignedDoctorUid) {
+        alert(getTranslation('select_doctor', '担当医を選択してください'));
+        return;
+      }
+
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          const user = userCredential.user;
+
+          return firebase.firestore().collection('users').doc(user.uid).set({
+            name: name,
+            age: age,
+            gender: gender,
+            email: email,
+            language: language,
+            role: 'patient',
+            assignedDoctor: assignedDoctorUid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        })
+        .then(() => {
+          alert(getTranslation('registration_success', '登録が完了しました！'));
+          window.location.href = 'ai.html';
+        })
+        .catch(error => {
+          alert(getTranslation('registration_error', '登録に失敗しました: ') + error.message);
+        });
+    });
+  </script>
+</body>
+</html>

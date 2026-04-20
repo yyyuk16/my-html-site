@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title data-translate="ai_chat">AI先生チャット</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="chat.css">
+    
+  <style>
+    /* メッセージバブルのレイアウト調整 */
+    .bubble {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    
+    .msg-text[style*="opacity: 0.6"] {
+      font-style: italic;
+      opacity: 0.6;
+    }
+    
+    /* 吹き出しスタイル */
+    .message {
+      max-width: 75%;
+      display: flex;
+      margin: 8px 0;
+    }
+    
+    .message.user-message {
+      align-self: flex-end;
+      justify-content: flex-end;
+    }
+    
+    .message.ai-message {
+      align-self: flex-start;
+      justify-content: flex-start;
+    }
+    
+    .message-content {
+      position: relative;
+      padding: 12px 16px;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+    
+    /* ユーザーメッセージ（右側の吹き出し） */
+    .message.user-message .message-content {
+      background: #8bc34a;
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+    
+    /* AIメッセージ（左側の吹き出し） */
+    .message.ai-message .message-content {
+      background: #ffffff;
+      color: #222;
+      border: 1px solid #e0e0e0;
+      border-bottom-left-radius: 4px;
+    }
+    
+    /* 吹き出しの三角形（ユーザーメッセージ：右側） */
+    .message.user-message .message-content::after {
+      content: "";
+      position: absolute;
+      bottom: 8px;
+      right: -6px;
+      width: 12px;
+      height: 12px;
+      background: #8bc34a;
+      transform: rotate(45deg);
+      border-radius: 0 0 4px 0;
+    }
+    
+    /* 吹き出しの三角形（AIメッセージ：左側） */
+    .message.ai-message .message-content::before {
+      content: "";
+      position: absolute;
+      bottom: 8px;
+      left: -6px;
+      width: 12px;
+      height: 12px;
+      background: #ffffff;
+      border-left: 1px solid #e0e0e0;
+      border-bottom: 1px solid #e0e0e0;
+      transform: rotate(45deg);
+      border-radius: 0 0 0 4px;
+    }
+    
+    .ai-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .ai-icon {
+      font-size: 1.2em;
+    }
+    
+    .ai-name {
+      font-weight: 600;
+      font-size: 0.9em;
+      color: #555;
+    }
+    
+    .ai-text {
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    
+    .loading-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #888;
+    }
+    
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e0e0e0;
+      border-top-color: #8bc34a;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* 緑色に変更 */
+    :root {
+      --primary: #8bc34a;
+      --primary-hover: #8bc34a;
+      --primary-light: #d1fae5;
+    }
+    
+    .message.self .bubble {
+      background: #8bc34a !important;
+    }
+    
+    #sendBtn {
+      background: #8bc34a !important;
+    }
+    
+    #sendBtn:hover {
+      background: #8bc34a !important;
+    }
+    
+    #voiceBtn.active {
+      background: #8bc34a !important;
+      border-color: #8bc34a !important;
+    }
+    
+    #voiceBtn:hover {
+      border-color: #8bc34a !important;
+      color: #8bc34a !important;
+    }
+    
+    #messageInput:focus {
+      border-color: #8bc34a !important;
+      box-shadow: 0 0 0 3px #d1fae5 !important;
+    }
+    
+    #voiceBtn.active {
+      animation: pulse-green 2s infinite;
+    }
+    
+    @keyframes pulse-green {
+      0%, 100% {
+        box-shadow: var(--shadow-md);
+      }
+      50% {
+        box-shadow: 0 0 0 4px #d1fae5;
+      }
+    }
+  </style>
+    
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  
+  <!-- 多言語対応 -->
+  <script src="multilang.js"></script>
+  
+
+</head>
+
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <div id="aiTeacherContainer">
+        <span data-translate="ai_teacher" class="doctor-label" style="font-weight: bold;">AI先生</span>
+      </div>
+    </div>
+
+    <div id="chat" class="chat-messages"></div>
+
+    <div class="input-container">
+      <button id="voiceBtn" title="音声入力">
+        <img src="8549.png" alt="音声入力" id="voiceIcon" />
+      </button>
+      <input type="text" id="messageInput" placeholder="メッセージを入力" autocomplete="off" data-translate="message_input" />
+      <button id="sendBtn" data-translate="send">送信</button>
+      <button onclick="window.location.href='ai.html'" class="back-btn" data-translate="back">戻る</button>
+    </div>
+  </div>
+
+  <script>
+    const OPENAI_ENDPOINT = "/api/chat"; // VercelのAPIエンドポイント
+
+    const chatDiv = document.getElementById("chat");
+    const messageInput = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const voiceBtn = document.getElementById("voiceBtn");
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[m]));
+    }
+
+    function t(key, fallback){
+      try{
+        const lang = (window.multiLang && window.multiLang.currentLanguage) || 'ja';
+        const dict = (window.multiLang && window.multiLang.translations && window.multiLang.translations[lang]) || {};
+        return (dict && dict[key]) || fallback;
+      }catch(_){
+        return fallback;
+      }
+    }
+
+    // who: 'user' | 'ai'
+    function appendMessage(who, text){
+      const messageDiv = document.createElement("div");
+      messageDiv.className = "message";
+
+      if(who === 'user'){
+        messageDiv.className += " user-message";
+        messageDiv.innerHTML = `<div class="message-content">${escapeHtml(text)}</div>`;
+      } else {
+        messageDiv.className += " ai-message";
+        messageDiv.innerHTML = `
+          <div class="message-content">
+            <div class="ai-header">
+              <span class="ai-icon">👨‍⚕️</span>
+              <span class="ai-name" data-translate="ai_teacher">${escapeHtml(t('ai_teacher','AI先生'))}</span>
+            </div>
+            <div class="ai-text">${escapeHtml(text)}</div>
+          </div>
+        `;
+      }
+
+      chatDiv.appendChild(messageDiv);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+    }
+
+    function loading(){
+      const id = "loading-" + Date.now();
+      const messageDiv = document.createElement("div");
+      messageDiv.id = id;
+      messageDiv.className = "message ai-message";
+      messageDiv.innerHTML = `
+        <div class="message-content">
+          <div class="ai-header">
+            <span class="ai-icon">👨‍⚕️</span>
+            <span class="ai-name" data-translate="ai_teacher">${escapeHtml(t('ai_teacher','AI先生'))}</span>
+          </div>
+          <div class="loading-indicator">
+            <div class="spinner"></div>
+            <span>${escapeHtml(t('thinking','考え中...'))}</span>
+          </div>
+        </div>
+      `;
+      chatDiv.appendChild(messageDiv);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+      return id;
+    }
+
+    function stopLoading(id){
+      const el = document.getElementById(id);
+      if(el) el.remove();
+    }
+
+    // ---- 送信制御 ----
+    let isSending = false;        // 二重送信防止
+    let lastSendTime = 0;         // クライアント側の簡易レート制限（連打防止）
+    let cooldownUntil = 0;        // 429等の後にしばらく待たせる
+
+    function setSendingState(sending){
+      isSending = sending;
+      sendBtn.disabled = sending;
+      messageInput.disabled = false; // 入力自体は許可してOK（好みでtrueでも）
+      if(sending){
+        sendBtn.textContent = t('sending', '送信中…');
+      }else{
+        sendBtn.textContent = t('send', '送信');
+      }
+    }
+
+    async function send(){
+      const msg = (messageInput.value || "").trim();
+      if(!msg) return;
+
+      const now = Date.now();
+
+      // クールダウン中は送らない（429後の無駄撃ちを止める）
+      if(now < cooldownUntil){
+        // 余計なAIメッセージは増やさず、軽くバイブ的に伝えるならここで
+        appendMessage('ai', t('please_wait', '少し待ってから再度お試しください。'));
+        return;
+      }
+
+      // 送信中は無視（連打でメッセージが増えるのを止める）
+      if(isSending) return;
+
+      // 1秒未満の連打を弾く
+      if(now - lastSendTime < 1000){
+        appendMessage('ai', t('please_wait', '少し待ってから再度お試しください。'));
+        return;
+      }
+
+      lastSendTime = now;
+
+      // UI反映
+      appendMessage('user', msg);
+      messageInput.value = "";
+      const id = loading();
+      setSendingState(true);
+
+      try{
+        const r = await fetch(OPENAI_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({ message: msg })
+        });
+
+        let data = null;
+        try { data = await r.json(); } catch(e){ /* ignore */ }
+
+        stopLoading(id);
+
+        if(!r.ok){
+          // 429はクールダウン（3秒）してから再送可能にする
+          if(r.status === 429){
+            cooldownUntil = Date.now() + 3000;
+            appendMessage('ai', t('rate_limited', '混み合っています。3秒ほど待ってからもう一度送ってください。'));
+          } else {
+            const errMsg =
+              (data && typeof data.error === 'string' && data.error) ||
+              (data && data.error && (data.error.message || data.error.error)) ||
+              (data && data.detail) ||
+              `通信エラー (${r.status})`;
+            appendMessage('ai', t('ai_sorry', '申し訳ありません。') + errMsg);
+          }
+          setSendingState(false);
+          return;
+        }
+
+        const aiReply = data?.reply ?? t('ai_error', "うまく応答できませんでした。");
+        appendMessage('ai', aiReply);
+        setSendingState(false);
+
+      }catch(e){
+        stopLoading(id);
+        appendMessage('ai', t('network_error', "通信に問題が発生しました。時間をおいて再度お試しください。"));
+        setSendingState(false);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // 初期メッセージ
+      const showInitialMessage = () => {
+        const greeting = t('greeting','こんにちは。診断はできませんが、安心につながる情報を100字以内でお伝えします。');
+        appendMessage('ai', greeting);
+      };
+
+      // 翻訳準備を少し待つ
+      const waitForTranslation = () => {
+        if (window.multiLang && window.multiLang.currentLanguage && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+          showInitialMessage();
+        } else {
+          setTimeout(() => {
+            if (window.multiLang && window.multiLang.currentLanguage && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+              showInitialMessage();
+            } else {
+              appendMessage('ai', 'こんにちは。不安なことはありますか？お話を聞かせてください。');
+            }
+          }, 800);
+        }
+      };
+      waitForTranslation();
+
+      // Enter送信
+      messageInput.addEventListener("keypress", (e) => {
+        if(e.key === "Enter") {
+          e.preventDefault();
+          sendBtn.click();
+        }
+      });
+
+      // ボタン送信
+      sendBtn.addEventListener("click", send);
+
+      messageInput.focus();
+
+      // ===== 音声入力機能 =====
+      let recognition = null;
+      let isListening = false;
+
+      // SpeechRecognition APIの初期化
+      function initSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          voiceBtn.style.display = 'none';
+          console.warn('音声認識APIがサポートされていません');
+          return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = 'ja-JP';
+        recognition.continuous = false;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => {
+          isListening = true;
+          voiceBtn.classList.add('active');
+          const voiceIcon = document.getElementById('voiceIcon');
+          if (voiceIcon) {
+            voiceIcon.style.opacity = '0.6';
+          }
+        };
+
+        recognition.onresult = (event) => {
+          let interimTranscript = '';
+          let finalTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript;
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+
+          if (finalTranscript) {
+            messageInput.value = (messageInput.value + ' ' + finalTranscript).trim();
+          } else if (interimTranscript) {
+            const currentValue = messageInput.value.trim();
+            messageInput.value = currentValue ? currentValue + ' ' + interimTranscript : interimTranscript;
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error('音声認識エラー:', event.error);
+          if (event.error === 'no-speech') {
+            // 音声が検出されなかった場合は自動的に再開しない
+          } else if (event.error === 'not-allowed') {
+            alert('マイクの使用が許可されていません。ブラウザの設定を確認してください。');
+          }
+          stopListening();
+        };
+
+        recognition.onend = () => {
+          stopListening();
+        };
+      }
+
+      function startListening() {
+        if (!recognition) {
+          initSpeechRecognition();
+        }
+        if (recognition && !isListening) {
+          try {
+            recognition.start();
+          } catch (e) {
+            console.error('音声認識の開始に失敗:', e);
+            stopListening();
+          }
+        }
+      }
+
+      function stopListening() {
+        if (recognition && isListening) {
+          try {
+            recognition.stop();
+          } catch (e) {
+            console.error('音声認識の停止に失敗:', e);
+          }
+        }
+        isListening = false;
+        voiceBtn.classList.remove('active');
+        const voiceIcon = document.getElementById('voiceIcon');
+        if (voiceIcon) {
+          voiceIcon.style.opacity = '1';
+        }
+      }
+
+      // モバイルとPCの両方に対応したイベントハンドラ
+      const handleVoiceButtonClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isListening) {
+          stopListening();
+        } else {
+          startListening();
+        }
+      };
+      
+      // clickイベント（PC用）
+      voiceBtn.addEventListener('click', handleVoiceButtonClick);
+      // touchstartイベント（モバイル用）
+      voiceBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleVoiceButtonClick(e);
+      }, { passive: false });
+
+      // ページ読み込み時に初期化
+      initSpeechRecognition();
+
+      // 翻訳UI更新
+      const updateUIWhenReady = () => {
+        if (window.multiLang && typeof window.multiLang.updateUI === 'function') {
+          try {
+            window.multiLang.updateUI();
+            const input = document.getElementById('messageInput');
+            if (input && window.multiLang.translations && window.multiLang.translations[window.multiLang.currentLanguage]) {
+              const translation = window.multiLang.translations[window.multiLang.currentLanguage]['message_input'];
+              if (translation) input.placeholder = translation;
+            }
+          } catch (_) {}
+        } else {
+          setTimeout(updateUIWhenReady, 300);
+        }
+      };
+      updateUIWhenReady();
+    });
+  </script>
+</body>
+</html>
