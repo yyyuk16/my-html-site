@@ -715,20 +715,6 @@
             </div>
         </div>
     </header>
-    <section class="rl-subheader" style="margin-top: 88px;">
-        <div class="rl-kpi-card">
-            <span class="rl-kpi-label">担当患者数</span>
-            <span class="rl-kpi-value" id="kpiAssignedPatients">0名</span>
-        </div>
-        <div class="rl-kpi-card">
-            <span class="rl-kpi-label">要注意患者</span>
-            <span class="rl-kpi-value">-</span>
-        </div>
-        <div class="rl-kpi-card">
-            <span class="rl-kpi-label">最終同期</span>
-            <span class="rl-kpi-value" id="kpiLastSync">--:--</span>
-        </div>
-    </section>
 
     <!-- PC版：横並びレイアウト -->
     <div class="flex-container" style="margin-top:18px;">
@@ -1018,10 +1004,6 @@
             
             const patients = Array.from(patientMap.values());
             console.log('最終的な患者数:', patients.length);
-            const assignedPatientsKpi = document.getElementById('kpiAssignedPatients');
-            if (assignedPatientsKpi) {
-                assignedPatientsKpi.textContent = `${patients.length}名`;
-            }
             if (patients.length > 0) {
                 console.log('患者リスト:', patients.map(p => ({ 
                     id: p.id, 
@@ -1034,10 +1016,6 @@
             }
 
             renderPatientList(patients);
-            const lastSyncKpi = document.getElementById('kpiLastSync');
-            if (lastSyncKpi) {
-                lastSyncKpi.textContent = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-            }
 
             // 検索機能（PC版）
             const patientSearch = document.getElementById('patientSearch');
